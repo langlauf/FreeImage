@@ -21,7 +21,7 @@
 // Use at your own risk!
 // ==========================================================
 
-#pragma warning (disable : 4786)
+#pragma warning (disable : 4786) // identifier was truncated to 'number' characters
 
 #include <stdlib.h>
 
@@ -29,8 +29,26 @@
 #include "FreeImageIO.h"
 #include "Utilities.h"
 
-#include "../DeprecationManager/DeprecationMgr.h"
+#include "../Metadata/FreeImageTag.h"
 
+// ----------------------------------------------------------
+//  Metadata definitions
+// ----------------------------------------------------------
+
+// helper for map<key, value> where value is a pointer to a FreeImage tag
+typedef std::map<std::string, FITAG*> TAGMAP;
+
+// helper for map<FREE_IMAGE_MDMODEL, TAGMAP*>
+typedef std::map<int, TAGMAP*> METADATAMAP;
+
+// helper for metadata iterator
+FI_STRUCT (METADATAHEADER) { 
+	long pos;		// current position when iterating the map
+	TAGMAP *tagmap;	// pointer to the tag map
+};
+
+// ----------------------------------------------------------
+//  FIBITMAP definition
 // ----------------------------------------------------------
 
 FI_STRUCT (FREEIMAGEHEADER) {
@@ -47,7 +65,10 @@ FI_STRUCT (FREEIMAGEHEADER) {
 	BYTE transparent_table[256]; // overall, but it requires quite some changes and it will render
 								 // FreeImage_GetTransparencyTable obsolete in its current form;
 	FIICCPROFILE iccProfile;	 // space to hold ICC profile
-	//BYTE filler[1];              
+
+	METADATAMAP *metadata;		 // contains a list of metadata models attached to the bitmap
+
+	//BYTE filler[1];			 // fill to 32-bit alignment
 };
 
 // ----------------------------------------------------------
@@ -150,6 +171,10 @@ FreeImage_AllocateT(FREE_IMAGE_TYPE type, int width, int height, int bpp, unsign
 			iccProfile->data		= 0;
 			iccProfile->flags		= 0;
 
+			// initialize metadata models list
+
+			fih->metadata = new METADATAMAP;
+
 			// write out the BITMAPINFOHEADER
 
 			BITMAPINFOHEADER *bih   = FreeImage_GetInfoHeader(bitmap);
@@ -173,12 +198,32 @@ FreeImage_AllocateT(FREE_IMAGE_TYPE type, int width, int height, int bpp, unsign
 
 void DLL_CALLCONV
 FreeImage_Unload(FIBITMAP *dib) {
-	if (NULL != dib) {	// delete bitmap and possible icc profile ...
+	if (NULL != dib) {	
 		if (NULL != dib->data) {
+			// delete possible icc profile ...
 			if (FreeImage_GetICCProfile(dib)->data)
 				free(FreeImage_GetICCProfile(dib)->data);
+
+			// delete metadata models
+			METADATAMAP *metadata = ((FREEIMAGEHEADER *)dib->data)->metadata;
+
+			for(METADATAMAP::iterator i = (*metadata).begin(); i != (*metadata).end(); i++) {
+				TAGMAP *tagmap = (*i).second;
+
+				if(tagmap) {
+					for(TAGMAP::iterator i = tagmap->begin(); i != tagmap->end(); i++) {
+						FITAG *tag = (FITAG*)(*i).second;
+						FreeImage_DeleteTag(tag);
+					}
+
+					delete tagmap;
+				}
+			}
+
+			delete metadata;
+
+			// delete bitmap ...
 			free(dib->data);
-			dib->data = NULL;
 		}
 		free(dib);		// ... and the wrapper
 	}
@@ -190,20 +235,47 @@ FIBITMAP * DLL_CALLCONV
 FreeImage_Clone(FIBITMAP *dib) {
 	if(!dib) return NULL;
 	
+	// allocate a new dib
 	FIBITMAP *new_dib = FreeImage_AllocateT(FreeImage_GetImageType(dib), 
 		FreeImage_GetWidth(dib), FreeImage_GetHeight(dib), FreeImage_GetBPP(dib), 
 			FreeImage_GetRedMask(dib), FreeImage_GetGreenMask(dib), FreeImage_GetBlueMask(dib));
 
 	if (new_dib) {
-		memcpy(new_dib->data, dib->data, 
-			sizeof(FREEIMAGEHEADER) + FreeImage_GetDIBSize(dib));
-		if (FreeImage_GetICCProfile(dib)->data &&
-			FreeImage_GetICCProfile(dib)->size) {
-			if (FreeImage_GetICCProfile(new_dib)->data = malloc(FreeImage_GetICCProfile(dib)->size))
-				memcpy(FreeImage_GetICCProfile(new_dib)->data, 
-					   FreeImage_GetICCProfile(dib)->data, 
-					   FreeImage_GetICCProfile(dib)->size);
+		// save metadata links
+		METADATAMAP *src_metadata = ((FREEIMAGEHEADER *)dib->data)->metadata;
+		METADATAMAP *dst_metadata = ((FREEIMAGEHEADER *)new_dib->data)->metadata;
+
+		// copy the bitmap
+		memcpy(new_dib->data, dib->data, sizeof(FREEIMAGEHEADER) + FreeImage_GetDIBSize(dib));
+
+		// copy possible ICC profile
+		FIICCPROFILE *iccProfile = FreeImage_GetICCProfile(dib);
+		FreeImage_CreateICCProfile(new_dib, iccProfile->data, iccProfile->size);
+
+		// restore metadata link for new_dib
+		((FREEIMAGEHEADER *)new_dib->data)->metadata = dst_metadata;
+
+		// copy metadata models
+		for(METADATAMAP::iterator i = (*src_metadata).begin(); i != (*src_metadata).end(); i++) {
+			int model = (*i).first;
+			TAGMAP *src_tagmap = (*i).second;
+
+			// create a metadata model
+			TAGMAP *dst_tagmap = new TAGMAP();
+
+			// fill the model
+			for(TAGMAP::iterator j = src_tagmap->begin(); j != src_tagmap->end(); j++) {
+				std::string dst_key = (*j).first;
+				FITAG *dst_tag = FreeImage_CloneTag( (*j).second );
+
+				// assign key and tag value
+				(*dst_tagmap)[dst_key] = dst_tag;
+			}
+
+			// assign key and model
+			(*dst_metadata)[model] = dst_tagmap;
 		}
+
 		return new_dib;
 	}
 
@@ -465,177 +537,6 @@ FreeImage_DestroyICCProfile(FIBITMAP *dib) {
 
 // ----------------------------------------------------------
 
-BYTE * DLL_CALLCONV
-FreeImage_GetBits(FIBITMAP *dib) {
-	return dib ? ((BYTE *)FreeImage_GetInfoHeader(dib) + sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * FreeImage_GetColorsUsed(dib)) : NULL;
-}
-
-BYTE * DLL_CALLCONV
-FreeImage_GetScanLine(FIBITMAP *dib, int scanline) {
-	return (dib) ? CalculateScanLine(FreeImage_GetBits(dib), FreeImage_GetPitch(dib), scanline) : NULL;
-}
-
-BOOL DLL_CALLCONV
-FreeImage_GetPixelIndex(FIBITMAP *dib, unsigned x, unsigned y, BYTE *value) {
-	BYTE shift;
-
-	if(!dib || (FreeImage_GetImageType(dib) != FIT_BITMAP))
-		return FALSE;
-
-	if((x < FreeImage_GetWidth(dib)) && (y < FreeImage_GetHeight(dib))) {
-		BYTE *bits = FreeImage_GetScanLine(dib, y);
-
-		switch(FreeImage_GetBPP(dib)) {
-			case 1:
-				*value = (bits[x >> 3] & (0x80 >> (x & 0x07))) != 0;
-				break;
-			case 4:
-				shift = (BYTE)((1 - x % 2) << 2);
-				*value = (bits[x >> 1] & (0x0F << shift)) >> shift;
-				break;
-			case 8:
-				*value = bits[x];
-				break;
-			default:
-				return FALSE;
-		}
-
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-BOOL DLL_CALLCONV
-FreeImage_GetPixelColor(FIBITMAP *dib, unsigned x, unsigned y, RGBQUAD *value) {
-	if(!dib || (FreeImage_GetImageType(dib) != FIT_BITMAP))
-		return FALSE;
-
-	if((x < FreeImage_GetWidth(dib)) && (y < FreeImage_GetHeight(dib))) {
-		BYTE *bits = FreeImage_GetScanLine(dib, y);
-
-		switch(FreeImage_GetBPP(dib)) {
-			case 16:
-			{
-				bits += 2*x;
-				WORD *pixel = (WORD *)bits;
-				if((FreeImage_GetRedMask(dib) == FI16_565_RED_MASK) && (FreeImage_GetGreenMask(dib) == FI16_565_GREEN_MASK) && (FreeImage_GetBlueMask(dib) == FI16_565_BLUE_MASK)) {
-					value->rgbBlue		= (((*pixel & FI16_565_BLUE_MASK) >> FI16_565_BLUE_SHIFT) * 0xFF) / 0x1F;
-					value->rgbGreen		= (((*pixel & FI16_565_GREEN_MASK) >> FI16_565_GREEN_SHIFT) * 0xFF) / 0x3F;
-					value->rgbRed		= (((*pixel & FI16_565_RED_MASK) >> FI16_565_RED_SHIFT) * 0xFF) / 0x1F;
-					value->rgbReserved	= 0;
-				} else {
-					value->rgbBlue		= (((*pixel & FI16_555_BLUE_MASK) >> FI16_555_BLUE_SHIFT) * 0xFF) / 0x1F;
-					value->rgbGreen		= (((*pixel & FI16_555_GREEN_MASK) >> FI16_555_GREEN_SHIFT) * 0xFF) / 0x1F;
-					value->rgbRed		= (((*pixel & FI16_555_RED_MASK) >> FI16_555_RED_SHIFT) * 0xFF) / 0x1F;
-					value->rgbReserved	= 0;
-				}
-				break;
-			}
-			case 24:
-				bits += 3*x;
-				value->rgbBlue		= bits[FI_RGBA_BLUE];	// B
-				value->rgbGreen		= bits[FI_RGBA_GREEN];	// G
-				value->rgbRed		= bits[FI_RGBA_RED];	// R
-				value->rgbReserved	= 0;
-				break;
-			case 32:
-				bits += 4*x;
-				value->rgbBlue		= bits[FI_RGBA_BLUE];	// B
-				value->rgbGreen		= bits[FI_RGBA_GREEN];	// G
-				value->rgbRed		= bits[FI_RGBA_RED];	// R
-				value->rgbReserved	= bits[FI_RGBA_ALPHA];	// A
-				break;
-			default:
-				return FALSE;
-		}
-
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-BOOL DLL_CALLCONV
-FreeImage_SetPixelIndex(FIBITMAP *dib, unsigned x, unsigned y, BYTE *value) {
-	BYTE shift;
-
-	if(!dib || (FreeImage_GetImageType(dib) != FIT_BITMAP))
-		return FALSE;
-
-	if((x < FreeImage_GetWidth(dib)) && (y < FreeImage_GetHeight(dib))) {
-		BYTE *bits = FreeImage_GetScanLine(dib, y);
-
-		switch(FreeImage_GetBPP(dib)) {
-			case 1:
-				*value ? bits[x >> 3] |= (0x80 >> (x & 0x7)) : bits[x >> 3] &= (0xFF7F >> (x & 0x7));
-				break;
-			case 4:
-				shift = (BYTE)((1 - x % 2) << 2);
-				bits[x >> 1] |= ((*value & 0x0F) << shift);
-				break;
-			case 8:
-				bits[x] = *value;
-				break;
-			default:
-				return FALSE;
-		}
-
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-BOOL DLL_CALLCONV
-FreeImage_SetPixelColor(FIBITMAP *dib, unsigned x, unsigned y, RGBQUAD *value) {
-	if(!dib || (FreeImage_GetImageType(dib) != FIT_BITMAP))
-		return FALSE;
-
-	if((x < FreeImage_GetWidth(dib)) && (y < FreeImage_GetHeight(dib))) {
-		BYTE *bits = FreeImage_GetScanLine(dib, y);
-
-		switch(FreeImage_GetBPP(dib)) {
-			case 16:
-			{
-				bits += 2*x;
-				WORD *pixel = (WORD *)bits;
-				if((FreeImage_GetRedMask(dib) == FI16_565_RED_MASK) && (FreeImage_GetGreenMask(dib) == FI16_565_GREEN_MASK) && (FreeImage_GetBlueMask(dib) == FI16_565_BLUE_MASK)) {
-					*pixel = ((value->rgbBlue >> 3) << FI16_565_BLUE_SHIFT) |
-						((value->rgbGreen >> 2) << FI16_565_GREEN_SHIFT) |
-						((value->rgbRed >> 3) << FI16_565_RED_SHIFT);
-				} else {
-					*pixel = ((value->rgbBlue >> 3) << FI16_555_BLUE_SHIFT) |
-						((value->rgbGreen >> 3) << FI16_555_GREEN_SHIFT) |
-						((value->rgbRed >> 3) << FI16_555_RED_SHIFT);
-				}
-				break;
-			}
-			case 24:
-				bits += 3*x;
-				bits[FI_RGBA_BLUE]	= value->rgbBlue;	// B
-				bits[FI_RGBA_GREEN] = value->rgbGreen;	// G
-				bits[FI_RGBA_RED]	= value->rgbRed;	// R
-				break;
-			case 32:
-				bits += 4*x;
-				bits[FI_RGBA_BLUE]	= value->rgbBlue;		// B
-				bits[FI_RGBA_GREEN] = value->rgbGreen;		// G
-				bits[FI_RGBA_RED]	= value->rgbRed;		// R
-				bits[FI_RGBA_ALPHA] = value->rgbReserved;	// A
-				break;
-			default:
-				return FALSE;
-		}
-
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-// ----------------------------------------------------------
-
 unsigned DLL_CALLCONV
 FreeImage_GetWidth(FIBITMAP *dib) {
 	return dib ? FreeImage_GetInfoHeader(dib)->biWidth : 0;
@@ -695,5 +596,195 @@ BITMAPINFO * DLL_CALLCONV
 FreeImage_GetInfo(FIBITMAP *dib) {
 	return (BITMAPINFO *)FreeImage_GetInfoHeader(dib);
 }
+
+// ----------------------------------------------------------
+//  Metadata routines
+// ----------------------------------------------------------
+
+FIMETADATA * DLL_CALLCONV 
+FreeImage_FindFirstMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, FITAG **tag) {
+	if(!dib)
+		return NULL;
+
+	// get the metadata model
+	METADATAMAP *metadata = ((FREEIMAGEHEADER *)dib->data)->metadata;
+	TAGMAP *tagmap = (*metadata)[model];
+	if(tagmap) {
+		// allocate a handle
+		FIMETADATA 	*handle = (FIMETADATA *)malloc(sizeof(FIMETADATA));
+		if(handle) {
+			// calculate the size of a METADATAHEADER
+			int header_size = sizeof(METADATAHEADER);
+
+			handle->data = (BYTE *)malloc(header_size * sizeof(BYTE));
+			
+			if(handle->data) {
+				memset(handle->data, 0, header_size * sizeof(BYTE));
+
+				// write out the METADATAHEADER
+				METADATAHEADER *mdh = (METADATAHEADER *)handle->data;
+
+				mdh->pos = 1;
+				mdh->tagmap = tagmap;
+
+				// get the first element
+				TAGMAP::iterator i = tagmap->begin();
+				*tag = (*i).second;
+
+				return handle;
+			}
+
+			free(handle);
+		}
+	}
+
+	return NULL;
+}
+
+BOOL DLL_CALLCONV 
+FreeImage_FindNextMetadata(FIMETADATA *mdhandle, FITAG **tag) {
+	if(!mdhandle)
+		return FALSE;
+
+	METADATAHEADER *mdh = (METADATAHEADER *)mdhandle->data;
+	TAGMAP *tagmap = mdh->tagmap;
+
+	int current_pos = mdh->pos;
+	int mapsize     = tagmap->size();
+
+	if(current_pos < mapsize) {
+		// get the tag element at position pos
+		int count = 0;
+
+		for(TAGMAP::iterator i = tagmap->begin(); i != tagmap->end(); i++) {
+			if(count == current_pos) {
+				*tag = (*i).second;
+				mdh->pos++;
+				break;
+			}
+			count++;
+		}
+		
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+void DLL_CALLCONV 
+FreeImage_FindCloseMetadata(FIMETADATA *mdhandle) {
+	if (NULL != mdhandle) {	// delete the handle
+		if (NULL != mdhandle->data) {
+			free(mdhandle->data);
+		}
+		free(mdhandle);		// ... and the wrapper
+	}
+}
+
+// ----------------------------------------------------------
+
+BOOL DLL_CALLCONV 
+FreeImage_SetMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, const char *key, FITAG *tag) {
+	if(!dib) 
+		return FALSE;
+
+	TAGMAP *tagmap = NULL;
+
+	// get the metadata model
+	METADATAMAP *metadata = ((FREEIMAGEHEADER *)dib->data)->metadata;
+	tagmap = (*metadata)[model];
+
+	if(key != NULL) {
+
+		if(!tagmap) {
+			// this model, doesn't exist: create it 
+			tagmap = new TAGMAP();
+			(*metadata)[model] = tagmap;
+		}
+
+		// first check the tag
+		if(tag) {
+			if(tag->key == NULL) {
+				tag->key = (char*)key;
+			} else if(strcmp(key, tag->key) != 0) {
+				// set the tag key
+				tag->key = (char*)key;
+			}
+			if(tag->count * FreeImage_TagDataWidth(tag->type) != tag->length) {
+				// invalid data count ?
+				return FALSE;
+			}
+		}
+
+		// delete existing tag
+		FITAG *old_tag = (*tagmap)[key];
+		if(old_tag) {
+			FreeImage_DeleteTag(old_tag);
+		}
+
+		// create a new tag
+		(*tagmap)[key] = FreeImage_CloneTag(tag);
+	}
+	else {
+		// destroy the metadata model
+		if(tagmap) {
+			for(TAGMAP::iterator i = tagmap->begin(); i != tagmap->end(); i++) {
+				FITAG *tag = (FITAG*)(*i).second;
+				FreeImage_DeleteTag(tag);
+			}
+
+			delete tagmap;
+			(*metadata)[model] = NULL;
+		}
+	}
+
+	return TRUE;
+}
+
+BOOL DLL_CALLCONV 
+FreeImage_GetMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, const char *key, FITAG **tag) {
+	if(!dib || !key) 
+		return FALSE;
+
+	TAGMAP *tagmap = NULL;
+	*tag = NULL;
+
+	// get the metadata model
+	METADATAMAP *metadata = ((FREEIMAGEHEADER *)dib->data)->metadata;
+	if(!(*metadata).empty()) {
+		tagmap = (*metadata)[model];
+		if(!tagmap) {
+			// this model, doesn't exist: return
+			return FALSE;
+		}
+
+		// get the requested tag
+		*tag = (FITAG*)(*tagmap)[key];
+	}
+	return (*tag != NULL) ? TRUE : FALSE;
+}
+
+// ----------------------------------------------------------
+
+unsigned DLL_CALLCONV 
+FreeImage_GetMetadataCount(FREE_IMAGE_MDMODEL model, FIBITMAP *dib) {
+	if(!dib) 
+		return FALSE;
+
+	TAGMAP *tagmap = NULL;
+
+	// get the metadata model
+	METADATAMAP *metadata = ((FREEIMAGEHEADER *)dib->data)->metadata;
+	tagmap = (*metadata)[model];
+	if(!tagmap) {
+		// this model, doesn't exist: return
+		return 0;
+	}
+
+	// get the tag count
+	return tagmap->size();
+}
+
+// ----------------------------------------------------------
 
 

@@ -23,6 +23,8 @@
 // Use at your own risk!
 // ==========================================================
 
+#pragma warning (disable : 4786) // identifier was truncated to 'number' characters
+
 #ifdef unix
 #undef unix
 #endif
@@ -34,6 +36,20 @@
 
 #include "FreeImage.h"
 #include "Utilities.h"
+
+#include "../Metadata/FreeImageTag.h"
+
+// ----------------------------------------------------------
+//   geotiff interface (see XTIFF.cpp)
+// ----------------------------------------------------------
+
+// Extended TIFF Directory GEO Tag Support
+void XTIFFInitialize();
+
+// GeoTIFF profile
+void tiff_read_geotiff_profile(TIFF *tif, FIBITMAP *dib);
+void tiff_write_geotiff_profile(TIFF *tif, FIBITMAP *dib);
+
 
 // ==========================================================
 // Plugin Interface
@@ -93,6 +109,11 @@ TIFF *
 TIFFFdOpen(thandle_t handle, const char *name, const char *mode) {
 	TIFF *tif;
 
+    // Set up the callback for extended TIFF directory tag support
+	// (see XTIFF.cpp)
+    XTIFFInitialize();	
+	
+	// Open the file; the callback will set everything up
 	tif = TIFFClientOpen(name, mode, handle,
 	    _tiffReadProc, _tiffWriteProc, _tiffSeekProc, _tiffCloseProc,
 	    _tiffSizeProc, _tiffMapProc, _tiffUnmapProc);
@@ -111,6 +132,10 @@ TIFF*
 TIFFOpen(const char* name, const char* mode) {
 	return 0;
 }
+
+// ----------------------------------------------------------
+//   TIFF library FreeImage-specific routines.
+// ----------------------------------------------------------
 
 tdata_t
 _TIFFmalloc(tsize_t s) {
@@ -155,6 +180,7 @@ TIFFErrorHandler _TIFFwarningHandler = msdosWarningHandler;
 static void
 msdosErrorHandler(const char* module, const char* fmt, va_list ap) {
 	/*
+	// use this for diagnostic only (do not use otherwise, even in DEBUG mode)
 	if (module != NULL) {
 		char msg[1024];
 		vsprintf(msg, fmt, ap);
@@ -185,12 +211,15 @@ CheckColormap(int n, uint16* r, uint16* g, uint16* b) {
     return 8;
 }
 
+/**
+Get the TIFFTAG_PHOTOMETRIC value from the dib
+*/
 static uint16
-CheckPhotometric(FIBITMAP *dib, uint16 bitspersample) {
+GetPhotometric(FIBITMAP *dib, uint16 bitsperpixel) {
 	RGBQUAD *rgb;
 	uint16 i;
 
-	switch(bitspersample) {
+	switch(bitsperpixel) {
 		case 1:
 		{
 			rgb = FreeImage_GetPalette(dib);
@@ -239,6 +268,453 @@ CheckPhotometric(FIBITMAP *dib, uint16 bitspersample) {
 	}
 
 	return PHOTOMETRIC_MINISBLACK;
+}
+
+/**
+Get the resolution from the TIFF and fill the dib with universal units
+*/
+static void 
+GetResolution(TIFF *tiff, FIBITMAP *dib) {
+	float fResX = 300.0;
+	float fResY = 300.0;
+	uint16 resUnit = RESUNIT_INCH;
+
+	TIFFGetField(tiff, TIFFTAG_RESOLUTIONUNIT, &resUnit);
+	TIFFGetField(tiff, TIFFTAG_XRESOLUTION, &fResX);
+	TIFFGetField(tiff, TIFFTAG_YRESOLUTION, &fResY);
+
+	BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
+
+	if (resUnit == RESUNIT_INCH) {
+		pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
+		pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
+	} else if(resUnit == RESUNIT_CENTIMETER) {
+		pInfoHeader->biXPelsPerMeter = (int) (fResX*100.0 + 0.5);
+		pInfoHeader->biYPelsPerMeter = (int) (fResY*100.0 + 0.5);
+	}
+}
+
+/**
+Set the resolution to the TIFF using english units
+*/
+static void 
+SetResolution(TIFF *tiff, FIBITMAP *dib) {
+	double res;
+
+	BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
+
+	TIFFSetField(tiff, TIFFTAG_RESOLUTIONUNIT, RESUNIT_INCH);
+
+	res = (unsigned long) (0.5 + 0.0254 * pInfoHeader->biXPelsPerMeter); // rounded ! (99,9998 -> 100)
+	TIFFSetField(tiff, TIFFTAG_XRESOLUTION, res);
+
+	res = (unsigned long) (0.5 + 0.0254 * pInfoHeader->biYPelsPerMeter);
+	TIFFSetField(tiff, TIFFTAG_YRESOLUTION, res);
+}
+
+/** 
+Allocate a FIBITMAP
+@param fit Image type
+@param width Image width in pixels
+@param height Image height in pixels
+@param bitspersample # bits per sample
+@param samplesperpixel # samples per pixel
+@return Returns the allocated image if successful, returns NULL otherwise
+*/
+static FIBITMAP* 
+CreateImageType(FREE_IMAGE_TYPE fit, int width, int height, uint16 bitspersample, uint16 samplesperpixel) {
+	FIBITMAP *dib = NULL;
+
+	uint16 bpp = bitspersample * samplesperpixel;
+
+	if(fit == FIT_BITMAP) {
+		// standard bitmap type 
+
+		if(bitspersample == 16) {
+			if(samplesperpixel == 1) {
+				// 16-bit greyscale -> convert to 8-bit
+				dib = FreeImage_Allocate(width, height, 8);
+			}
+			else if(samplesperpixel = 3) {
+				// 48-bit RGB -> convert to 24-bit RGB
+				dib = FreeImage_Allocate(width, height, 24, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+			}
+		}
+		else if(bpp == 16) {
+			if((samplesperpixel = 2) && (bitspersample == 8)) {
+				// 8-bit indexed + 8-bit alpha channel -> convert to 8-bit transparent
+				dib = FreeImage_Allocate(width, height, 8);
+			} else {
+				// 16-bit RGB -> expect it to be 565
+				dib = FreeImage_Allocate(width, height, bpp, FI16_565_RED_MASK, FI16_565_GREEN_MASK, FI16_565_BLUE_MASK);
+			}
+		}
+		else if(bpp == 24) {
+			// BGR
+			dib = FreeImage_Allocate(width, height, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+		}
+		else if(bpp == 32) {
+			// BGRA
+			dib = FreeImage_Allocate(width, height, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+		}
+		else {
+			// anything else <= 8-bit
+			dib = FreeImage_Allocate(width, height, bpp);
+		}
+	} else {
+		// other bitmap types
+		
+		dib = FreeImage_AllocateT(fit, width, height, bpp);
+	}
+
+	return dib;
+}
+
+/** 
+Read the TIFFTAG_SAMPLEFORMAT tag and convert to FREE_IMAGE_TYPE
+@param tiff LibTIFF TIFF Handle
+@param bitspersample # bit per sample
+@param samplesperpixel # samples per pixel
+@return Returns the image type as a FREE_IMAGE_TYPE value
+*/
+static FREE_IMAGE_TYPE 
+GetImageType(TIFF *tiff, uint16 bitspersample, uint16 samplesperpixel) {
+	uint16 sampleformat = 0;
+	FREE_IMAGE_TYPE fit = FIT_BITMAP;
+
+	uint16 bpp = bitspersample * samplesperpixel;
+
+	// try the sampleformat tag
+    if(TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleformat)) {
+
+        switch (sampleformat) {
+			case SAMPLEFORMAT_UINT:
+				switch (bpp) {
+					case 1:
+					case 4:
+					case 8:
+					case 24:
+						fit = FIT_BITMAP;
+						break;
+					case 16:
+						// 8-bit + alpha or 16-bit RGB
+						if((samplesperpixel == 2) || (samplesperpixel == 3)) {
+							fit = FIT_BITMAP;
+						} else {
+							fit = FIT_UINT16;
+						}
+						break;
+
+					case 32:
+						if(samplesperpixel == 4) {
+							fit = FIT_BITMAP;
+						} else {
+							fit = FIT_UINT32;
+						}
+						break;
+				}
+				break;
+
+			case SAMPLEFORMAT_INT:
+				switch (bpp) {
+					case 16:
+						if(samplesperpixel == 3) {
+							fit = FIT_BITMAP;
+						} else {
+							fit = FIT_INT16;
+						}
+						break;
+					case 32:
+						fit = FIT_INT32;
+						break;
+				}
+				break;
+
+			case SAMPLEFORMAT_IEEEFP:
+				switch (bpp) {
+					case 32:
+						fit = FIT_FLOAT;
+						break;
+					case 64:
+						fit = FIT_DOUBLE;
+						break;
+				}
+				break;
+			case SAMPLEFORMAT_COMPLEXIEEEFP:
+				switch (bpp) {
+					case 64:
+						break;
+					case 128:
+						fit = FIT_COMPLEX;
+						break;
+				}
+				break;
+
+			}
+    }
+	// no sampleformat tag : assume SAMPLEFORMAT_UINT
+	else {
+		if(samplesperpixel == 1) {
+			switch (bpp) {
+				case 16:
+					fit = FIT_UINT16;
+					break;
+					
+				case 32:
+					fit = FIT_UINT32;
+					break;
+			}
+		}
+	}
+
+    return fit;
+}
+
+/** 
+Convert FREE_IMAGE_TYPE and write TIFFTAG_SAMPLEFORMAT
+@param tiff LibTIFF TIFF Handle
+@param fit Image type as a FREE_IMAGE_TYPE value
+*/
+static void 
+SetImageType(TIFF *tiff, FREE_IMAGE_TYPE fit) {
+	switch(fit) {
+		case FIT_BITMAP:	// standard image: 1-, 4-, 8-, 16-, 24-, 32-bit
+		case FIT_UINT16:	// array of unsigned short	: unsigned 16-bit
+		case FIT_UINT32:	// array of unsigned long	: unsigned 32-bit
+			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
+			break;
+
+		case FIT_INT16:		// array of short	: signed 16-bit
+		case FIT_INT32:		// array of long	: signed 32-bit
+			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_INT);
+			break;
+
+		case FIT_FLOAT:		// array of float	: 32-bit
+		case FIT_DOUBLE:	// array of double	: 64-bit
+			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
+			break;
+
+		case FIT_COMPLEX:	// array of COMPLEX : 2 x 64-bit
+			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_COMPLEXIEEEFP);
+			break;
+	}
+}
+
+/**
+Select the compression algorithm
+@param tiff LibTIFF TIFF Handle
+@param 
+*/
+static void 
+SetCompression(TIFF *tiff, uint16 bitspersample, uint16 samplesperpixel, uint16 photometric, int flags) {
+	uint16 compression;
+	uint16 bitsperpixel = bitspersample * samplesperpixel;
+
+	if ((flags & TIFF_PACKBITS) == TIFF_PACKBITS)
+		compression = COMPRESSION_PACKBITS;
+	else if ((flags & TIFF_DEFLATE) == TIFF_DEFLATE)
+		compression = COMPRESSION_DEFLATE;
+	else if ((flags & TIFF_ADOBE_DEFLATE) == TIFF_ADOBE_DEFLATE)
+		compression = COMPRESSION_ADOBE_DEFLATE;
+	else if ((flags & TIFF_NONE) == TIFF_NONE)
+		compression = COMPRESSION_NONE;
+	else if ((flags & TIFF_CCITTFAX3) == TIFF_CCITTFAX3)
+		compression = COMPRESSION_CCITTFAX3;
+	else if ((flags & TIFF_CCITTFAX4) == TIFF_CCITTFAX4)
+		compression = COMPRESSION_CCITTFAX4;
+	else if ((flags & TIFF_LZW) == TIFF_LZW)
+		compression = COMPRESSION_LZW;
+	else {
+		// default compression scheme
+
+		switch(bitsperpixel) {
+			case 1 :
+				compression = COMPRESSION_CCITTFAX4;
+				break;
+
+			case 4 :
+			case 8 :
+			case 16 :
+			case 24 :
+			case 32 :
+			case 64 :
+			case 128:
+				compression = COMPRESSION_LZW;
+				break;
+
+			default :
+				compression = COMPRESSION_NONE;
+				break;
+		}
+	}
+
+	TIFFSetField(tiff, TIFFTAG_COMPRESSION, compression);
+
+	if(compression == COMPRESSION_LZW) {
+		// This option is only meaningful with LZW compression: a predictor value of 2 
+		// causes each scanline of the output image to undergo horizontal differencing 
+		// before it is encoded; a value of 1 forces each scanline to be encoded without differencing.
+
+		// Found on LibTIFF mailing list : 
+		// LZW without differencing works well for 1-bit images, 4-bit grayscale images, 
+		// and many palette-color images. But natural 24-bit color images and some 8-bit 
+		// grayscale images do much better with differencing.
+
+		if((bitspersample == 8) || (bitspersample == 16)) {
+			if ((bitsperpixel >= 8) && (photometric != PHOTOMETRIC_PALETTE))
+				TIFFSetField(tiff, TIFFTAG_PREDICTOR, 2);
+			else
+				TIFFSetField(tiff, TIFFTAG_PREDICTOR, 1);
+		} else {
+			TIFFSetField(tiff, TIFFTAG_PREDICTOR, 1);
+		}
+	}
+
+}
+
+// ==========================================================
+// TIFF metadata routines
+// ==========================================================
+
+/**
+	Read the TIFFTAG_RICHTIFFIPTC tag (IPTC/NAA or Adobe Photoshop profile)
+*/
+static BOOL 
+tiff_read_iptc_profile(TIFF *tiff, FIBITMAP *dib) {
+	BYTE *profile = NULL;
+	uint32 profile_size = 0;
+
+    if(TIFFGetField(tiff,TIFFTAG_RICHTIFFIPTC, &profile_size, &profile) == 1) {
+        if (TIFFIsByteSwapped(tiff) != 0)
+			TIFFSwabArrayOfLong((uint32 *) profile, (unsigned long)profile_size);
+
+		return read_iptc_profile(dib, profile, 4 * profile_size);
+	}
+
+	return FALSE;
+}
+
+/**
+	Read the TIFFTAG_XMLPACKET tag (XMP profile)
+	@param dib Input FIBITMAP
+	@param tiff LibTIFF TIFF handle
+	@return Returns TRUE if successful, FALSE otherwise
+*/
+static BOOL  
+tiff_read_xmp_profile(TIFF *tiff, FIBITMAP *dib) {
+	BYTE *profile = NULL;
+	uint32 profile_size = 0;
+
+	if (TIFFGetField(tiff, TIFFTAG_XMLPACKET, &profile_size, &profile) == 1) {
+		// create a tag
+		FITAG tag;
+		memset(&tag, 0, sizeof(FITAG));
+
+		tag.id = TIFFTAG_XMLPACKET;	// 700
+		tag.key = g_TagLib_XMPFieldName;
+		tag.length = profile_size;
+		tag.count = tag.length;
+		tag.type = FIDT_ASCII;
+		char *value = (char*)malloc((profile_size + 1) * sizeof(char));
+		for(int i = 0; i < profile_size; i++) {
+			value[i] = (char)profile[i];
+		}
+		value[profile_size] = '\0';
+		tag.value = value;
+
+		// store the tag
+		FreeImage_SetMetadata(FIMD_XMP, dib, tag.key, &tag);
+
+		free(value);
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+/**
+	Read the Exif profile embedded in a TIFF
+	@param dib Input FIBITMAP
+	@param tiff LibTIFF TIFF handle
+	@return Returns TRUE if successful, FALSE otherwise
+*/
+static BOOL 
+tiff_read_exif_profile(TIFF *tiff, FIBITMAP *dib) {
+	#define TIFFTAG_EXIFIFD	34665	// Offset to private IFD holding Exif Tags
+
+	short tag_count = 0;
+	void* data = NULL;
+	
+	if(TIFFGetField(tiff, TIFFTAG_EXIFIFD, &tag_count, &data)) {
+		// get the IFD offset
+		uint32 offset = *(uint32*)data;
+
+		// don't know where to go from here ...
+		// the following doesn't work because there's no image data in the exif IFD
+		
+		if(!TIFFSetSubDirectory(tiff, offset))
+			return FALSE;
+		
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+/**
+Read TIFF special profiles
+*/
+static void 
+ReadMetadata(TIFF *tiff, FIBITMAP *dib) {
+
+	// IPTC/NAA
+	tiff_read_iptc_profile(tiff, dib);
+
+	// Adobe XMP
+	tiff_read_xmp_profile(tiff, dib);
+
+	// Exif-TIFF (does not work)
+	tiff_read_exif_profile(tiff, dib);
+
+	// GeoTIFF
+	tiff_read_geotiff_profile(tiff, dib);
+}
+
+// ----------------------------------------------------------
+
+/**
+	Write the TIFFTAG_XMLPACKET tag (XMP profile)
+	@param dib Input FIBITMAP
+	@param tiff LibTIFF TIFF handle
+	@return Returns TRUE if successful, FALSE otherwise
+*/
+static BOOL  
+tiff_write_xmp_profile(TIFF *tiff, FIBITMAP *dib) {
+	FITAG *tag_xmp = NULL;
+	FreeImage_GetMetadata(FIMD_XMP, dib, g_TagLib_XMPFieldName, &tag_xmp);
+
+	if(tag_xmp && (NULL != tag_xmp->value)) {
+		
+		TIFFSetField(tiff, TIFFTAG_XMLPACKET, (uint32)tag_xmp->length, (BYTE*)tag_xmp->value);
+
+		return TRUE;		
+	}
+
+	return FALSE;
+}
+
+/**
+Write TIFF special profiles
+*/
+static void 
+WriteMetadata(TIFF *tiff, FIBITMAP *dib) {
+
+	// Adobe XMP
+	tiff_write_xmp_profile(tiff, dib);
+
+	// GeoTIFF tags
+	tiff_write_geotiff_profile(tiff, dib);
 }
 
 // ==========================================================
@@ -353,174 +829,6 @@ PageCount(FreeImageIO *io, fi_handle handle, void *data) {
 
 // ----------------------------------------------------------
 
-static FIBITMAP* CreateImageType(FREE_IMAGE_TYPE fit, int width, int height, uint16 bitspersample, uint16 samplesperpixel) {
-	FIBITMAP *dib = NULL;
-
-	uint16 bpp = bitspersample * samplesperpixel;
-
-	if(fit == FIT_BITMAP) {
-		// standard bitmap type 
-
-		if(bitspersample == 16) {
-			if(samplesperpixel == 1) {
-				// 16-bit greyscale -> convert to 8-bit
-				dib = FreeImage_Allocate(width, height, 8);
-			}
-			else if(samplesperpixel = 3) {
-				// 48-bit RGB -> convert to 24-bit RGB
-				dib = FreeImage_Allocate(width, height, 24, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
-			}
-		}
-		else if(bpp == 16) {
-			// 16-bit RGB -> expect it to be 565
-			dib = FreeImage_Allocate(width, height, bpp, FI16_565_RED_MASK, FI16_565_GREEN_MASK, FI16_565_BLUE_MASK);
-		}
-		else if(bpp == 24) {
-			// BGR
-			dib = FreeImage_Allocate(width, height, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
-		}
-		else if(bpp == 32) {
-			// BGRA
-			dib = FreeImage_Allocate(width, height, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
-		}
-		else {
-			// anything else <= 8-bit
-			dib = FreeImage_Allocate(width, height, bpp);
-		}
-	} else {
-		// other bitmap types
-		
-		dib = FreeImage_AllocateT(fit, width, height, bpp);
-	}
-
-	return dib;
-}
-
-/** 
-Read the TIFFTAG_SAMPLEFORMAT tag and convert to FREE_IMAGE_TYPE
-@param tiff LibTIFF TIFF Handle
-@param bitspersample # bit per sample
-@param samplesperpixel # samples per pixel
-@return Returns the image type as a FREE_IMAGE_TYPE value
-*/
-static FREE_IMAGE_TYPE GetImageType(TIFF *tiff, uint16 bitspersample, uint16 samplesperpixel) {
-	uint16 sampleformat = 0;
-	FREE_IMAGE_TYPE fit = FIT_BITMAP;
-
-	// try the sampleformat tag
-    if(TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleformat)) {
-
-        switch (sampleformat) {
-			case SAMPLEFORMAT_UINT:
-				switch (bitspersample) {
-					case 1:
-					case 4:
-					case 8:
-					case 24:
-						fit = FIT_BITMAP;
-						break;
-					case 16:
-						if(samplesperpixel == 3) {
-							fit = FIT_BITMAP;
-						} else {
-							fit = FIT_UINT16;
-						}
-						break;
-
-					case 32:
-						if(samplesperpixel == 4) {
-							fit = FIT_BITMAP;
-						} else {
-							fit = FIT_UINT32;
-						}
-						break;
-				}
-				break;
-
-			case SAMPLEFORMAT_INT:
-				switch (bitspersample) {
-					case 16:
-						if(samplesperpixel == 3) {
-							fit = FIT_BITMAP;
-						} else {
-							fit = FIT_INT16;
-						}
-						break;
-					case 32:
-						fit = FIT_INT32;
-						break;
-				}
-				break;
-
-			case SAMPLEFORMAT_IEEEFP:
-				switch (bitspersample) {
-					case 32:
-						fit = FIT_FLOAT;
-						break;
-					case 64:
-						fit = FIT_DOUBLE;
-						break;
-				}
-				break;
-			case SAMPLEFORMAT_COMPLEXIEEEFP:
-				switch (bitspersample) {
-					case 64:
-						break;
-					case 128:
-						fit = FIT_COMPLEX;
-						break;
-				}
-				break;
-
-			}
-    }
-	// no sampleformat tag : assume SAMPLEFORMAT_UINT
-	else {
-		if(samplesperpixel == 1) {
-			switch (bitspersample) {
-				case 16:
-					fit = FIT_UINT16;
-					break;
-					
-				case 32:
-					fit = FIT_UINT32;
-					break;
-			}
-		}
-	}
-
-    return fit;
-}
-
-/** 
-Convert FREE_IMAGE_TYPE and write TIFFTAG_SAMPLEFORMAT
-@param tiff LibTIFF TIFF Handle
-@param fit Image type as a FREE_IMAGE_TYPE value
-*/
-static void SetImageType(TIFF *tiff, FREE_IMAGE_TYPE fit) {
-	switch(fit) {
-		case FIT_BITMAP:	// standard image: 1-, 4-, 8-, 16-, 24-, 32-bit
-		case FIT_UINT16:	// array of unsigned short	: unsigned 16-bit
-		case FIT_UINT32:	// array of unsigned long	: unsigned 32-bit
-			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
-			break;
-
-		case FIT_INT16:		// array of short	: signed 16-bit
-		case FIT_INT32:		// array of long	: signed 32-bit
-			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_INT);
-			break;
-
-		case FIT_FLOAT:		// array of float	: 32-bit
-		case FIT_DOUBLE:	// array of double	: 64-bit
-			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
-			break;
-
-		case FIT_COMPLEX:	// array of COMPLEX : 2 x 64-bit
-			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_COMPLEXIEEEFP);
-			break;
-	}
-}
-
 static FIBITMAP * DLL_CALLCONV
 Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if ((handle != NULL) && (data != NULL)) {
@@ -593,7 +901,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			if (photometric == PHOTOMETRIC_SEPARATED &&	
 				(((flags & TIFF_CMYK) == TIFF_CMYK) || samplesperpixel > 4) && 
 				!TIFFIsTiled(tif))
-				isRGB = false;
+				isRGB = FALSE;
 
 			if (isRGB) {
 				// Read the whole image into one big RGBA buffer and then 
@@ -638,25 +946,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					throw "DIB allocation failed";
 				}
 				
-				// fill in the metrics (english or universal)
+				// fill in the resolution (english or universal)
 
-				float fResX = 300.0;
-				float fResY = 300.0;
-				uint16 resUnit = RESUNIT_INCH;
-
-				TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
-				TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fResX);
-				TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fResY);
-
-				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-
-				if (resUnit == RESUNIT_INCH) {
-					pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
-					pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
-				} else if(resUnit == RESUNIT_CENTIMETER) {
-					pInfoHeader->biXPelsPerMeter = (int) (fResX*100.0 + 0.5);
-					pInfoHeader->biYPelsPerMeter = (int) (fResY*100.0 + 0.5);
-				}
+				GetResolution(tif, dib);
 
 				// read the raster lines and save them in the DIB
 				// with RGB mode, we have to change the order of the 3 samples RGB
@@ -701,13 +993,13 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				// is recognized. Where all other formats are handled straight-forward, this
 				// format has to be handled special 
 
-				BOOL isCMYKA = (photometric == PHOTOMETRIC_SEPARATED && samplesperpixel > 4);
-				uint16 spp = (samplesperpixel < 4) ? samplesperpixel : 4;
+				BOOL isCMYKA = (photometric == PHOTOMETRIC_SEPARATED) && (samplesperpixel > 4);
+				uint16 spp = MIN(samplesperpixel, (uint16)4);
 
-				// calculate the line + pitch (separate for scr & dest)
-
-				int line  = CalculateLine(width, bitspersample * samplesperpixel);
-				int pitch = CalculatePitch(CalculateLine(width, bitspersample * spp));
+				// When samplesperpixel = 2 and bitspersample = 8, set the image as a
+				// 8-bit indexed image + 8-bit alpha layer image
+				// and convert to a 8-bit image with a transparency table
+				BOOL is8BitTrns = (photometric == PHOTOMETRIC_PALETTE) && (samplesperpixel == 2) && (bitspersample = 8);
 
 				// create a new DIB
 				// ----------------
@@ -717,25 +1009,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					throw "No space for DIB image";
 				}
 
-				// fill metrics
+				// fill in the resolution (english or universal)
 
-				float fResX = 300.0;
-				float fResY = 300.0;
-				uint16 resUnit = RESUNIT_INCH;
-
-				TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
-				TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fResX);
-				TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fResY);
-
-				if (resUnit == RESUNIT_INCH) {
-					BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-					pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
-					pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
-				} else if (resUnit == RESUNIT_CENTIMETER) {
-					BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-					pInfoHeader->biXPelsPerMeter = (int) (fResX * 100.0 + 0.5);
-					pInfoHeader->biYPelsPerMeter = (int) (fResY * 100.0 + 0.5);
-				}
+				GetResolution(tif, dib);
 
 				// set up the colormap based on photometric	
 
@@ -802,6 +1078,23 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 						break;						
 				}
 
+				// calculate the line + pitch (separate for scr & dest)
+
+				int line  = CalculateLine(width, bitspersample * samplesperpixel);
+				int pitch = CalculatePitch(CalculateLine(width, bitspersample * spp));
+
+				// transparency table for 8-bit + 8-bit alpha images
+
+				BYTE trns[256]; 
+
+				if(is8BitTrns) {
+					// clear the transparency table
+					memset(trns, 0xFF, 256 * sizeof(BYTE));
+					// (re)calculate the pitch
+					pitch /= 2;
+				}
+
+
 				// In the tiff file the lines are save from up to down 
 				// In a DIB the lines must be saved from down to up
 
@@ -819,21 +1112,37 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 						throw "Parsing error";
 					} else {
 
-						// color/greyscale picture (1-, 4-, 8-bit) or special type (int, long, double, ...)
-						// ... just copy (unless it's an CMYKA picture)
-	
-						for (int l = 0; l < nrow; l++) {
-							bits -= pitch;
+						if(is8BitTrns) {
+							// 8-bit transparent picture
 
-							if (!isCMYKA) {
-								memcpy(bits, buf + l * line, line);
-							} else {
+							for (int l = 0; l < nrow; l++) {
+								bits -= pitch;
+
+								BYTE *p = bits, *b = buf + l * line;
+
+								for(x = 0; x < line / samplesperpixel; x++) {
+									// copy the 8-bit layer
+									*p = b[0];
+									// convert the 8-bit alpha layer to a trns table
+									trns[ b[0] ] = b[1];
+
+									p++;
+									b += samplesperpixel;
+								}
+							}							
+						}
+						else if(isCMYKA) {
+							// CMYKA picture
+
+							for (int l = 0; l < nrow; l++) {
+								bits -= pitch;
 
 								// Here we know: samples-per-pixel was >= 5 on CMYKA picture
 								// This should be converted to RGBA or CMYK, depending on 
 								// TIFF_CMYK is given. The resulting image always has 32bpp.
 
 								BYTE *p = bits, *b = buf + l * line, k;
+
 								for (x = 0; x < line / samplesperpixel; x++) {
 									if ((flags & TIFF_CMYK) == TIFF_CMYK) {
 										memcpy(p, b, spp);
@@ -848,22 +1157,41 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 									b += samplesperpixel;
 									p += spp;
 								}
+							}	
+							
+						}
+						else  {
+							// color/greyscale picture (1-, 4-, 8-bit) or special type (int, long, double, ...)
+							// ... just copy 
+
+							for (int l = 0; l < nrow; l++) {
+								bits -= pitch;
+
+								memcpy(bits, buf + l * line, line);
 							}
 						}
+
 					}
 				}
 				if (photometric == PHOTOMETRIC_SEPARATED && ((flags & TIFF_CMYK) == TIFF_CMYK)) {
 					FreeImage_GetICCProfile(dib)->flags |= FIICC_COLOR_IS_CMYK;
 				}
+				if(is8BitTrns) {
+					FreeImage_SetTransparencyTable(dib, &trns[0], 256);
+				}
+
+				FreeImage_SetTransparent(dib, has_alpha || is8BitTrns);
 				
 				free(buf);
 			}
 
 			// copy ICC profile data (must be done after FreeImage_Allocate)
 
-			FreeImage_CreateICCProfile(dib, iccBuf, iccSize);
+			FreeImage_CreateICCProfile(dib, iccBuf, iccSize);			
 
-			FreeImage_SetTransparent(dib, has_alpha);
+			// copy TIFF metadata (must be done after FreeImage_Allocate)
+
+			ReadMetadata(tif, dib);
 
 			return (FIBITMAP *)dib;
 
@@ -888,31 +1216,34 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		int32 height;
 		int32 width;
 		uint32 rowsperstrip = (uint32) -1;
+		uint16 bitsperpixel;
 		uint16 bitspersample;
 		uint16 samplesperpixel;
 		uint16 photometric;
-		uint16 compression;
 		uint16 pitch;
-#ifndef FREEIMAGE_BIGENDIAN
-		int32 x;
-#endif
-		int32 y;
+		int32 x, y;
 
 		FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
 
 		width = FreeImage_GetWidth(dib);
 		height = FreeImage_GetHeight(dib);
-		bitspersample = FreeImage_GetBPP(dib);
+		bitsperpixel = FreeImage_GetBPP(dib);
 
 		FIICCPROFILE *iccProfile = FreeImage_GetICCProfile(dib);
 
 		if(image_type == FIT_BITMAP) {
 			// standard image: 1-, 4-, 8-, 16-, 24-, 32-bit
 
-			samplesperpixel = ((bitspersample == 24) ? 3 : ((bitspersample == 32) ? 4 : 1));
-			photometric	= CheckPhotometric(dib, bitspersample);
+			samplesperpixel = ((bitsperpixel == 24) ? 3 : ((bitsperpixel == 32) ? 4 : 1));
+			bitspersample = bitsperpixel / samplesperpixel;
+			photometric	= GetPhotometric(dib, bitsperpixel);
 
-			if(bitspersample == 32) {
+			if((bitsperpixel == 8) && FreeImage_IsTransparent(dib)) {
+				// 8-bit transparent picture : convert later to 8-bit + 8-bit alpha
+				samplesperpixel = 2;
+				bitspersample = 8;
+			}
+			else if(bitsperpixel == 32) {
 				// 32-bit images : check for CMYK or alpha transparency
 
 				if((((iccProfile->flags & FIICC_COLOR_IS_CMYK) == FIICC_COLOR_IS_CMYK) || ((flags & TIFF_CMYK) == TIFF_CMYK))) {
@@ -934,6 +1265,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			// special image type (int, long, double, ...)
 
 			samplesperpixel = 1;
+			bitspersample = bitsperpixel;
 			photometric	= PHOTOMETRIC_MINISBLACK;
 		}
 
@@ -952,7 +1284,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		TIFFSetField(out, TIFFTAG_IMAGEWIDTH, width);
 		TIFFSetField(out, TIFFTAG_IMAGELENGTH, height);
 		TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, samplesperpixel);
-		TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, bitspersample / samplesperpixel);
+		TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, bitspersample);
 		TIFFSetField(out, TIFFTAG_PHOTOMETRIC, photometric);
 		TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);	// single image plane 
 		TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
@@ -960,14 +1292,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		// handle metrics
 
-		BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-		TIFFSetField(out, TIFFTAG_RESOLUTIONUNIT, RESUNIT_INCH);
-
-		double res = (unsigned long) (0.5 + 0.0254 * pInfoHeader->biXPelsPerMeter); // rounded ! (99,9998 -> 100)
-		TIFFSetField(out, TIFFTAG_XRESOLUTION, res);
-		
-		res = (unsigned long) (0.5 + 0.0254 * pInfoHeader->biYPelsPerMeter);
-		TIFFSetField(out, TIFFTAG_YRESOLUTION, res);
+		SetResolution(out, dib);
 
 		// multi-paging
 
@@ -1006,45 +1331,12 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		// compression
 
-		if ((flags & TIFF_PACKBITS) == TIFF_PACKBITS)
-			compression = COMPRESSION_PACKBITS;
-		else if ((flags & TIFF_DEFLATE) == TIFF_DEFLATE)
-			compression = COMPRESSION_DEFLATE;
-		else if ((flags & TIFF_ADOBE_DEFLATE) == TIFF_ADOBE_DEFLATE)
-			compression = COMPRESSION_ADOBE_DEFLATE;
-		else if ((flags & TIFF_NONE) == TIFF_NONE)
-			compression = COMPRESSION_NONE;
-		else if ((flags & TIFF_CCITTFAX3) == TIFF_CCITTFAX3)
-			compression = COMPRESSION_CCITTFAX3;
-		else if ((flags & TIFF_CCITTFAX4) == TIFF_CCITTFAX4)
-			compression = COMPRESSION_CCITTFAX4;
-		else if ((flags & TIFF_LZW) == TIFF_LZW)
-			compression = COMPRESSION_LZW;
-		else {
-			// default compression scheme
+		SetCompression(out, bitspersample, samplesperpixel, photometric, flags);
 
-			switch(bitspersample) {
-				case 1 :
-					compression = COMPRESSION_CCITTFAX4;
-					break;
+		// metadata
 
-				case 4 :
-				case 8 :
-				case 16 :
-				case 24 :
-				case 32 :
-				case 64 :
-				case 128:
-					compression = COMPRESSION_LZW;
-					break;
+		WriteMetadata(out, dib);
 
-				default :
-					compression = COMPRESSION_NONE;
-					break;
-			}
-		}
-
-		TIFFSetField(out, TIFFTAG_COMPRESSION, compression);
 
 		// read the DIB lines from bottom to top
 		// and save them in the TIF
@@ -1055,15 +1347,48 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		if(image_type == FIT_BITMAP) {
 			// standard bitmap type
 		
-			switch(bitspersample) {
+			switch(bitsperpixel) {
 				case 1 :
 				case 4 :
 				case 8 :
 				{
-					for (y = height - 1; y >= 0; y--) {
-						BYTE *bits = FreeImage_GetScanLine(dib, y);
+					if((bitsperpixel == 8) && FreeImage_IsTransparent(dib)) {
+						// 8-bit transparent picture : convert to 8-bit + 8-bit alpha
 
-						TIFFWriteScanline(out, bits, height - y - 1, 0);
+						// get the transparency table
+						BYTE *trns = FreeImage_GetTransparencyTable(dib);
+
+						BYTE *buffer = (BYTE *)malloc(2 * width * sizeof(BYTE));
+
+						for (y = height - 1; y >= 0; y--) {
+							BYTE *bits = FreeImage_GetScanLine(dib, y);
+
+							BYTE *p = bits, *b = buffer;
+
+							for(x = 0; x < width; x++) {
+								// copy the 8-bit layer
+								b[0] = *p;
+								// convert the trns table to a 8-bit alpha layer
+								b[1] = trns[ b[0] ];
+
+								p++;
+								b += samplesperpixel;
+							}
+
+							// write the scanline to disc
+
+							TIFFWriteScanline(out, buffer, height - y - 1, 0);
+						}
+
+						free(buffer);
+					}
+					else {
+						// other cases
+						for (y = height - 1; y >= 0; y--) {
+							BYTE *bits = FreeImage_GetScanLine(dib, y);
+
+							TIFFWriteScanline(out, bits, height - y - 1, 0);
+						}
 					}
 
 					break;
@@ -1105,7 +1430,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		} else {
 			// special bitmap type (int, long, double, etc.)
 
-			switch(bitspersample) {
+			switch(bitsperpixel) {
 				case 16:
 				case 32:
 				case 64:

@@ -5,9 +5,49 @@ What's New for FreeImage
 ! : changed
 + : added
 
+November 1st, 2004 - 3.5.0
+! FreeImage now uses libPNG 1.2.7
+! FreeImage now uses libTIFF 3.7.0
+! FreeImage now uses libMNG 1.0.8
+! [Herve Drolon] improved TIFF LZW compression using a predictor
+! [Detlev Vendt] FreeImagesPlus: corrected references to FreeImage.h and FreeImage.lib
++ [Herve Drolon] added support for loading/saving of 8-bit transparent TIFF
++ [Riley McNiff] added support for 4-bit dib in FreeImage_Paste
++ [Herve Drolon] added support for memory IO streams (see below)
++                added FreeImage_OpenMemory
++                added FreeImage_CloseMemory
++                added FreeImage_LoadFromMemory
++                added FreeImage_SaveToMemory
++                added FreeImage_TellMemory
++                added FreeImage_SeekMemory
++                added FreeImage_AcquireMemory
++                added FreeImage_GetFileTypeFromMemory
++ [Petr Pytelka] added FreeImage_GetFIFMimeType to the plugins function list
++ [Herve Drolon] added ICC profile support to JPEG plugin
++ [Herve Drolon] added support for metadata (see below)
++                added FreeImage_SetMetadata
++                added FreeImage_GetMetadata
++                added FreeImage_GetMetadataCount
++                added FreeImage_TagToString
++                added FreeImage_FindFirstMetadata
++                added FreeImage_FindNextMetadata
++                added FreeImage_FindCloseMetadata
+* [Riley McNiff] fixed a bug with FreeImage_SetPixelIndex and 4-bit images
+* [Petr Pytelka] fixed returned value in FreeImage_CloseMultiBitmap
+* [Petr Pytelka] fixed index of new page in FreeImage_InsertPage
+* [Aaron Shumate] fixed a minor bug in PNG plugin
+* [Aaron Shumate] fixed a bug in IFF plugin (odd-length chunks)
+* [Rupert Hewitt] fixed FreeImage not compiling on National Instruments Cvi Ccompiler
+* [Herve Drolon] fixed a bug in IFF plugin (ILBM data)
+* [Fred Harju] added a Makefile for Solaris 9
+* [Roddy Pratt] fixed FreeImage not linking under Borland C++ Builder
+* [Vadim Alexandrov] fixed a memory leak in the multipage API
+* [Herve Drolon] fixed a bug with DDS plugin behaviour on Big Endian OS
+* [Herve Drolon] fixed a bug with conversion of JPEG resolution info on saving
+
 July 8th, 2004 - 3.4.0
 ! [Jim Keir] improved FreeImage_FlipVertical function
-! [Hervé Drolon] LZW compression is now enabled in FreeImage
+! [Herve Drolon] LZW compression is now enabled in FreeImage
 + [Karl-Heinz Bussian] added constants to FreeImage.h to get at compile time the library version
 + [Karl-Heinz Bussian] added color lookup functions for X11 and SVG
 + [Herve Drolon] added TIFF tags TIFF_CCITTFAX3, TIFF_CCITTFAX4 and TIFF_LZW

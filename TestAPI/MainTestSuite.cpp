@@ -50,6 +50,9 @@ int main(int argc, char *argv[]) {
 
 	FreeImage_SetOutputMessage(FreeImageErrorHandler);
 
+	// test memory IO
+	testMemIO("sample.png");
+
 	// test plugins capabilities
 
 	showPlugins();

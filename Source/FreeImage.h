@@ -21,6 +21,7 @@
 // - Martin Weber (martweb@gmx.net)
 // - Matthias Wandel (mwandel@rim.net)
 // - Michal Novotny (michal@etc.cz)
+// - Petr Pytelka (pyta@lightcomp.com)
 // - Ryan Rubley (ryan@lostreality.org)
 // - Volker Gärtner (volkerg@gmx.at)
 //
@@ -45,16 +46,20 @@
 // Version information ------------------------------------------------------
 
 #define FREEIMAGE_MAJOR_VERSION   3
-#define FREEIMAGE_MINOR_VERSION   4
+#define FREEIMAGE_MINOR_VERSION   5
 #define FREEIMAGE_RELEASE_SERIAL  0
 
 // Compiler options ---------------------------------------------------------
 
-#if defined(FREEIMAGE_LIB) || !defined(WIN32)
+#if defined(FREEIMAGE_LIB) || !(defined(WIN32) || defined(__WIN32__))
 #define DLL_API
 #define DLL_CALLCONV
 #else
-#define WIN32_LEAN_AND_MEAN
+
+#ifdef __MINGW32__		// prevents a bug in mingw32
+#include <windows.h>
+#endif // __MINGW32__
+
 #define DLL_CALLCONV __stdcall
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the FREEIMAGE_EXPORTS
@@ -76,6 +81,11 @@
 	defined(__APPLE__)
 #define FREEIMAGE_BIGENDIAN
 #endif // BYTE_ORDER
+
+// Ensure 4-byte enums if we're using Borland C++ compilers
+#if defined(__BORLANDC__)
+#pragma option push -b
+#endif
 
 // For C compatility --------------------------------------------------------
 
@@ -123,7 +133,7 @@ typedef unsigned short WORD;
 typedef unsigned long DWORD;
 typedef long LONG;
 
-#ifdef WIN32
+#if (defined(WIN32) || defined(__WIN32__))
 #pragma pack(push, 1)
 #else
 #pragma pack(1)
@@ -154,7 +164,7 @@ typedef struct tagRGBTRIPLE {
 #endif // FREEIMAGE_BIGENDIAN
 } RGBTRIPLE;
 
-#ifdef WIN32
+#if (defined(WIN32) || defined(__WIN32__))
 #pragma pack(pop)
 #else
 #pragma pack()
@@ -361,6 +371,65 @@ FI_ENUM(FREE_IMAGE_COLOR_CHANNEL) {
 	FICC_PHASE	= 9		// Complex images: use phase
 };
 
+// Metadata support ---------------------------------------------------------
+
+/**
+  Tag data type information (based on TIFF specifications)
+
+  Note: RATIONALs are the ratio of two 32-bit integer values.
+*/
+FI_ENUM(FREE_IMAGE_MDTYPE) {
+	FIDT_NOTYPE		= 0,	// placeholder 
+	FIDT_BYTE		= 1,	// 8-bit unsigned integer 
+	FIDT_ASCII		= 2,	// 8-bit bytes w/ last byte null 
+	FIDT_SHORT		= 3,	// 16-bit unsigned integer 
+	FIDT_LONG		= 4,	// 32-bit unsigned integer 
+	FIDT_RATIONAL	= 5,	// 64-bit unsigned fraction 
+	FIDT_SBYTE		= 6,	// 8-bit signed integer 
+	FIDT_UNDEFINED	= 7,	// 8-bit untyped data 
+	FIDT_SSHORT		= 8,	// 16-bit signed integer 
+	FIDT_SLONG		= 9,	// 32-bit signed integer 
+	FIDT_SRATIONAL	= 10,	// 64-bit signed fraction 
+	FIDT_FLOAT		= 11,	// 32-bit IEEE floating point 
+	FIDT_DOUBLE		= 12,	// 64-bit IEEE floating point 
+	FIDT_IFD		= 13	// 32-bit unsigned integer (offset) 
+};
+
+/**
+  Metadata models supported by FreeImage
+*/
+FI_ENUM(FREE_IMAGE_MDMODEL) {
+	FIMD_NODATA			= -1,
+	FIMD_COMMENTS		= 0,	// single comment or keywords
+	FIMD_EXIF_MAIN		= 1,	// Exif-TIFF metadata
+	FIMD_EXIF_EXIF		= 2,	// Exif-specific metadata
+	FIMD_EXIF_GPS		= 3,	// Exif GPS metadata
+	FIMD_EXIF_MAKERNOTE = 4,	// Exif maker note metadata
+	FIMD_EXIF_INTEROP	= 5,	// Exif interoperability metadata
+	FIMD_IPTC			= 6,	// IPTC/NAA metadata
+	FIMD_XMP			= 7,	// Abobe XMP metadata
+	FIMD_GEOTIFF		= 8,	// GeoTIFF metadata (to be implemented)
+	FIMD_CUSTOM			= 9		// Used to attach other metadata types to a dib
+};
+
+/**
+  Handle to a metadata model
+*/
+FI_STRUCT (FIMETADATA) { void *data; };
+
+/**
+  Metadata attribute
+*/
+FI_STRUCT (FITAG) { 
+	char *key;			// tag field name
+	char *description;	// tag description
+	WORD id;			// tag ID
+	WORD type;			// tag data type (see FREE_IMAGE_MDTYPE)
+	DWORD count;		// number of components (in 'tag data types' units)
+	DWORD length;		// value length in bytes
+	void *value;		// tag value
+};
+
 // File IO routines ---------------------------------------------------------
 
 #ifndef FREEIMAGE_IO
@@ -372,7 +441,7 @@ typedef unsigned (DLL_CALLCONV *FI_WriteProc) (void *buffer, unsigned size, unsi
 typedef int (DLL_CALLCONV *FI_SeekProc) (fi_handle handle, long offset, int origin);
 typedef long (DLL_CALLCONV *FI_TellProc) (fi_handle handle);
 
-#ifdef WIN32
+#if (defined(WIN32) || defined(__WIN32__))
 #pragma pack(push, 1)
 #else
 #pragma pack(1)
@@ -385,11 +454,16 @@ FI_STRUCT(FreeImageIO) {
     FI_TellProc  tell_proc;     // pointer to the function used to aquire the current position
 };
 
-#ifdef WIN32
+#if (defined(WIN32) || defined(__WIN32__))
 #pragma pack(pop)
 #else
 #pragma pack()
 #endif // WIN32
+
+/**
+Handle to a memory I/O stream
+*/
+FI_STRUCT (FIMEMORY) { void *data; };
 
 #endif // FREEIMAGE_IO
 
@@ -493,12 +567,12 @@ extern "C" {
 // Init / Error routines ----------------------------------------------------
 
 DLL_API void DLL_CALLCONV FreeImage_Initialise(BOOL load_local_plugins_only FI_DEFAULT(FALSE));
-DLL_API void DLL_CALLCONV FreeImage_DeInitialise();
+DLL_API void DLL_CALLCONV FreeImage_DeInitialise(void);
 
 // Version routines ---------------------------------------------------------
 
-DLL_API const char *DLL_CALLCONV FreeImage_GetVersion();
-DLL_API const char *DLL_CALLCONV FreeImage_GetCopyrightMessage();
+DLL_API const char *DLL_CALLCONV FreeImage_GetVersion(void);
+DLL_API const char *DLL_CALLCONV FreeImage_GetCopyrightMessage(void);
 
 // Message output functions -------------------------------------------------
 
@@ -521,11 +595,21 @@ DLL_API FIBITMAP *DLL_CALLCONV FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, F
 DLL_API BOOL DLL_CALLCONV FreeImage_Save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, const char *filename, int flags FI_DEFAULT(0));
 DLL_API BOOL DLL_CALLCONV FreeImage_SaveToHandle(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, FreeImageIO *io, fi_handle handle, int flags FI_DEFAULT(0));
 
+// Memory I/O stream routines -----------------------------------------------
+
+DLL_API FIMEMORY *DLL_CALLCONV FreeImage_OpenMemory(BYTE *data FI_DEFAULT(0), DWORD size_in_bytes FI_DEFAULT(0));
+DLL_API void DLL_CALLCONV FreeImage_CloseMemory(FIMEMORY *stream);
+DLL_API FIBITMAP *DLL_CALLCONV FreeImage_LoadFromMemory(FREE_IMAGE_FORMAT fif, FIMEMORY *stream, int flags FI_DEFAULT(0));
+DLL_API BOOL DLL_CALLCONV FreeImage_SaveToMemory(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, FIMEMORY *stream, int flags FI_DEFAULT(0));
+DLL_API long DLL_CALLCONV FreeImage_TellMemory(FIMEMORY *stream);
+DLL_API BOOL DLL_CALLCONV FreeImage_SeekMemory(FIMEMORY *stream, long offset, int origin);
+DLL_API BOOL DLL_CALLCONV FreeImage_AcquireMemory(FIMEMORY *stream, BYTE **data, DWORD *size_in_bytes);
+
 // Plugin Interface ---------------------------------------------------------
 
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterLocalPlugin(FI_InitProc proc_address, const char *format FI_DEFAULT(0), const char *description FI_DEFAULT(0), const char *extension FI_DEFAULT(0), const char *regexpr FI_DEFAULT(0));
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterExternalPlugin(const char *path, const char *format FI_DEFAULT(0), const char *description FI_DEFAULT(0), const char *extension FI_DEFAULT(0), const char *regexpr FI_DEFAULT(0));
-DLL_API int DLL_CALLCONV FreeImage_GetFIFCount();
+DLL_API int DLL_CALLCONV FreeImage_GetFIFCount(void);
 DLL_API int DLL_CALLCONV FreeImage_SetPluginEnabled(FREE_IMAGE_FORMAT fif, BOOL enable);
 DLL_API int DLL_CALLCONV FreeImage_IsPluginEnabled(FREE_IMAGE_FORMAT fif);
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFormat(const char *format);
@@ -533,7 +617,8 @@ DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromMime(const char *mime
 DLL_API const char *DLL_CALLCONV FreeImage_GetFormatFromFIF(FREE_IMAGE_FORMAT fif);
 DLL_API const char *DLL_CALLCONV FreeImage_GetFIFExtensionList(FREE_IMAGE_FORMAT fif);
 DLL_API const char *DLL_CALLCONV FreeImage_GetFIFDescription(FREE_IMAGE_FORMAT fif);
-DLL_API const char * DLL_CALLCONV FreeImage_GetFIFRegExpr(FREE_IMAGE_FORMAT fif);
+DLL_API const char *DLL_CALLCONV FreeImage_GetFIFRegExpr(FREE_IMAGE_FORMAT fif);
+DLL_API const char *DLL_CALLCONV FreeImage_GetFIFMimeType(FREE_IMAGE_FORMAT fif);
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFilename(const char *filename);
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsReading(FREE_IMAGE_FORMAT fif);
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsWriting(FREE_IMAGE_FORMAT fif);
@@ -558,6 +643,7 @@ DLL_API BOOL DLL_CALLCONV FreeImage_GetLockedPageNumbers(FIMULTIBITMAP *bitmap, 
 
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileType(const char *filename, int size FI_DEFAULT(0));
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileTypeFromHandle(FreeImageIO *io, fi_handle handle, int size FI_DEFAULT(0));
+DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileTypeFromMemory(FIMEMORY *stream, int size FI_DEFAULT(0));
 
 // Image type request routine -----------------------------------------------
 
@@ -565,7 +651,7 @@ DLL_API FREE_IMAGE_TYPE DLL_CALLCONV FreeImage_GetImageType(FIBITMAP *dib);
 
 // FreeImage helper routines ------------------------------------------------
 
-DLL_API BOOL DLL_CALLCONV FreeImage_IsLittleEndian();
+DLL_API BOOL DLL_CALLCONV FreeImage_IsLittleEndian(void);
 DLL_API BOOL DLL_CALLCONV FreeImage_LookupX11Color(const char *szColor, BYTE *nRed, BYTE *nGreen, BYTE *nBlue);
 DLL_API BOOL DLL_CALLCONV FreeImage_LookupSVGColor(const char *szColor, BYTE *nRed, BYTE *nGreen, BYTE *nBlue);
 
@@ -674,6 +760,25 @@ DLL_API DWORD DLL_CALLCONV FreeImage_ZLibCompress(BYTE *target, DWORD target_siz
 DLL_API DWORD DLL_CALLCONV FreeImage_ZLibUncompress(BYTE *target, DWORD target_size, BYTE *source, DWORD source_size);
 
 // --------------------------------------------------------------------------
+// Metadata routines --------------------------------------------------------
+// --------------------------------------------------------------------------
+
+// iterator
+DLL_API FIMETADATA *DLL_CALLCONV FreeImage_FindFirstMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, FITAG **tag);
+DLL_API BOOL DLL_CALLCONV FreeImage_FindNextMetadata(FIMETADATA *mdhandle, FITAG **tag);
+DLL_API void DLL_CALLCONV FreeImage_FindCloseMetadata(FIMETADATA *mdhandle);
+
+// setter and getter
+DLL_API BOOL DLL_CALLCONV FreeImage_SetMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, const char *key, FITAG *tag);
+DLL_API BOOL DLL_CALLCONV FreeImage_GetMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, const char *key, FITAG **tag);
+
+// helpers
+DLL_API unsigned DLL_CALLCONV FreeImage_GetMetadataCount(FREE_IMAGE_MDMODEL model, FIBITMAP *dib);
+
+// tag to C string conversion
+DLL_API const char* DLL_CALLCONV FreeImage_TagToString(FREE_IMAGE_MDMODEL model, FITAG *tag, char *Make FI_DEFAULT(NULL));
+
+// --------------------------------------------------------------------------
 // Image manipulation toolkit -----------------------------------------------
 // --------------------------------------------------------------------------
 
@@ -705,6 +810,11 @@ DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Copy(FIBITMAP *dib, int left, int top, 
 DLL_API BOOL DLL_CALLCONV FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, int left, int top, int alpha);
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Composite(FIBITMAP *fg, BOOL useFileBkg FI_DEFAULT(FALSE), RGBQUAD *appBkColor FI_DEFAULT(NULL), FIBITMAP *bg FI_DEFAULT(NULL));
 
+
+// restore the borland-specific enum size option
+#if defined(__BORLANDC__)
+#pragma option pop
+#endif
 
 #ifdef __cplusplus
 }

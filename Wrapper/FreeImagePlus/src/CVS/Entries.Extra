@@ -1,5 +1,5 @@
-/FreeImagePlus.cpp///
-/fipImage.cpp///
-/fipInternetIO.cpp///
-/fipMemoryIO.cpp///
-/fipWinImage.cpp///
+/FreeImagePlus.cpp////
+/fipImage.cpp////
+/fipMemoryIO.cpp////
+/fipWinImage.cpp////
+/fipMultiPage.cpp////
