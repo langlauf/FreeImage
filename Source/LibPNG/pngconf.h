@@ -1,8 +1,8 @@
 /* pngconf.h - machine configurable file for libpng
  *
- * libpng 1.2.1 - December 12, 2001
+ * libpng 1.2.2 - April 17, 2002
  * For conditions of distribution and use, see copyright notice in png.h
- * Copyright (c) 1998-2001 Glenn Randers-Pehrson
+ * Copyright (c) 1998-2002 Glenn Randers-Pehrson
  * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
  * (Version 0.88 Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
  */
@@ -47,7 +47,7 @@
 
 /* Enabled by default in 1.2.0.  You can disable this if you don't need to
    support PNGs that are embedded in MNG datastreams */
-#ifndef PNG_NO_MNG_FEATURES
+#if !defined(PNG_1_0_X) && !defined(PNG_NO_MNG_FEATURES)
 #  ifndef PNG_MNG_FEATURES_SUPPORTED
 #    define PNG_MNG_FEATURES_SUPPORTED
 #  endif
@@ -591,9 +591,11 @@
 #  define PNG_WRITE_WEIGHTED_FILTER_SUPPORTED
 #endif
 
+#ifndef PNG_1_0_X
 #ifndef PNG_NO_ERROR_NUMBERS
 #define PNG_ERROR_NUMBERS_SUPPORTED
 #endif
+#endif /* PNG_1_0_X */
 
 #ifndef PNG_NO_WRITE_FLUSH
 #  define PNG_WRITE_FLUSH_SUPPORTED
@@ -647,9 +649,11 @@
 #define PNG_THREAD_UNSAFE_OK
 */
 
+#if !defined(PNG_1_0_X)
 #if !defined(PNG_NO_USER_MEM) && !defined(PNG_USER_MEM_SUPPORTED)
 #  define PNG_USER_MEM_SUPPORTED
 #endif
+#endif /* PNG_1_0_X */
 
 /* These are currently experimental features, define them if you want */
 

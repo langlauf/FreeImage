@@ -31,7 +31,7 @@ fi_handle g_load_address;
 
 // ----------------------------------------------------------
 
-inline unsigned
+inline unsigned _stdcall
 _ReadProc(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 	BYTE *tmp = (BYTE *)buffer;
 
@@ -46,14 +46,14 @@ _ReadProc(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 	return count;
 }
 
-inline unsigned
+inline unsigned _stdcall
 _WriteProc(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 	// there's not much use for saving the bitmap into memory now, is there?
 
 	return size;
 }
 
-inline int
+inline int _stdcall
 _SeekProc(fi_handle handle, long offset, int origin) {
 	assert(origin != SEEK_END);
 
@@ -66,7 +66,7 @@ _SeekProc(fi_handle handle, long offset, int origin) {
 	return 0;
 }
 
-inline long
+inline long _stdcall
 _TellProc(fi_handle handle) {
 	assert((int)handle > (int)g_load_address);
 

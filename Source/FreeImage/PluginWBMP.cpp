@@ -193,7 +193,7 @@ Description() {
 
 static const char * DLL_CALLCONV
 Extension() {
-	return "wbmp,wap";
+	return "wap,wbmp,wbm";
 }
 
 static const char * DLL_CALLCONV

@@ -56,6 +56,9 @@ enum FREE_IMAGE_FORMAT {
 	FIF_TARGA,
 	FIF_TIFF,
 	FIF_WBMP,
+	FIF_PSD,
+	FIF_CUT,
+	FIF_IFF = FIF_LBM,
 };
 
 // ----------------------------------------------------------
@@ -83,6 +86,5 @@ bool FIQT_FIFSupportsWriting(FREE_IMAGE_FORMAT fif);
 FREE_IMAGE_FORMAT FIQT_GetFIFFromFilename(const char *filename);
 const char *FIQT_GetFileTypeFromExtension(const char *format);
 const char *FIQT_GetFileTypeFromFormat(FREE_IMAGE_FORMAT fif); // this function is deprecated
-
 
 #endif //!FREEIMAGEQT_H

@@ -25,8 +25,8 @@
 
 // ----------------------------------------------------------
 
-#define GREY1(r,g,b) (BYTE)(((WORD)r*77 + (WORD)g*150 + (WORD)b*29) >> 8)	// .299R + .587G + .114B
-#define GREY2(r,g,b) (BYTE)(((WORD)r*169 + (WORD)g*256 + (WORD)b*87) >> 9)	// .33R + 0.5G + .17B
+#define GREY1(r,g,b) (BYTE)(((WORD)r * 77 + (WORD)g * 150 + (WORD)b * 29) >> 8)	// .299R + .587G + .114B
+#define GREY2(r,g,b) (BYTE)(((WORD)r * 169 + (WORD)g * 256 + (WORD)b * 87) >> 9)	// .33R + 0.5G + .17B
 
 // ----------------------------------------------------------
 //  internal conversions X to 8 bits

@@ -146,6 +146,7 @@ CacheFile::lockBlock(int nr) {
 
 					m_page_map.erase(old_block->nr);
 					m_page_cache.pop_front();
+
 					delete old_block->data;
 					delete old_block;
 				}

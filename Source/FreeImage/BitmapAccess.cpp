@@ -96,9 +96,9 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 			bih->biClrImportant     = bih->biClrUsed;
 
 			return bitmap;
-		} else {
-			free(bitmap);
 		}
+
+		free(bitmap);
 	}
 
 	return NULL;
@@ -257,7 +257,7 @@ FreeImage_SetTransparencyTable(FIBITMAP *dib, BYTE *table, int count) {
 			((FREEIMAGEHEADER *)dib->data)->transparent = TRUE;
 			((FREEIMAGEHEADER *)dib->data)->transparency_count = count;
 
-			if (table != NULL) {
+			if (table) {
 				memcpy(((FREEIMAGEHEADER *)dib->data)->transparent_table, table, count);
 			} else {
 				memset(((FREEIMAGEHEADER *)dib->data)->transparent_table, 0xff, count);

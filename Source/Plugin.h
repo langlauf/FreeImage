@@ -99,7 +99,6 @@ extern "C" {
     void DLL_CALLCONV FreeImage_Close(PluginNode *node, FreeImageIO *io, fi_handle handle, void *data); // plugin.cpp
 	FreeImage *FreeImage_GetFreeImageStruct();
     PluginList * DLL_CALLCONV FreeImage_GetPluginList(); // plugin.cpp
-    int * DLL_CALLCONV FreeImage_GetExtraDataPointer(FIBITMAP *bitmap, int entry); // bitmapaccess.cpp
 }
 
 // ==========================================================

@@ -103,8 +103,8 @@ ScanForResolution(float* hres, float* vres, FreeImageIO *io, fi_handle handle, i
 
 		int	data_size = Read32(io, handle);
 
-		if (data_size & 1 == 1)
-			data_size += 1;	// block size must be even.		
+		if ((data_size & 1) == 1)
+			data_size++; // block size must be even.		
 
 		// account for header size.
 

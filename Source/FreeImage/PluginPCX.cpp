@@ -288,12 +288,13 @@ SupportsExportDepth(int depth) {
 static FIBITMAP * DLL_CALLCONV
 Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	FIBITMAP *dib = NULL;
-	BYTE *bits;			// Pointer to dib data
-	RGBQUAD *pal;		// Pointer to dib palette
-	BYTE *line = NULL;	// PCX raster line
-	WORD linelength;	// Length of raster line in bytes
-	WORD pitch;			// Length of DIB line in bytes
-	BOOL rle;			// True if the file is run-length encoded
+	BYTE *bits;			  // Pointer to dib data
+	RGBQUAD *pal;		  // Pointer to dib palette
+	BYTE *line = NULL;	  // PCX raster line
+	BYTE *ReadBuf = NULL; // buffer;
+	WORD linelength;	  // Length of raster line in bytes
+	WORD pitch;			  // Length of DIB line in bytes
+	BOOL rle;			  // True if the file is run-length encoded
 
 	if (handle) {
 		try {
@@ -348,7 +349,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 					BYTE *pColormap = &header.color_map[0];
 
-					for(int i = 0; i < 16; i++) {
+					for (int i = 0; i < 16; i++) {
 						pal[i].rgbRed   = pColormap[0];
 						pal[i].rgbGreen = pColormap[1];
 						pal[i].rgbBlue  = pColormap[2];
@@ -411,10 +412,10 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			// load image data
 			// ---------------
 
-			line = (BYTE*) malloc(linelength * sizeof(BYTE));
+			line = new BYTE[linelength];
 			bits = freeimage->get_scanline_proc(dib, height - 1);
+			ReadBuf = new BYTE[IO_BUF_SIZE];
 
-			BYTE * ReadBuf = (BYTE*) malloc( IO_BUF_SIZE * sizeof(BYTE));
 			int ReadPos = IO_BUF_SIZE;
 
 			if ((header.planes == 1) && ((header.bpp == 1) || (header.bpp == 8))) {
@@ -441,7 +442,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				BYTE *buffer;
 				WORD x, y, written;
 
-				buffer = (BYTE*)malloc(width * sizeof(BYTE));
+				buffer = new BYTE[width];
 
 				for (y = 0; y < height; y++) {
 					written = readline(*io, handle, line, linelength, rle, ReadBuf, &ReadPos);
@@ -468,7 +469,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					// skip trailing garbage at the end of the scanline
 
 					for (int count = written; count < linelength; count++) {
-						if( ReadPos < IO_BUF_SIZE ) {
+						if (ReadPos < IO_BUF_SIZE) {
 							ReadPos++;
 						} else {
 							io->read_proc(&skip, sizeof(BYTE), 1, handle);
@@ -478,7 +479,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					bits -= pitch;
 				}
 
-				free(buffer);
+				delete [] buffer;
 			} else if((header.planes == 3) && (header.bpp == 8)) {
 				BYTE *pline;
 
@@ -502,10 +503,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				throw "Unable to read this file";
 			}
 
-			free(line);
-			free(ReadBuf);
+			delete [] line;
+			delete [] ReadBuf;
 			return dib;
-
 		} catch (char *text) {
 			// free allocated memory
 
@@ -513,7 +513,10 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				freeimage->free_proc(dib);
 
 			if (line != NULL)
-				free(line);
+				delete [] line;
+
+			if (ReadBuf != NULL)
+				delete [] ReadBuf;
 
 			freeimage->output_message_proc(s_format_id, text);
 

@@ -1,9 +1,9 @@
 
 /* pngread.c - read a PNG file
  *
- * libpng 1.2.1 - December 12, 2001
+ * libpng 1.2.2 - April 17, 2002
  * For conditions of distribution and use, see copyright notice in png.h
- * Copyright (c) 1998-2001 Glenn Randers-Pehrson
+ * Copyright (c) 1998-2002 Glenn Randers-Pehrson
  * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
  * (Version 0.88 Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
  *
@@ -45,16 +45,19 @@ png_create_read_struct_2(png_const_charp user_png_ver, png_voidp error_ptr,
 
    png_debug(1, "in png_create_read_struct\n");
 #ifdef PNG_USER_MEM_SUPPORTED
-   if ((png_ptr = (png_structp)png_create_struct_2(PNG_STRUCT_PNG,
-      (png_malloc_ptr)malloc_fn, (png_voidp)mem_ptr)) == NULL)
+   png_ptr = (png_structp)png_create_struct_2(PNG_STRUCT_PNG,
+      (png_malloc_ptr)malloc_fn, (png_voidp)mem_ptr);
 #else
-   if ((png_ptr = (png_structp)png_create_struct(PNG_STRUCT_PNG)) == NULL)
+   png_ptr = (png_structp)png_create_struct(PNG_STRUCT_PNG);
 #endif
+   if (png_ptr == NULL)
       return (NULL);
 
+#if !defined(PNG_1_0_X)
 #ifdef PNG_ASSEMBLER_CODE_SUPPORTED
    png_init_mmx_flags(png_ptr);   /* 1.2.0 addition */
 #endif
+#endif /* PNG_1_0_X */
 
 #ifdef PNG_SETJMP_SUPPORTED
 #ifdef USE_FAR_KEYWORD
@@ -65,7 +68,13 @@ png_create_read_struct_2(png_const_charp user_png_ver, png_voidp error_ptr,
    {
       png_free(png_ptr, png_ptr->zbuf);
       png_ptr->zbuf=NULL;
-      png_destroy_struct(png_ptr);
+#ifdef PNG_USER_MEM_SUPPORTED
+      png_destroy_struct_2((png_voidp)png_ptr, 
+			   (png_free_ptr)free_fn,
+			   (png_voidp)mem_ptr);
+#else
+      png_destroy_struct((png_voidp)png_ptr);
+#endif
       return (NULL);
    }
 #ifdef USE_FAR_KEYWORD
@@ -373,6 +382,9 @@ png_read_info(png_structp png_ptr, png_infop info_ptr)
       png_debug2(0, "Reading %s chunk, length=%lu.\n", png_ptr->chunk_name,
          length);
 
+      if (length > PNG_MAX_UINT)
+         png_error(png_ptr, "Invalid chunk length.");
+
       /* This should be a binary subdivision search or a hash for
        * matching the chunk name rather than a linear search.
        */
@@ -656,6 +668,9 @@ png_read_row(png_structp png_ptr, png_bytep row, png_bytep dsp_row)
             png_read_data(png_ptr, chunk_length, 4);
             png_ptr->idat_size = png_get_uint_32(chunk_length);
 
+            if (png_ptr->idat_size > PNG_MAX_UINT)
+              png_error(png_ptr, "Invalid chunk length.");
+
             png_reset_crc(png_ptr);
             png_crc_read(png_ptr, png_ptr->chunk_name, 4);
             if (png_memcmp(png_ptr->chunk_name, png_IDAT, 4))
@@ -767,7 +782,7 @@ png_read_row(png_structp png_ptr, png_bytep row, png_bytep dsp_row)
  * not called png_set_interlace_handling(), the display_row buffer will
  * be ignored, so pass NULL to it.
  *
- * [*] png_handle_alpha() does not exist yet, as of libpng version 1.2.1
+ * [*] png_handle_alpha() does not exist yet, as of libpng version 1.2.2
  */
 
 void PNGAPI
@@ -816,7 +831,7 @@ png_read_rows(png_structp png_ptr, png_bytepp row,
  * only call this function once.  If you desire to have an image for
  * each pass of a interlaced image, use png_read_rows() instead.
  *
- * [*] png_handle_alpha() does not exist yet, as of libpng version 1.2.1
+ * [*] png_handle_alpha() does not exist yet, as of libpng version 1.2.2
  */
 void PNGAPI
 png_read_image(png_structp png_ptr, png_bytepp image)
@@ -933,6 +948,9 @@ png_read_end(png_structp png_ptr, png_infop info_ptr)
       png_crc_read(png_ptr, png_ptr->chunk_name, 4);
 
       png_debug1(0, "Reading %s chunk.\n", png_ptr->chunk_name);
+
+      if (length > PNG_MAX_UINT)
+         png_error(png_ptr, "Invalid chunk length.");
 
       if (!png_memcmp(png_ptr->chunk_name, png_IHDR, 4))
          png_handle_IHDR(png_ptr, info_ptr, length);

@@ -20,8 +20,8 @@
 // ==========================================================
 
 //#define QT
-//#define API
-#define MULTI
+#define API
+//#define MULTI
 
 #include <assert.h>
 #include <stdio.h>
@@ -104,9 +104,12 @@ int __cdecl
 TestMulti(int argc, char *argv[]) {
 	FreeImage_Initialise();
 
-	FIMULTIBITMAP *bitmap = FreeImage_OpenMultiBitmap(FIF_TIFF, "Kopie van money-256.tif", FALSE, FALSE);
+	FIMULTIBITMAP *bitmap = FreeImage_OpenMultiBitmap(FIF_TIFF, "Kopie van money-256.tif", FALSE, TRUE, FALSE);
 
 	int count = FreeImage_GetPageCount(bitmap);
+
+	FIBITMAP *lock = FreeImage_LockPage(bitmap, 0);
+	FreeImage_UnlockPage(bitmap, lock, FALSE);
 
 	FIBITMAP *clone = FreeImage_LoadBMP("e:\\test images\\MK50TEMP.BMP");
 	FreeImage_AppendPage(bitmap, clone);
@@ -127,16 +130,16 @@ TestMulti(int argc, char *argv[]) {
 
 struct Extensions {
 	char *ext;
-	void *function;
 };
 
 static Extensions s_extensions[] = {
-	"bmp", FreeImage_SaveBMP,
-	"jpg", FreeImage_SaveJPEG,
-	"png", FreeImage_SavePNG,
-	"tif", FreeImage_SaveTIFF,
-	"wbmp", FreeImage_SaveWBMP,
-	"ppm", FreeImage_SavePNM,
+	"bmp",
+	"jpg",
+	"png",
+	"tif",
+	"wbmp",
+	"ppm"
+	"tga"
 };
 
 int __cdecl
@@ -162,7 +165,7 @@ TestAPI(int argc, char *argv[]) {
 
 	long handle;
 
-	if ((handle = _findfirst("e:\\test images\\*.cut", &finddata)) != -1) {
+	if ((handle = _findfirst("e:\\test images\\logo.bmp", &finddata)) != -1) {
 		do {
 			dib = NULL;
 
@@ -184,92 +187,20 @@ TestAPI(int argc, char *argv[]) {
 
 			printf("loading %s... ", finddata.name);
 
+			// load the bitmap
 
-			//FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(directory);
-			FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(directory, 16);
+			FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(directory);
+			//FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(directory, 16);
 
-			switch(fif) {
-				case FIF_BMP :
-					dib = FreeImage_LoadBMP(directory, BMP_DEFAULT);
-					break;
+			if (fif != FIF_UNKNOWN)
+				dib = FreeImage_Load(fif, directory, 0);
+			else
+				strcpy(s_error_message, "file extension not bound to plugin");
 
-				case FIF_CUT :
-					dib = FreeImage_LoadCUT(directory, CUT_DEFAULT);
-					break;
-
-				case FIF_ICO :
-					dib = FreeImage_LoadICO(directory, ICO_DEFAULT);
-					break;
-
-				case FIF_LBM :
-					dib = FreeImage_LoadLBM(directory, LBM_DEFAULT);
-					break;
-
-				case FIF_JPEG :
-					dib = FreeImage_LoadJPEG(directory, JPEG_DEFAULT);
-					break;
-
-				case FIF_KOALA :
-					dib = FreeImage_LoadKOALA(directory, KOALA_DEFAULT);
-					break;
-
-				case FIF_MNG :
-				case FIF_JNG :
-					dib = FreeImage_LoadMNG(directory, PCD_DEFAULT);
-					break;
-
-				case FIF_PCD :
-					dib = FreeImage_LoadPCD(directory, PCD_DEFAULT);
-					break;
-
-				case FIF_PCX :
-					dib = FreeImage_LoadPCX(directory, PCX_DEFAULT);
-					break;
-
-				case FIF_PNG :
-					dib = FreeImage_LoadPNG(directory, PNG_DEFAULT);
-					break;
-
-				case FIF_PBM :
-					dib = FreeImage_LoadPNM(directory, PNM_DEFAULT);
-					break;
-
-				case FIF_PGM :
-					dib = FreeImage_LoadPNM(directory, PNM_DEFAULT);
-					break;
-
-				case FIF_PPM :
-					dib = FreeImage_LoadPNM(directory, PNM_DEFAULT);
-					break;
-
-				case FIF_PSD :
-					dib = FreeImage_LoadPSD(directory, PSD_DEFAULT);
-					break;
-
-				case FIF_RAS :
-					dib = FreeImage_LoadRAS(directory, RAS_DEFAULT);
-					break;
-
-				case FIF_TARGA :
-					dib = FreeImage_LoadTARGA(directory, TARGA_DEFAULT);
-					break;
-
-				case FIF_TIFF :
-					dib = FreeImage_LoadTIFF(directory, TIFF_DEFAULT);
-					break;
-
-				default :
-					if ((fif == FreeImage_GetFIFFromFormat("GIF")) || (fif == FreeImage_GetFIFFromFormat("JBIG"))) {
-						dib = FreeImage_Load(fif, directory, 0);
-					} else {
-						strcpy(s_error_message, "file extension not bound to plugin");
-					}
-
-					break;
-			};
+			// if successfully loaded, save back
 
 			if (dib != NULL) {
-				printf("done in %d ms\n", GetTickCount() - before);
+				printf("loaded in %d ms\n", GetTickCount() - before);
 
 				char unique[128];
 
@@ -284,8 +215,8 @@ TestAPI(int argc, char *argv[]) {
 						itoa(id, unique, 10);
 						strcat(unique, ".");
 						strcat(unique, s_extensions[i].ext);
-						static_cast<void *(DLL_CALLCONV *)(FIBITMAP *dib, const char *filename, int flags)>(s_extensions[i].function)(c, unique, BMP_DEFAULT);
 
+						FreeImage_Save(fif, c, unique, 0);
 						FreeImage_Unload(c);
 					}
 				}

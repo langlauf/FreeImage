@@ -56,10 +56,10 @@
 
 #define fi_handle void*
 
-typedef unsigned (*FI_ReadProc) (void *buffer, unsigned size, unsigned count, fi_handle handle);
-typedef unsigned (*FI_WriteProc) (void *buffer, unsigned size, unsigned count, fi_handle handle);
-typedef int (*FI_SeekProc) (fi_handle handle, long offset, int origin);
-typedef long (*FI_TellProc) (fi_handle handle);
+typedef unsigned (DLL_CALLCONV *FI_ReadProc) (void *buffer, unsigned size, unsigned count, fi_handle handle);
+typedef unsigned (DLL_CALLCONV *FI_WriteProc) (void *buffer, unsigned size, unsigned count, fi_handle handle);
+typedef int (DLL_CALLCONV *FI_SeekProc) (fi_handle handle, long offset, int origin);
+typedef long (DLL_CALLCONV *FI_TellProc) (fi_handle handle);
 
 #ifdef WIN32
 #pragma pack(push, 1)
@@ -68,10 +68,10 @@ typedef long (*FI_TellProc) (fi_handle handle);
 #endif
 
 struct FreeImageIO {
-	FI_ReadProc  read_proc;     //! pointer to the function used to read data
-	FI_WriteProc write_proc;    //! pointer to the function used to write data
-	FI_SeekProc  seek_proc;		//! pointer to the function used to seek
-	FI_TellProc  tell_proc;		//! pointer to the function used to aquire the current position
+	FI_ReadProc  read_proc;  //! pointer to the function used to read data
+	FI_WriteProc write_proc; //! pointer to the function used to write data
+	FI_SeekProc  seek_proc;  //! pointer to the function used to seek
+	FI_TellProc  tell_proc;  //! pointer to the function used to aquire the current position
 };
 
 #ifdef WIN32
@@ -205,7 +205,7 @@ GetDotsPerMeterY(FIBITMAP *dib) {
 //  FREEIMAGEIO FUNCTIONS SUITABLE FOR USE WITH QIODEVICE
 // ----------------------------------------------------------
 
-inline unsigned 
+inline unsigned DLL_CALLCONV
 _ReadProc(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 	char *b = static_cast<char *>(buffer);
 
@@ -220,7 +220,7 @@ _ReadProc(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 	return count;
 }
 
-inline unsigned
+inline unsigned DLL_CALLCONV
 _WriteProc(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 	char *b = static_cast<char *>(buffer);
 
@@ -235,7 +235,7 @@ _WriteProc(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 	return count;
 }
 
-inline int
+inline int DLL_CALLCONV
 _SeekProc(fi_handle handle, long offset, int origin) {
 	QIODevice *iod = static_cast<QIODevice *>(handle);
 
@@ -255,7 +255,7 @@ _SeekProc(fi_handle handle, long offset, int origin) {
 	return 0;
 }
 
-inline long
+inline long DLL_CALLCONV
 _TellProc(fi_handle handle) {
 	QIODevice *iod = static_cast<QIODevice *>(handle);
 
@@ -363,9 +363,9 @@ FIQT_Load(QImageIO *iio) {
 		}
 	}
 
-	assert(fif != FIF_UNKNOWN);
+	// make sure we found a valid bitmap type now
 
-	// if we come here, we have a valid FIF id
+	assert(fif != FIF_UNKNOWN);
 
 	if (FI_FIFSupportsReadingProc(fif)) {
 		FIBITMAP *bitmap = FI_LoadFromHandleProc(fif, &io, (fi_handle)iio->ioDevice(), 0);

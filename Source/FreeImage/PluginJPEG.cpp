@@ -7,9 +7,6 @@
 // - Jan L. Nauta (jln@magentammt.com)
 // - Markus Loibl (markus.loibl@epost.de)
 //
-// EXIF parser design and implementation by
-// - Matthias Wandel (mwandel@rim.net)
-//
 // This file is part of FreeImage 2
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
@@ -44,7 +41,6 @@ extern "C" {
 
 #define INPUT_BUF_SIZE  4096	/* choose an efficiently fread'able size */
 #define OUTPUT_BUF_SIZE 4096    /* choose an efficiently fwrite'able size */
-
 typedef struct my_error_mgr * my_error_ptr;
 
 // ----------------------------------------------------------

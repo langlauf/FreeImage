@@ -114,33 +114,34 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 	// to make absolute seeks possible we store the current position in the file
 	
 	long offset_in_file = io->tell_proc(handle);
-	long seek;
+	long seek = 0;
+
+	// decide which bitmap in the cabinet to load
 
 	switch (flags) {
 		case PCD_BASEDIV4 :
 			seek = 0x2000;
 			width = 192;
 			height = 128;
-			line = CalculateLine(width, bpp);
-			pitch = CalculatePitch(line);
 			break;
 
 		case PCD_BASEDIV16 :
 			seek = 0xB800;
 			width = 384;
 			height = 256;
-			line = CalculateLine(width, bpp);
-			pitch = CalculatePitch(line);
 			break;
 
 		default :
 			seek = 0x30000;
 			width = 768;
 			height = 512;
-			line = CalculateLine(width, bpp);
-			pitch = CalculatePitch(line);
 			break;
 	}
+
+	// calculate line and pitch based on the selected bitmap size
+
+	line = CalculateLine(width, bpp);
+	pitch = CalculatePitch(line);
 
 	// allocate the dib and write out the header
 
@@ -155,9 +156,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 	// temporary stuff to load PCD
 
-	BYTE *y1   = (BYTE *)malloc(width);
-	BYTE *y2   = (BYTE *)malloc(width);
-	BYTE *cbcr = (BYTE *)malloc(width);
+	BYTE *y1   = new BYTE[width];
+	BYTE *y2   = new BYTE[width];
+	BYTE *cbcr = new BYTE[width];
 	BYTE *yl[] = { y1, y2 };
 
 	// seek to the part where the bitmap data begins
@@ -187,9 +188,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		}
 	}
 
-	free(cbcr);
-	free(y2);
-	free(y1);
+	delete [] cbcr;
+	delete [] y2;
+	delete [] y1;
 
 	return dib;
 }

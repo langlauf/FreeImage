@@ -474,7 +474,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 					// create a new DIB
 
-					if (bitspersample * samplesperpixel == 16)
+					if ((bitspersample == 16) && (samplesperpixel == 1))
+						dib = freeimage->allocate_proc(width, height, 8);
+					else if (bitspersample * samplesperpixel == 16)
 						dib = freeimage->allocate_proc(width, height, bitspersample * samplesperpixel, 0x1F, 0x7E0, 0xF800);
 					else if ((bitspersample * samplesperpixel == 24) || (bitspersample * samplesperpixel == 32))
 						dib = freeimage->allocate_proc(width, height, bitspersample * samplesperpixel, 0xFF, 0xFF00, 0xFF0000);
@@ -499,8 +501,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 						pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
 					} else if (resUnit == RESUNIT_CENTIMETER) {
 						BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
-						pInfoHeader->biXPelsPerMeter = (int) (fResX*100.0 + 0.5);
-						pInfoHeader->biYPelsPerMeter = (int) (fResY*100.0 + 0.5);
+						pInfoHeader->biXPelsPerMeter = (int) (fResX * 100.0 + 0.5);
+						pInfoHeader->biYPelsPerMeter = (int) (fResY * 100.0 + 0.5);
 					}
 
 					// set up the colormap based on photometric	
@@ -524,7 +526,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 								pal[1].rgbRed =
 								pal[1].rgbGreen =
 								pal[1].rgbBlue = 255 - value;
-							} else if (bitspersample == 8) {
+							} else if ((bitspersample == 8) || (bitspersample == 16)) {
 								// need to build the scale for greyscale images
 
 								if (photometric == PHOTOMETRIC_MINISBLACK) {
@@ -571,9 +573,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					}
 
 					// In the tiff file the lines are save from up to down 
-					// In a DIB the lines must be save from down to up
+					// In a DIB the lines must be saved from down to up
 
-					bits = freeimage->get_bits_proc(dib) + height * pitch;
+					bits = freeimage->get_bits_proc(dib) + height * FreeImage_GetPitch(dib);
 
 					// read the tiff lines and save them in the DIB
 
@@ -587,10 +589,28 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 							return NULL;
 						} else {
-							for (int l = 0; l < nrow; l++) {
-								bits -= pitch;
+							if ((samplesperpixel == 1) && (bitspersample == 16)) {
+								// 16-bit grayscale picture... convert to 8 bits
 
-								memcpy(bits, buf + l * line, line);
+								int pitch = FreeImage_GetPitch(dib);
+
+								for (int l = 0; l < nrow; l++) {
+									bits -= pitch;
+
+									WORD *tmp_bits = (WORD *)(buf + l * line);
+
+									for (unsigned x = 0; x < width; ++x) {
+										bits[x] = round(((double)tmp_bits[x]) / 257.0) << 4;
+									}
+								}
+							} else {
+								// color picture... just copy
+
+								for (int l = 0; l < nrow; l++) {
+									bits -= pitch;
+
+									memcpy(bits, buf + l * line, line);
+								}
 							}
 						}
 					}
@@ -624,8 +644,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 		uint16 photometric;
 		uint16 compression;
 		uint16 pitch;
-
-		uint32 x, y;
+		int32 x, y;
 
 		width = freeimage->get_width_proc(dib);
 		height = freeimage->get_height_proc(dib);
@@ -712,15 +731,15 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 		
 		pitch = freeimage->get_pitch_proc(dib);
 		
-		switch(bitspersample) {				
+		switch(bitspersample) {			
 			case 1 :
 			case 4 :
 			case 8 :
 			{
-				for (y = 0; y < height; y++) {
-					BYTE *bits = freeimage->get_bits_row_col_proc(dib, 0, y);
+				for (y = height - 1; y >= 0; y--) {
+					BYTE *bits = freeimage->get_scanline_proc(dib, y);
 
-					TIFFWriteScanline(out,bits, y, 0);
+					TIFFWriteScanline(out, bits, height - y - 1, 0);
 				}
 
 				break;
@@ -729,9 +748,9 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			case 24:
 			case 32:
 			{
-				BYTE *buffer = (BYTE *)malloc(CalculatePitch(CalculateLine(width, 24)));
+				BYTE *buffer = new BYTE[CalculatePitch(CalculateLine(width, 24))];
 
-				for (y = 0; y < height; y++) {
+				for (y = 0; y < (int32)height; y++) {
 					// get a pointer to the (converted) scanline
 
 					if (bitspersample == 32)
@@ -743,7 +762,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 					BYTE *pBuf = buffer;
 
-					for (x = 0; x < width; x++) {
+					for (x = 0; x < (int32)width; x++) {
 						BYTE tmp = pBuf[0];
 						pBuf[0] = pBuf[2];
 						pBuf[2] = tmp;
@@ -756,7 +775,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 					TIFFWriteScanline(out, buffer, y, 0);
 				}
 
-				free(buffer);
+				delete [] buffer;
 
 				break;
 			}

@@ -21,22 +21,22 @@
 
 // ----------------------------------------------------------
 
-unsigned
+unsigned _stdcall
 _ReadProc(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 	return fread(buffer, size, count, (FILE *)handle);
 }
 
-unsigned
+unsigned _stdcall
 _WriteProc(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 	return fwrite(buffer, size, count, (FILE *)handle);
 }
 
-int
+int _stdcall
 _SeekProc(fi_handle handle, long offset, int origin) {
 	return fseek((FILE *)handle, offset, origin);
 }
 
-long
+long _stdcall
 _TellProc(fi_handle handle) {
 	return ftell((FILE *)handle);
 }

@@ -56,7 +56,7 @@ GetInt(FreeImageIO *io, fi_handle handle) {
 					// loop off 1 sp after #
 
 					firstchar = FALSE;
-				} else if(c == '\n') {
+				} else if (c == '\n') {
 					break;
 				}
 			}
@@ -76,7 +76,7 @@ GetInt(FreeImageIO *io, fi_handle handle) {
     int i = 0;
 
     while (1) {
-        i = (i*10) + (c - '0');
+        i = (i * 10) + (c - '0');
 
         io->read_proc(&c, 1, 1, handle);
 

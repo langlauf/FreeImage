@@ -5,6 +5,16 @@ Whats New for FreeImage
 ! : changed
 + : added
 
+May 21th, 2002 - 2.5.3
+* fixed wrong colors when loading 16-bit grayscale TIFF
+* fixed crash-problem with FreeImageQt
+* fixed PluginTIFF saving some bitmaps flipped vertically
+* [Laurent Rocher] fixed bug in FreeImage_GetLockedPageNumbers
+* [Laurent Rocher] fixed bug in FreeImage_UnlockPage
+! FreeImage now uses libpng 1.2.2
++ added TARGA save support
++ added BMP RLE8 save support
+
 March 30th, 2002 - 2.5.2
 * fixed bug in PluginTARGA where 32-bit bitmaps are not always correctly flipped
 * fixed FreeImage_GetLockedPageNumber being mentioned in FreeImage.h

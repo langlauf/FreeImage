@@ -3,6 +3,7 @@
 //
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
+// - Laurent Rocher (rocherl@club-internet.fr)
 //
 // This file is part of FreeImage 2
 //
@@ -146,21 +147,31 @@ FreeImage_FindBlock(FIMULTIBITMAP *bitmap, int position) {
 					if (block->m_start != block->m_end) {
 						int item = block->m_start + (position - prev_count);
 
+						// left part
+
 						if (item != block->m_start) {
 							BlockContinueus *block_a = new BlockContinueus(block->m_start, item - 1);
 							header->m_blocks.insert(i, (Block *)block_a);
 						}
 
+						// middle part
+
 						BlockContinueus *block_b = new BlockContinueus(item, item);
 						BlockListIterator block_target = header->m_blocks.insert(i, (Block *)block_b);
+
+						// right part
 
 						if (item != block->m_end) {
 							BlockContinueus *block_c = new BlockContinueus(item + 1, block->m_end);
 							header->m_blocks.insert(i, (Block *)block_c);
 						}
 
+						// remove the old block that was just splitted
+
 						header->m_blocks.remove((Block *)block);
 						delete block;
+
+						// return the splitted block
 						
 						return block_target;
 					}
@@ -422,7 +433,7 @@ FreeImage_CloseMultiBitmap(FIMULTIBITMAP *bitmap) {
 			// clear the blocks list
 
 			for (BlockListIterator i = header->m_blocks.begin(); i != header->m_blocks.end(); ++i)
-				delete *i;			
+				delete *i;
 
 			// flush and dispose the cache
 
@@ -634,7 +645,7 @@ FreeImage_LockPage(FIMULTIBITMAP *bitmap, int page) {
 
 void DLL_CALLCONV
 FreeImage_UnlockPage(FIMULTIBITMAP *bitmap, FIBITMAP *page, BOOL changed) {
-	if ((bitmap) && (page) && (changed)) {
+	if ((bitmap) && (page)) {
 		MULTIBITMAPHEADER *header = FreeImage_GetMultiBitmapHeader(bitmap);
 
 		// find out if the page we try to unlock is actually locked...
@@ -642,7 +653,7 @@ FreeImage_UnlockPage(FIMULTIBITMAP *bitmap, FIBITMAP *page, BOOL changed) {
 		if (header->locked_pages.find(page) != header->locked_pages.end()) {
 			// store the bitmap compressed in the cache for later writing
 
-			if (!header->read_only) {
+			if (changed && !header->read_only) {
 				header->changed = true;
 
 				// cut loose the block from the rest
@@ -726,10 +737,10 @@ FreeImage_MovePage(FIMULTIBITMAP *bitmap, int target, int source) {
 
 BOOL DLL_CALLCONV
 FreeImage_GetLockedPageNumbers(FIMULTIBITMAP *bitmap, int *pages, int *count) {
-	if ((bitmap) && (pages) && (count)) {
+	if ((bitmap) && (count)) {
 		MULTIBITMAPHEADER *header = FreeImage_GetMultiBitmapHeader(bitmap);
 
-		if (*count == 0) {
+		if ((pages == NULL) || (*count == 0)) {
 			*count = header->locked_pages.size();
 		} else {
 			int c = 0;

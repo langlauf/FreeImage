@@ -34,11 +34,9 @@ FreeImage_GetFileTypeFromHandle(FreeImageIO *io, fi_handle handle, int size) {
 	if (handle != NULL) {
 		int fif_count = FreeImage_GetFIFCount();
 
-		for (int i = 0; i < fif_count; ++i) {
-			if (FreeImage_Validate((FREE_IMAGE_FORMAT)i, io, handle)) {
+		for (int i = 0; i < fif_count; ++i)
+			if (FreeImage_Validate((FREE_IMAGE_FORMAT)i, io, handle)) 
 				return (FREE_IMAGE_FORMAT)i;
-			}
-		}
 	}
 
 	return FIF_UNKNOWN;
@@ -57,9 +55,9 @@ FreeImage_GetFileType(const char *filename, int size) {
 		fclose(handle);
 
 		return format;
-	} else {
-		return FIF_UNKNOWN;
 	}
+
+	return FIF_UNKNOWN;
 }
 
 // ALIASES FOR BACKWARDS COMPATIBILITY ----------------------

@@ -120,7 +120,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 			case 8 :
 			{
 				if ((used_colors <= 0) || (used_colors > CalculateUsedPaletteEntries(bit_count)))
-					used_colors = CalculateUsedPaletteEntries(bit_count);					
+					used_colors = CalculateUsedPaletteEntries(bit_count);
 				
 				// allocate enough memory to hold the bitmap (header, palette, pixels) and read the palette
 
@@ -327,7 +327,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 						break;
 					}
 
-					default :								
+					default :
 						throw "compression type not supported";
 				}
 
@@ -372,7 +372,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 				}
 
 				if (dib == NULL)
-					throw "DIB allocation failed";						
+					throw "DIB allocation failed";
 
 				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 				pInfoHeader->biXPelsPerMeter = bih.biXPelsPerMeter;
@@ -624,7 +624,7 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 											if (status_byte & 1 == 1)
 												io->read_proc(&second_byte, sizeof(BYTE), 1, handle);												
 
-											bits += status_byte;													
+											bits += status_byte;
 
 											break;								
 									};
@@ -639,7 +639,7 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 									for (unsigned i = 0; i < status_byte; i++) {
 										*(sline + bits) = second_byte;
 
-										bits++;					
+										bits++;
 									}
 
 									break;
@@ -894,7 +894,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 	if (handle != NULL) {
 		BITMAPFILEHEADER bitmapfileheader;
 		DWORD type = 0;
-		WORD magic;
+		WORD magic = 0;
 
 		// we use this offset value to make seemingly absolute seeks relative in the file
 		
@@ -943,11 +943,148 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 // ----------------------------------------------------------
 
+static int
+RLEEncodeLine(BYTE *target, BYTE *source, int size) {
+	BYTE buffer[256];
+	int buffer_size = 0;
+	int target_pos = 0;
+
+	for (int i = 0; i < size; ++i) {
+		if ((i < size - 1) && (source[i] == source[i + 1])) {
+			// find a solid block of same bytes
+
+			int j = i + 1;
+
+			while ((j < size - 1) && (source[j] == source[j + 1]))
+				++j;
+
+			// if the block is larger than 3 bytes, use it
+			// else put the data into the larger pool
+
+			if (((j - i) + 1) > 3) {
+				// don't forget to write what we already have in the buffer
+
+				switch(buffer_size) {
+					case 0 :
+						break;
+
+					case RLE_DELTA :
+						target[target_pos++] = 1;
+						target[target_pos++] = buffer[0];
+						target[target_pos++] = 1;
+						target[target_pos++] = buffer[1];
+						break;
+
+					case RLE_ENDOFBITMAP :
+						target[target_pos++] = buffer_size;
+						target[target_pos++] = buffer[0];
+						break;
+
+					default :
+						target[target_pos++] = RLE_COMMAND;
+						target[target_pos++] = buffer_size;
+						memcpy(target + target_pos, buffer, buffer_size);
+
+						// prepare for next run
+						
+						target_pos += buffer_size;
+
+						if ((buffer_size & 1) == 1)
+							target_pos++;
+
+						break;
+				}
+
+				// write the continuous data
+
+				target[target_pos++] = (j - i) + 1;
+				target[target_pos++] = source[i];
+
+				buffer_size = 0;
+			} else {
+				for (int k = 0; k < (j - i) + 1; ++k) {
+					buffer[buffer_size++] = source[i + k];
+
+					if (buffer_size == 254) {
+						// write what we have
+
+						target[target_pos++] = RLE_COMMAND;
+						target[target_pos++] = buffer_size;
+						memcpy(target + target_pos, buffer, buffer_size);
+
+						// prepare for next run
+
+						target_pos += buffer_size;
+						buffer_size = 0;
+					}
+				}
+			}
+
+			i = j;
+		} else {
+			buffer[buffer_size++] = source[i];
+		}
+
+		// write the buffer if it's full
+
+		if (buffer_size == 254) {
+			target[target_pos++] = RLE_COMMAND;
+			target[target_pos++] = buffer_size;
+			memcpy(target + target_pos, buffer, buffer_size);
+
+			// prepare for next run
+
+			target_pos += buffer_size;
+			buffer_size = 0;
+		}
+	}
+
+	// write the last bytes
+
+	switch(buffer_size) {
+		case 0 :
+			break;
+
+		case RLE_DELTA :
+			target[target_pos++] = 1;
+			target[target_pos++] = buffer[0];
+			target[target_pos++] = 1;
+			target[target_pos++] = buffer[1];
+			break;
+
+		case RLE_ENDOFBITMAP :
+			target[target_pos++] = buffer_size;
+			target[target_pos++] = buffer[0];
+			break;
+
+		default :
+			target[target_pos++] = RLE_COMMAND;
+			target[target_pos++] = buffer_size;
+			memcpy(target + target_pos, buffer, buffer_size);
+
+			// prepare for next run
+			
+			target_pos += buffer_size;
+
+			if ((buffer_size & 1) == 1)
+				target_pos++;
+
+			break;			
+	}
+
+	// write the END_OF_LINE marker
+
+	target[target_pos++] = RLE_COMMAND;
+	target[target_pos++] = RLE_ENDOFLINE;
+
+	// return the written size
+
+	return target_pos;
+}
+
 static BOOL DLL_CALLCONV
 Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
 	if ((dib != NULL) && (handle != NULL)) {
-		bool bit_fields = (freeimage->get_bpp_proc(dib) == 16);
-
 		// write the file header
 
 		BITMAPFILEHEADER bitmapfileheader;
@@ -957,6 +1094,10 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 		bitmapfileheader.bfReserved1 = 0;
 		bitmapfileheader.bfReserved2 = 0;
 
+		// take care of the bit fields data of any
+
+		bool bit_fields = (freeimage->get_bpp_proc(dib) == 16);
+
 		if (bit_fields) {
 			bitmapfileheader.bfSize += 3 * sizeof(DWORD);
 			bitmapfileheader.bfOffBits += 3 * sizeof(DWORD);
@@ -965,14 +1106,21 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 		if (io->write_proc(&bitmapfileheader, sizeof(BITMAPFILEHEADER), 1, handle) != 1)
 			return FALSE;		
 
-		// write the info header
+		// update the bitmap info header
 
 		BITMAPINFOHEADER bih = *freeimage->get_info_header_proc(dib);
-		bih.biCompression = (bit_fields) ? 3 : 0;
 
-		if (io->write_proc(&bih, sizeof(BITMAPINFOHEADER), 1, handle) != 1) {
+		if (bit_fields)
+			bih.biCompression = BI_BITFIELDS;
+		else if ((bih.biBitCount == 8) && (flags & BMP_SAVE_RLE))
+			bih.biCompression = BI_RLE8;
+		else
+			bih.biCompression = BI_RGB;
+
+		// write the bitmap info header
+
+		if (io->write_proc(&bih, sizeof(BITMAPINFOHEADER), 1, handle) != 1)
 			return FALSE;
-		}
 
 		// write the bit fields when we are dealing with a 16 bit BMP
 
@@ -1001,10 +1149,32 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			if (io->write_proc(freeimage->get_palette_proc(dib), sizeof(RGBQUAD) * freeimage->get_colors_used_proc(dib), 1, handle) != 1)
 				return FALSE;
 
-		// write the bitmap data
+		// write the bitmap data... if RLE compression is enable, use it
 
-		if (io->write_proc(freeimage->get_bits_proc(dib), freeimage->get_height_proc(dib) * freeimage->get_pitch_proc(dib), 1, handle) != 1)
+		if ((freeimage->get_bpp_proc(dib) == 8) && (flags & BMP_SAVE_RLE)) {
+			BYTE *buffer = new BYTE[freeimage->get_pitch_proc(dib) * 2];
+
+			for (DWORD i = 0; i < freeimage->get_height_proc(dib); ++i) {
+				int size = RLEEncodeLine(buffer, freeimage->get_scanline_proc(dib, i), freeimage->get_line_proc(dib));
+
+				if (io->write_proc(buffer, size, 1, handle) != 1) {
+					delete [] buffer;
+					return FALSE;
+				}
+			}
+
+			buffer[0] = RLE_COMMAND;
+			buffer[1] = RLE_ENDOFBITMAP;
+
+			if (io->write_proc(buffer, 2, 1, handle) != 1) {
+				delete [] buffer;
+				return FALSE;
+			}
+
+			delete [] buffer;
+		} else if (io->write_proc(freeimage->get_bits_proc(dib), freeimage->get_height_proc(dib) * freeimage->get_pitch_proc(dib), 1, handle) != 1) {
 			return FALSE;
+		}
 
 		return TRUE;
 	} else {

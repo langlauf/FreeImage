@@ -12,6 +12,7 @@
 // - Jan L. Nauta (jln@magentammt.com)
 // - Jani Kajala (janik@remedy.fi)
 // - Juergen Riecker (j.riecker@gmx.de)
+// - Laurent Rocher (rocherl@club-internet.fr)
 // - Luca Piergentili (l.pierge@terra.es)
 // - Machiel ten Brinke (brinkem@uni-one.nl)
 // - Markus Loibl (markus.loibl@epost.de)
@@ -363,6 +364,7 @@ FI_STRUCT (Plugin) {
 // Load/Save flag constants -----------------------------------------------------
 
 #define BMP_DEFAULT         0
+#define BMP_SAVE_RLE        1
 #define CUT_DEFAULT         0
 #define ICO_DEFAULT         0
 #define ICO_FIRST           0
@@ -420,9 +422,13 @@ DLL_API void DLL_CALLCONV FreeImage_SetOutputMessage(FreeImage_OutputMessageFunc
 // Allocate/Unload routines ------------------------------------------------
 
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask FI_DEFAULT(0), unsigned green_mask FI_DEFAULT(0), unsigned blue_mask FI_DEFAULT(0));
+DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Load(FREE_IMAGE_FORMAT fif, const char *filename, int flags FI_DEFAULT(0));
+DLL_API FIBITMAP *DLL_CALLCONV FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle, int flags FI_DEFAULT(0));
+DLL_API BOOL DLL_CALLCONV FreeImage_Save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, const char *filename, int flags FI_DEFAULT(0));
+DLL_API BOOL DLL_CALLCONV FreeImage_SaveToHandle(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, FreeImageIO *io, fi_handle handle, int flags FI_DEFAULT(0));
+DLL_API FIBITMAP * DLL_CALLCONV FreeImage_Clone(FIBITMAP *dib);
 DLL_API void DLL_CALLCONV FreeImage_Free(FIBITMAP *dib);
 DLL_API void DLL_CALLCONV FreeImage_Unload(FIBITMAP *dib);
-DLL_API FIBITMAP * DLL_CALLCONV FreeImage_Clone(FIBITMAP *dib);
 
 // Plugin Interface --------------------------------------------------------
 
@@ -441,10 +447,6 @@ DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFilename(const char *
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsReading(FREE_IMAGE_FORMAT fif);
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsWriting(FREE_IMAGE_FORMAT fif);
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsExportBPP(FREE_IMAGE_FORMAT fif, int bpp);
-DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Load(FREE_IMAGE_FORMAT fif, const char *filename, int flags FI_DEFAULT(0));
-DLL_API FIBITMAP *DLL_CALLCONV FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle, int flags FI_DEFAULT(0));
-DLL_API BOOL DLL_CALLCONV FreeImage_Save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, const char *filename, int flags FI_DEFAULT(0));
-DLL_API BOOL DLL_CALLCONV FreeImage_SaveToHandle(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, FreeImageIO *io, fi_handle handle, int flags FI_DEFAULT(0));
 
 // Multipaging interface ------------------------------------------------------
 

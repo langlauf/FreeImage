@@ -67,6 +67,12 @@ struct tagTGAHEADER {
 	BYTE is_image_descriptor;
 };
 
+struct tagTGAFOOTER {
+	DWORD extension_offset;
+	DWORD developer_offset;
+	char signature[18];
+};
+
 #ifdef WIN32
 #pragma pack(pop)
 #else
@@ -81,11 +87,7 @@ static BYTE *
 Internal_GetScanLine(FreeImage *freeimage, FIBITMAP *dib, int scanline, int flipvert) {
 	//assert ((scanline >= 0) && (scanline < (int)freeimage->get_height_proc(dib)));
 
-	if (flipvert) {
-		return freeimage->get_scanline_proc(dib, scanline);
-	} else {
-		return freeimage->get_scanline_proc(dib, freeimage->get_height_proc(dib) - scanline - 1);
-	}
+	return freeimage->get_scanline_proc(dib, flipvert ? scanline : freeimage->get_height_proc(dib) - scanline - 1);
 }
 
 // ==========================================================
@@ -120,7 +122,7 @@ RegExpr() {
 
 static BOOL DLL_CALLCONV
 SupportsExportDepth(int depth) {
-	return FALSE;
+	return true;
 }
 
 // ----------------------------------------------------------
@@ -152,10 +154,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				{
 					dib = freeimage->allocate_proc(header.is_width, header.is_height, 8);
 
-					if (dib == NULL) {
+					if (dib == NULL)
 						throw "DIB allocation failed";
-					}
-
+					
 					// read the palette
 
 					RGBQUAD *palette = freeimage->get_palette_proc(dib);
@@ -191,6 +192,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					}
 					
 					// read in the bitmap bits
+
 					switch (header.image_type) {
 						case 1 :
 						case 3 :
@@ -214,15 +216,14 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 						{
 							int x = 0;
 							int y = 0;
+							BYTE rle;							
 							BYTE *bits;
-
+							
 							if (fliphoriz)
 								bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 							else
 								bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 
-							BYTE rle;
-							
 							while(1) {
 								io->read_proc(&rle,1, 1, handle);
 								
@@ -245,7 +246,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 												goto done89;
 											
 											if (fliphoriz)
-												bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+												bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 											else
 												bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 										}
@@ -267,9 +268,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 											if (y >= header.is_height)
 												goto done89;											
-
-											if(fliphoriz)
-												bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+											
+											if (fliphoriz)
+												bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 											else
 												bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 										}
@@ -335,8 +336,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 						{
 							for (int y = 0; y < header.is_height; y++) {
 								BYTE *bits;
-								if(fliphoriz)
-									bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+								
+								if (fliphoriz)
+									bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 								else
 									bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 
@@ -367,9 +369,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 							while(1) {
 								BYTE *bits;
-
-								if(fliphoriz)
-									bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+								
+								if (fliphoriz)
+									bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 								else
 									bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 		
@@ -479,8 +481,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 							BYTE rle;
 							BYTE *bits;
 							
-							if(fliphoriz)
-								bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+							if (fliphoriz)
+								bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 							else
 								bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 							
@@ -508,8 +510,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 												if (y >= header.is_height)
 													goto done243;
 
-												if(fliphoriz)
-													bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+												if (fliphoriz)
+													bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 												else
 													bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 											}
@@ -534,8 +536,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 												if (y >= header.is_height)
 													goto done243;											
 
-												if(fliphoriz)
-													bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+												if (fliphoriz)
+													bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 												else
 													bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 											}
@@ -565,8 +567,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 												if (y >= header.is_height)
 													goto done243;											
 												
-												if(fliphoriz)
-													bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+												if (fliphoriz)
+													bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 												else
 													bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 											}
@@ -590,8 +592,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 												if (y >= header.is_height)
 													goto done243;											
 
-												if(fliphoriz)
-													bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+												if (fliphoriz)
+													bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 												else
 													bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 											}
@@ -686,9 +688,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 										BYTE *bits;
 
 										if (fliphoriz)
-											bits = Internal_GetScanLine(freeimage, dib, header.is_height-count, flipvert);
+											bits = Internal_GetScanLine(freeimage, dib, header.is_height - count, flipvert);
 										else
-											bits = Internal_GetScanLine(freeimage, dib, count-1, flipvert);
+											bits = Internal_GetScanLine(freeimage, dib, count - 1, flipvert);
 
 										for (unsigned cols = 0; cols < header.is_width; cols++) {
 											RGBQUAD rgb;
@@ -709,8 +711,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 									for (unsigned count = 0; count < header.is_height; count++) {
 										BYTE *bits;
 
-										if(flipvert)
-											bits = Internal_GetScanLine(freeimage, dib, header.is_height-count-1, flipvert);
+										if (fliphoriz)
+											bits = Internal_GetScanLine(freeimage, dib, header.is_height - count - 1, flipvert);
 										else
 											bits = Internal_GetScanLine(freeimage, dib, count, flipvert);
 
@@ -740,8 +742,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 							BYTE rle;
 							BYTE *bits;
 							
-							if(fliphoriz)
-								bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+							if (fliphoriz)
+								bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 							else
 								bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 							
@@ -768,8 +770,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 											if (y >= header.is_height)
 												goto done3210;
 
-											if(fliphoriz)
-												bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+											if (fliphoriz)
+												bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 											else
 												bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 										}
@@ -794,8 +796,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 											if (y >= header.is_height)
 												goto done3210;											
 
-											if(fliphoriz)
-												bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
+											if (fliphoriz)
+												bits = Internal_GetScanLine(freeimage, dib, header.is_height - y - 1, flipvert);
 											else
 												bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 										}
@@ -828,6 +830,70 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 	return NULL;
 }
 
+static BOOL DLL_CALLCONV
+Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
+	if ((dib != NULL) && (handle != NULL)) {
+		RGBQUAD *palette = freeimage->get_palette_proc(dib);
+		int bpp = freeimage->get_bpp_proc(dib);
+
+		// write the file header
+
+		tagTGAHEADER header;
+		header.id_length = 0;
+		header.cm_first_entry = 0;
+		header.is_xorigin = 0;
+		header.is_yorigin = 0;
+		header.is_width = freeimage->get_width_proc(dib);
+		header.is_height = freeimage->get_height_proc(dib);
+		header.is_pixel_depth = bpp;
+		header.is_image_descriptor = 0;
+
+		if (palette) {
+			header.color_map_type = 1;
+			header.image_type = 1;
+			header.cm_length = 1 << bpp;
+			header.cm_size = sizeof(RGBQUAD);
+		} else {
+			header.color_map_type = 0;
+			header.image_type = 2;
+			header.cm_length = 0;
+			header.cm_size = 0;
+		}
+
+		if (io->write_proc(&header, sizeof(header), 1, handle) != 1)
+			return FALSE;
+
+		// write palette	
+
+		if (palette)
+			if (io->write_proc(palette, header.cm_length * sizeof(RGBQUAD), 1, handle) != 1)
+				return FALSE;			
+
+		// write the data bits
+
+		int pitch = freeimage->get_pitch_proc(dib);
+		int line = freeimage->get_line_proc(dib);
+
+		for (int i = 0; i < header.is_height; ++i)
+			if (io->write_proc(freeimage->get_bits_proc(dib) + i * pitch, line, 1, handle) != 1)
+				return FALSE;
+
+		// write the TARGA signature
+
+		tagTGAFOOTER footer;
+		footer.developer_offset = 0;
+		footer.extension_offset = 0;
+		strcpy(footer.signature, "TRUEVISION-XFILE.");
+
+		if (io->write_proc(&footer, sizeof(footer), 1, handle) != 1)
+			return FALSE;
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 // ==========================================================
 //   Init
 // ==========================================================
@@ -841,5 +907,6 @@ InitTARGA(Plugin *plugin, int format_id) {
 	plugin->extension_proc = Extension;
 	plugin->regexpr_proc = RegExpr;
 	plugin->load_proc = Load;
+	plugin->save_proc = Save;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

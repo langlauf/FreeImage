@@ -253,7 +253,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 									io->read_proc(src + x, t, 1, handle);
 
 									x += t;
-								} else if(t != -128){
+								} else if (t != -128){
 									signed char b;
 
 									io->read_proc(&b, 1, 1, handle);
