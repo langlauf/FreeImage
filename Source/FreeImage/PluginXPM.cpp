@@ -195,7 +195,7 @@ CSLTokenizeString2(const char *pszString, const char *pszDelimiters, int nCSLTFl
                 pszString++;
             }
 
-            // within string constants a \\ sequence reduces to \ 
+            // within string constants a \\ sequence reduces to a \ sequence
             else if( bInString && pszString[0] == '\\' && pszString[1] == '\\' ) {
                 if( nCSLTFlags & CSLT_PRESERVEESCAPES ) {
                     pszToken[nTokenLen] = *pszString;

@@ -47,10 +47,33 @@
 //   Utility functions
 // ==========================================================
 
-inline int
-round(double x) {
-	return (int)floor(x + 0.5);
+#ifndef WIN32
+inline char*
+i2a(unsigned i, char *a, unsigned r) {
+	if (i/r > 0) a = i2a(i/r,a,r);
+	*a = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[i%r];
+	return a+1;
 }
+
+/** 
+ Transforms integer i into an ascii string and stores the result in a; 
+ string is encoded in the base indicated by r.
+ @param i Number to be converted
+ @param a String result
+ @param r Base of value; must be in the range 2 - 36
+ @return Returns a
+*/
+inline char *
+_itoa(int i, char *a, int r) {
+	r = ((r < 2) || (r > 36)) ? 10 : r;
+	if(i < 0) {
+		*a = '-';
+		*i2a(-i, a+1, r) = 0;
+	}
+	else *i2a(i, a, r) = 0;
+	return a;
+}
+#endif // !WIN32
 
 inline unsigned char
 HINIBBLE (unsigned char byte) {

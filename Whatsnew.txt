@@ -5,6 +5,22 @@ What's New for FreeImage
 ! : changed
 + : added
 
+October 20, 2003 - 3.0.1
+
+! FreeImage now uses libTIFF 3.6.0
+* [Detlev Vendt] fixed incorrect definition of the FREE_IMAGE_FORMAT enum
+* [Detlev Vendt] fixed a potential crash problem with Load / Save routines
+* [Herve Drolon] fixed incorrect loading of 16-bit greyscale images in TIFF plugin
+* [Dennis Lim] fixed a memory leak in Floyd & Steinberg dithering routine
+* [Herve Drolon] fixed a bug in BMP loader (incorrect loading of RLE4 bmp)
+* [Detlev Vendt] fixed some inconsistancy with 32bpp transparency handling
++ [David Boland] added a C# wrapper
+// Linux compatibility issues
+- [Michal Novotny] removed the round function in Utilities.h
+! [Herve Drolon] replaced the round routine by the clamp routine in PluginPCD
++ [Herve Drolon] added _itoa version in Utilities.h
+* [Michal Novotny] fixed untyped consts not accepted by g++ in PluginBMP
+
 September 8, 2003 - 3.0.0
 - [Herve Drolon] removed deprecated functions
 - [Herve Drolon] removed deprecated flags (TARGA_LOAD_RGB555, ICO_*, except ICO_DEFAULT)

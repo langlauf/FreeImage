@@ -212,7 +212,7 @@ FreeImage_GetColorType(FIBITMAP *dib) {
 				rgb = (RGBQUAD *)FreeImage_GetScanLine(dib, y);
 
 				for (unsigned x = 0; x < FreeImage_GetWidth(dib); x++)
-					if (rgb[x].rgbReserved != 0)
+					if (rgb[x].rgbReserved != 0xFF)
 						return FIC_RGBALPHA;			
 			}
 
@@ -243,7 +243,13 @@ FreeImage_GetBlueMask(FIBITMAP *dib) {
 
 BOOL DLL_CALLCONV
 FreeImage_IsTransparent(FIBITMAP *dib) {
-	return (dib != NULL) ? ((FreeImage_GetBPP(dib) == 32) ? TRUE : ((FREEIMAGEHEADER *)dib->data)->transparent) : FALSE;
+	if (dib) {
+		if (FreeImage_GetBPP(dib) == 32)
+			return (FreeImage_GetColorType(dib) == FIC_RGBALPHA ? TRUE : FALSE);
+		if (((FREEIMAGEHEADER *)dib->data)->transparent)
+			return TRUE;
+	}
+	return FALSE;
 }
 
 BYTE * DLL_CALLCONV
@@ -254,7 +260,8 @@ FreeImage_GetTransparencyTable(FIBITMAP *dib) {
 void DLL_CALLCONV
 FreeImage_SetTransparent(FIBITMAP *dib, BOOL enabled) {
 	if (dib) {
-		if ((FreeImage_GetBPP(dib) == 8) || (FreeImage_GetBPP(dib) == 32)) {
+		if ((FreeImage_GetBPP(dib) == 8) || 
+			(FreeImage_GetBPP(dib) == 32 && FreeImage_GetColorType(dib) == FIC_RGBALPHA)) {
 			((FREEIMAGEHEADER *)dib->data)->transparent = enabled;
 		} else {
 			((FREEIMAGEHEADER *)dib->data)->transparent = FALSE;

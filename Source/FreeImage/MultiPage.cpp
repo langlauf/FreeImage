@@ -24,7 +24,6 @@
 
 #include <malloc.h>
 #include <list>
-#include <windows.h>
 
 #include "CacheFile.h"
 #include "FreeImageIO.h"

@@ -19,7 +19,7 @@
 // Use at your own risk!
 // ==========================================================
 
-#include "../zlib/zlib.h"
+#include "../ZLib/zlib.h"
 #include "FreeImage.h"
 
 /**

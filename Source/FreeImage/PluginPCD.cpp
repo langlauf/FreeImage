@@ -33,8 +33,9 @@
 // Internal functions
 // ==========================================================
 
-inline float
-fix(double a) {
+static int 
+clamp(double x) {
+	int a = (int)floor(x + 0.5);
 	return (a < 0) ? 0 : (a > 255) ? 255 : a;
 }
 
@@ -50,9 +51,9 @@ YUV2RGB(int y, int cb, int cr, int &r, int &g, int &b) {
 	double c32 = 0.0079533  * 256.0;
 	double c33 = 0.0000001  * 256.0;
 
-	r = fix(round(c11 * y + c12 * (cb - 156) + c13 * (cr - 137)));
-	g = fix(round(c21 * y + c22 * (cb - 156) + c23 * (cr - 137)));
-	b = fix(round(c31 * y + c32 * (cb - 156) + c33 * (cr - 137)));
+	r = clamp(c11 * y + c12 * (cb - 156) + c13 * (cr - 137));
+	g = clamp(c21 * y + c22 * (cb - 156) + c23 * (cr - 137));
+	b = clamp(c31 * y + c32 * (cb - 156) + c33 * (cr - 137));
 }
 
 static BOOL
@@ -96,7 +97,7 @@ RegExpr() {
 
 static const char * DLL_CALLCONV
 MimeType() {
-	return "image/freeimage-pcd";
+	return "image/x-photo-cd";
 }
 
 static BOOL DLL_CALLCONV

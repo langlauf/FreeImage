@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_open.c,v 1.6 2001/07/20 02:22:46 warmerda Exp $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_open.c,v 1.11 2003/09/25 08:36:21 dron Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -32,19 +32,19 @@
 void _TIFFSetDefaultCompressionState(TIFF* tif);
 
 static const long typemask[13] = {
-	0L,		/* TIFF_NOTYPE */
-	0x000000ffL,	/* TIFF_BYTE */
-	0xffffffffL,	/* TIFF_ASCII */
-	0x0000ffffL,	/* TIFF_SHORT */
-	0xffffffffL,	/* TIFF_LONG */
-	0xffffffffL,	/* TIFF_RATIONAL */
-	0x000000ffL,	/* TIFF_SBYTE */
-	0x000000ffL,	/* TIFF_UNDEFINED */
-	0x0000ffffL,	/* TIFF_SSHORT */
-	0xffffffffL,	/* TIFF_SLONG */
-	0xffffffffL,	/* TIFF_SRATIONAL */
-	0xffffffffL,	/* TIFF_FLOAT */
-	0xffffffffL,	/* TIFF_DOUBLE */
+	(long)0L,		/* TIFF_NOTYPE */
+	(long)0x000000ffL,	/* TIFF_BYTE */
+	(long)0xffffffffL,	/* TIFF_ASCII */
+	(long)0x0000ffffL,	/* TIFF_SHORT */
+	(long)0xffffffffL,	/* TIFF_LONG */
+	(long)0xffffffffL,	/* TIFF_RATIONAL */
+	(long)0x000000ffL,	/* TIFF_SBYTE */
+	(long)0x000000ffL,	/* TIFF_UNDEFINED */
+	(long)0x0000ffffL,	/* TIFF_SSHORT */
+	(long)0xffffffffL,	/* TIFF_SLONG */
+	(long)0xffffffffL,	/* TIFF_SRATIONAL */
+	(long)0xffffffffL,	/* TIFF_FLOAT */
+	(long)0xffffffffL,	/* TIFF_DOUBLE */
 };
 static const int bigTypeshift[13] = {
 	0,		/* TIFF_NOTYPE */
@@ -156,6 +156,11 @@ TIFFClientOpen(
 	tif->tif_curstrip = (tstrip_t) -1;	/* invalid strip */
 	tif->tif_row = (uint32) -1;		/* read/write pre-increment */
 	tif->tif_clientdata = clientdata;
+	if (!readproc || !writeproc || !seekproc || !closeproc
+			|| !sizeproc || !mapproc || !unmapproc) {
+		TIFFError(module, "One of the client procedures are NULL pointer");
+		goto bad3;
+	}
 	tif->tif_readproc = readproc;
 	tif->tif_writeproc = writeproc;
 	tif->tif_seekproc = seekproc;
@@ -308,6 +313,8 @@ TIFFClientOpen(
 		if (!TIFFDefaultDirectory(tif))
 			goto bad;
 		tif->tif_diroff = 0;
+		tif->tif_dirlist = NULL;
+		tif->tif_dirnumber = 0;
 		return (tif);
 	}
 	/*
@@ -358,14 +365,6 @@ TIFFClientOpen(
 	!TIFFMapFileContents(tif, (tdata_t*) &tif->tif_base, &tif->tif_size))
 			tif->tif_flags &= ~TIFF_MAPPED;
 		if (TIFFReadDirectory(tif)) {
-                        if( m != O_RDONLY 
-                          && tif->tif_dir.td_compression != COMPRESSION_NONE )
-                        {
-                            TIFFError( name, 
-                                       "Can't open a compressed TIFF file"
-                                       " with compression for update." );
-                            goto bad;
-                        }
 			tif->tif_rawcc = -1;
 			tif->tif_flags |= TIFF_BUFFERSETUP;
 			return (tif);
@@ -387,6 +386,7 @@ bad:
 	return ((TIFF*)0);
 bad2:
 	(void) (*closeproc)(clientdata);
+bad3:
 	return ((TIFF*)0);
 }
 

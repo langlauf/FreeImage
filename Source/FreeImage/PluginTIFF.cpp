@@ -494,19 +494,30 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					int pitch = CalculatePitch(line);
 
 					// create a new DIB
+					// ----------------
 
-					if ((bitspersample == 16) && (samplesperpixel == 1))
+					if ((bitspersample == 16) && (samplesperpixel == 1)) {
+						// 16-bit greyscale -> convert to 8-bit
 						dib = FreeImage_Allocate(width, height, 8);
-					else if (bitspersample * samplesperpixel == 16)
+					}
+					else if (bitspersample * samplesperpixel == 16) {
+						// 16-bit RGB -> expect it to be 565
 						dib = FreeImage_Allocate(width, height, bitspersample * samplesperpixel, 0x1F, 0x7E0, 0xF800);
-					else if ((bitspersample * samplesperpixel == 24) || (bitspersample * samplesperpixel == 32))
+					}
+					else if ((bitspersample * samplesperpixel == 24) || (bitspersample * samplesperpixel == 32)) {
+						// BGR(A) (should be handled by isRGB test ?)
 						dib = FreeImage_Allocate(width, height, bitspersample * samplesperpixel, 0xFF, 0xFF00, 0xFF0000);
-					else
+					}
+					else {
+						// anything else <= 8-bit
 						dib = FreeImage_Allocate(width, height, bitspersample * samplesperpixel);
+					}
 
 					if (dib == NULL) {
 						throw "No space for DIB image";
 					}
+
+					// fill metrics
 
 					float fResX = 300.0;
 					float fResY = 300.0;
@@ -602,15 +613,14 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 					// read the tiff lines and save them in the DIB
 
-					buf = new BYTE[TIFFStripSize(tif)];
+					buf = (BYTE*)malloc(TIFFStripSize(tif) * sizeof(BYTE));
 
 					for (y = 0; y < height; y += rowsperstrip) {
 						nrow = (y + rowsperstrip > height ? height - y : rowsperstrip);
 
 						if (TIFFReadEncodedStrip(tif, TIFFComputeStrip(tif, y, 0), buf, nrow * line) == -1) {
-							delete [] buf;
-
-							return NULL;
+							free(buf);
+							throw "Parsing error";
 						} else {
 							if ((samplesperpixel == 1) && (bitspersample == 16)) {
 								// 16-bit grayscale picture... convert to 8 bits
@@ -622,8 +632,8 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 									WORD *tmp_bits = (WORD *)(buf + l * line);
 
-									for (unsigned x = 0; x < width; ++x) {
-										bits[x] = round(((double)tmp_bits[x]) / 257.0) << 4;
+									for (unsigned x = 0; x < width; x++) {
+										bits[x] = SCALE( tmp_bits[x] );
 									}
 								}
 							} else {
@@ -640,7 +650,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 						FreeImage_GetICCProfile(dib)->flags |= FIICC_COLOR_IS_CMYK;
 					}
 					
-					delete [] buf;
+					free(buf);
 				}
 
 				// copy ICC profile data (must be done after FreeImage_Allocate)
@@ -825,7 +835,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			case 24:
 			case 32:
 			{
-				BYTE *buffer = (BYTE *)malloc(pitch);
+				BYTE *buffer = (BYTE *)malloc(pitch * sizeof(BYTE));
 
 				for (y = 0; y < height; y++) {
 					// get a copy of the scanline

@@ -36,29 +36,31 @@ struct FIBITMAP { void *data; };
 
 enum FREE_IMAGE_FORMAT {
 	FIF_UNKNOWN = -1,
-	FIF_BMP = 0,
-	FIF_ICO,
-	FIF_JPEG,
-	FIF_JNG,
-	FIF_KOALA,
-	FIF_LBM,
-	FIF_MNG,
-	FIF_PBM,
-	FIF_PBMRAW,
-	FIF_PCD,
-	FIF_PCX,
-	FIF_PGM,
-	FIF_PGMRAW,
-	FIF_PNG,
-	FIF_PPM,
-	FIF_PPMRAW,
-	FIF_RAS,
-	FIF_TARGA,
-	FIF_TIFF,
-	FIF_WBMP,
-	FIF_PSD,
-	FIF_CUT,
+	FIF_BMP		= 0,
+	FIF_ICO		= 1,
+	FIF_JPEG	= 2,
+	FIF_JNG		= 3,
+	FIF_KOALA	= 4,
+	FIF_LBM		= 5,
 	FIF_IFF = FIF_LBM,
+	FIF_MNG		= 6,
+	FIF_PBM		= 7,
+	FIF_PBMRAW	= 8,
+	FIF_PCD		= 9,
+	FIF_PCX		= 10,
+	FIF_PGM		= 11,
+	FIF_PGMRAW	= 12,
+	FIF_PNG		= 13,
+	FIF_PPM		= 14,
+	FIF_PPMRAW	= 15,
+	FIF_RAS		= 16,
+	FIF_TARGA	= 17,
+	FIF_TIFF	= 18,
+	FIF_WBMP	= 19,
+	FIF_PSD		= 20,
+	FIF_CUT		= 21,
+	FIF_XBM		= 22,
+	FIF_XPM		= 23
 };
 
 // ----------------------------------------------------------
@@ -85,6 +87,5 @@ bool FIQT_FIFSupportsReading(FREE_IMAGE_FORMAT fif);
 bool FIQT_FIFSupportsWriting(FREE_IMAGE_FORMAT fif);
 FREE_IMAGE_FORMAT FIQT_GetFIFFromFilename(const char *filename);
 const char *FIQT_GetFileTypeFromExtension(const char *format);
-const char *FIQT_GetFileTypeFromFormat(FREE_IMAGE_FORMAT fif); // this function is deprecated
 
 #endif //!FREEIMAGEQT_H

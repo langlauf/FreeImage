@@ -5,6 +5,7 @@
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Hervé Drolon (drolon@infonie.fr)
 // - Jani Kajala (janik@remedy.fi)
+// - Detlev Vendt (detlev.vendt@brillit.de)
 //
 // This file is part of FreeImage 3
 //
@@ -105,7 +106,7 @@ FreeImage_ConvertLine16To32_565(BYTE *target, BYTE *source, int width_in_pixels)
 void DLL_CALLCONV
 FreeImage_ConvertLine24To32(BYTE *target, BYTE *source, int width_in_pixels) {
 	for (int cols = 0; cols < width_in_pixels; cols++) {
-		*(DWORD *)target = *(DWORD *) source & 0x00FFFFFF;
+		*(DWORD *)target = (*(DWORD *) source & 0x00FFFFFF) | 0xFF000000;
 
 		target += 4;
 		source += 3;

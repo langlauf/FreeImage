@@ -58,11 +58,11 @@
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="copyFromBitmap"><param name="Name" value="copyFromBitmap"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z31_4"><param name="Name" value="fipWinImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z33_4"><param name="Name" value="fipWinImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="copyFromHandle"><param name="Name" value="copyFromHandle"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z31_3"><param name="Name" value="fipWinImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z33_3"><param name="Name" value="fipWinImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="copySubImage"><param name="Name" value="copySubImage"></OBJECT>
   <UL>
@@ -70,7 +70,7 @@
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="copyToHandle"><param name="Name" value="copyToHandle"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z31_2"><param name="Name" value="fipWinImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z33_2"><param name="Name" value="fipWinImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="dither"><param name="Name" value="dither"></OBJECT>
   <UL>
@@ -78,7 +78,7 @@
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="draw"><param name="Name" value="draw"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z33_0"><param name="Name" value="fipWinImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z35_0"><param name="Name" value="fipWinImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html"><param name="Name" value="fipGenericImage"></OBJECT>
   <UL>
@@ -86,9 +86,9 @@
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#z3_2"><param name="Name" value="getScanWidth"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#z3_0"><param name="Name" value="getWidth"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#z5_0"><param name="Name" value="isValid"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#n1"><param name="Name" value="m_Height"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#n2"><param name="Name" value="m_ScanWidth"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#n0"><param name="Name" value="m_Width"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#p1"><param name="Name" value="m_Height"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#p2"><param name="Name" value="m_ScanWidth"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#p0"><param name="Name" value="m_Width"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html"><param name="Name" value="fipImage"></OBJECT>
   <UL>
@@ -133,11 +133,10 @@
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z13_1"><param name="Name" value="isValid"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z11_0"><param name="Name" value="load"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z11_1"><param name="Name" value="loadFromHandle"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#n1"><param name="Name" value="m_bits"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#n0"><param name="Name" value="m_dib"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#p1"><param name="Name" value="m_bits"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#p0"><param name="Name" value="m_dib"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z9_3"><param name="Name" value="operator="></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z9_5"><param name="Name" value="pasteSubImage"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#b1"><param name="Name" value="replace"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z27_0"><param name="Name" value="rescale"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z23_1"><param name="Name" value="rotate"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z23_0"><param name="Name" value="rotateEx"></OBJECT>
@@ -149,17 +148,16 @@
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z13_10"><param name="Name" value="setVerticalResolution"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z21_1"><param name="Name" value="splitChannels"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z19_0"><param name="Name" value="threshold"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#b0"><param name="Name" value="updateInfo"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z7_1"><param name="Name" value="~fipImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html"><param name="Name" value="fipWinImage"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z31_4"><param name="Name" value="copyFromBitmap"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z31_3"><param name="Name" value="copyFromHandle"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z31_2"><param name="Name" value="copyToHandle"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z33_0"><param name="Name" value="draw"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z29_0"><param name="Name" value="fipWinImage"></OBJECT>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z29_1"><param name="Name" value="~fipWinImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z33_4"><param name="Name" value="copyFromBitmap"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z33_3"><param name="Name" value="copyFromHandle"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z33_2"><param name="Name" value="copyToHandle"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z35_0"><param name="Name" value="draw"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z31_0"><param name="Name" value="fipWinImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z31_1"><param name="Name" value="~fipWinImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="flipHorizontal"><param name="Name" value="flipHorizontal"></OBJECT>
   <UL>
@@ -276,23 +274,23 @@
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="m_bits"><param name="Name" value="m_bits"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#n1"><param name="Name" value="fipImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#p1"><param name="Name" value="fipImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="m_dib"><param name="Name" value="m_dib"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#n0"><param name="Name" value="fipImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#p0"><param name="Name" value="fipImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="m_Height"><param name="Name" value="m_Height"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#n1"><param name="Name" value="fipGenericImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#p1"><param name="Name" value="fipGenericImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="m_ScanWidth"><param name="Name" value="m_ScanWidth"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#n2"><param name="Name" value="fipGenericImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#p2"><param name="Name" value="fipGenericImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="m_Width"><param name="Name" value="m_Width"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#n0"><param name="Name" value="fipGenericImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipGenericImage.html#p0"><param name="Name" value="fipGenericImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="operator="><param name="Name" value="operator="></OBJECT>
   <UL>
@@ -301,10 +299,6 @@
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="pasteSubImage"><param name="Name" value="pasteSubImage"></OBJECT>
   <UL>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z9_5"><param name="Name" value="fipImage"></OBJECT>
-  </UL>
-  <LI><OBJECT type="text/sitemap"><param name="See Also" value="replace"><param name="Name" value="replace"></OBJECT>
-  <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#b1"><param name="Name" value="fipImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="rescale"><param name="Name" value="rescale"></OBJECT>
   <UL>
@@ -350,15 +344,11 @@
   <UL>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z19_0"><param name="Name" value="fipImage"></OBJECT>
   </UL>
-  <LI><OBJECT type="text/sitemap"><param name="See Also" value="updateInfo"><param name="Name" value="updateInfo"></OBJECT>
-  <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#b0"><param name="Name" value="fipImage"></OBJECT>
-  </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="~fipImage"><param name="Name" value="~fipImage"></OBJECT>
   <UL>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z7_1"><param name="Name" value="fipImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="~fipWinImage"><param name="Name" value="~fipWinImage"></OBJECT>
   <UL>
-    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z29_1"><param name="Name" value="fipWinImage"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipWinImage.html#z31_1"><param name="Name" value="fipWinImage"></OBJECT>
 </UL>

@@ -32,9 +32,7 @@
 #include <map>
 #endif
 
-#ifndef _WINDOWS_
-#include <windows.h>
-#endif
+#include "FreeImage.h"
 
 // ----------------------------------------------------------
 
@@ -90,4 +88,4 @@ private :
 	BOOL m_keep_in_memory;
 };
 
-#endif
+#endif // CACHEFILE_H

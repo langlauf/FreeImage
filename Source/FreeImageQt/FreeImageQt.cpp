@@ -307,11 +307,6 @@ FIQT_GetFIFFromFilename(const char *filename) {
 }
 
 const char *
-FIQT_GetFileTypeFromFormat(FREE_IMAGE_FORMAT fif) {
-	return FIQT_GetFormatFromFIF(fif);
-}
-
-const char *
 FIQT_GetFileTypeFromExtension(const char *format) {
 	FREE_IMAGE_FORMAT fif = FIQT_GetFIFFromFilename(format);
 

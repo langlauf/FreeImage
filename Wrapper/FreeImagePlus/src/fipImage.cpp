@@ -52,7 +52,7 @@ BOOL fipImage::replace(FIBITMAP *new_dib) {
 
 fipImage::fipImage(WORD width, WORD height, WORD bpp) {
 	m_dib = NULL;
-	if(width && height & bpp) {
+	if(width && height && bpp) {
 		setSize(width, height, bpp);
 	}
 	else {
@@ -83,15 +83,6 @@ BOOL fipImage::setSize(WORD width, WORD height, WORD bpp) {
 	// Create palette if needed
 	switch(bpp)	{
 		case 1:
-			pal = FreeImage_GetPalette(m_dib);
-			pal[0].rgbRed = 0;
-			pal[0].rgbGreen = 0;
-			pal[0].rgbBlue = 0;
-			pal[1].rgbRed = 255;
-			pal[1].rgbGreen = 255;
-			pal[1].rgbBlue = 255;
-			break;
-
 		case 4:
 		case 8:
 			pal = FreeImage_GetPalette(m_dib);
@@ -305,12 +296,9 @@ BOOL fipImage::save(const char* lpszPathName, int flag) {
 	return bSuccess;
 }
 
-BOOL fipImage::saveToHandle(FreeImageIO *io, fi_handle handle, int flag) {
-	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+BOOL fipImage::saveToHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle, int flag) {
 	BOOL bSuccess = FALSE;
 
-	// Try to guess the file format from the file extension
-	fif = FreeImage_GetFileTypeFromHandle(io, handle, 16);
 	if(fif != FIF_UNKNOWN ) {
 		// Check that the dib can be saved in this format
 		WORD bpp = FreeImage_GetBPP(m_dib);

@@ -1,6 +1,4 @@
-#pragma warning (disable : 4550)
-
-/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_getimage.c,v 1.15 2001/09/24 19:40:37 warmerda Exp $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_getimage.c,v 1.27 2003/10/03 11:21:23 dron Exp $ */
 
 /*
  * Copyright (c) 1991-1997 Sam Leffler
@@ -57,6 +55,10 @@ TIFFRGBAImageOK(TIFF* tif, char emsg[1024])
     uint16 photometric;
     int colorchannels;
 
+    if (!tif->tif_decodestatus) {
+	sprintf(emsg, "Sorry, requested compression method is not configured");
+	return (0);
+    }
     switch (td->td_bitspersample) {
     case 1: case 2: case 4:
     case 8: case 16:
@@ -222,12 +224,32 @@ TIFFRGBAImageBegin(TIFFRGBAImage* img, TIFF* tif, int stop, char emsg[1024])
     TIFFGetFieldDefaulted(tif, TIFFTAG_EXTRASAMPLES,
 	&extrasamples, &sampleinfo);
     if (extrasamples == 1)
+    {
 	switch (sampleinfo[0]) {
+	case EXTRASAMPLE_UNSPECIFIED:	/* Workaround for some images without */
+		if (img->samplesperpixel == 4)	/* correct info about alpha channel */
+			img->alpha = EXTRASAMPLE_ASSOCALPHA;
+		break;
 	case EXTRASAMPLE_ASSOCALPHA:	/* data is pre-multiplied */
 	case EXTRASAMPLE_UNASSALPHA:	/* data is not pre-multiplied */
-	    img->alpha = sampleinfo[0];
-	    break;
+		img->alpha = sampleinfo[0];
+		break;
 	}
+    }
+
+#if DEFAULT_EXTRASAMPLE_AS_ALPHA == 1
+    if( !TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &img->photometric))
+        img->photometric = PHOTOMETRIC_MINISWHITE;
+
+    if( extrasamples == 0 
+        && img->samplesperpixel == 4 
+        && img->photometric == PHOTOMETRIC_RGB )
+    {
+        img->alpha = EXTRASAMPLE_ASSOCALPHA;
+        extrasamples = 1;
+    }
+#endif
+
     colorchannels = img->samplesperpixel - extrasamples;
     TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &compress);
     TIFFGetFieldDefaulted(tif, TIFFTAG_PLANARCONFIG, &planarconfig);
@@ -369,12 +391,11 @@ TIFFRGBAImageBegin(TIFFRGBAImage* img, TIFF* tif, int stop, char emsg[1024])
 	!(planarconfig == PLANARCONFIG_SEPARATE && colorchannels > 1);
     if (img->isContig) {
 	img->get = TIFFIsTiled(tif) ? gtTileContig : gtStripContig;
-	(void) pickTileContigCase(img);
+	return pickTileContigCase(img);
     } else {
 	img->get = TIFFIsTiled(tif) ? gtTileSeparate : gtStripSeparate;
-	(void) pickTileSeparateCase(img);
+	return pickTileSeparateCase(img);
     }
-    return (1);
 }
 
 int
@@ -397,17 +418,115 @@ TIFFRGBAImageGet(TIFFRGBAImage* img, uint32* raster, uint32 w, uint32 h)
  */
 int
 TIFFReadRGBAImage(TIFF* tif,
-    uint32 rwidth, uint32 rheight, uint32* raster, int stop)
+		  uint32 rwidth, uint32 rheight, uint32* raster, int stop)
 {
     char emsg[1024];
     TIFFRGBAImage img;
     int ok;
 
-    if (TIFFRGBAImageBegin(&img, tif, stop, emsg)) {
+    if (TIFFRGBAImageOK(tif, emsg) &&
+	TIFFRGBAImageBegin(&img, tif, stop, emsg)) {
 	/* XXX verify rwidth and rheight against width and height */
 	ok = TIFFRGBAImageGet(&img, raster+(rheight-img.height)*rwidth,
 	    rwidth, img.height);
 	TIFFRGBAImageEnd(&img);
+    } else {
+	TIFFError(TIFFFileName(tif), emsg);
+	ok = 0;
+    }
+    return (ok);
+}
+
+int
+TIFFReadRGBAImageOriented(TIFF* tif,
+			  uint32 rwidth, uint32 rheight, uint32* raster,
+			  int orientation, int stop)
+{
+    char emsg[1024];
+    TIFFRGBAImage img;
+    int ok;
+
+    if (TIFFRGBAImageOK(tif, emsg) &&
+	TIFFRGBAImageBegin(&img, tif, stop, emsg)) {
+	/* XXX verify rwidth and rheight against width and height */
+	ok = TIFFRGBAImageGet(&img, raster+(rheight-img.height)*rwidth,
+	    rwidth, img.height);
+	TIFFRGBAImageEnd(&img);
+
+	/* 
+	 * TIFFRGBAImageGet() always returns bottom-left oriented raster.
+	 * Wi will rotate it accordingly with user request.
+	 */
+	if (orientation == ORIENTATION_TOPLEFT ||
+	    orientation == ORIENTATION_LEFTTOP) {
+		uint32 *linebuf = (uint32*)_TIFFmalloc(rwidth * sizeof(uint32));
+		uint32 *top, *bottom;
+
+		for (top = raster, bottom = raster + (rheight - 1) * rwidth;
+		     top < bottom;
+		     top+=rwidth, bottom-=rwidth) {
+			_TIFFmemcpy(linebuf, top, rwidth * sizeof(uint32));
+			_TIFFmemcpy(top, bottom, rwidth * sizeof(uint32));
+			_TIFFmemcpy(bottom, linebuf, rwidth * sizeof(uint32));
+		}
+
+		_TIFFfree(linebuf);
+	} else if (orientation == ORIENTATION_TOPRIGHT ||
+		   orientation == ORIENTATION_RIGHTTOP) {
+		uint32 *linebuf = (uint32*)_TIFFmalloc(rwidth * sizeof(uint32));
+		uint32 *top, *bottom;
+
+		for (top = raster, bottom = raster + (rheight - 1) * rwidth;
+		/* XXX: Use `<=' because we should revert center line too */
+		     top <= bottom;
+		     top+=rwidth, bottom-=rwidth) {
+			uint32 *left = top;
+			uint32 *right = left + rwidth - 1;
+			
+			while ( left < right ) {
+				uint32 temp = *left;
+				*left = *right;
+				*right = temp;
+				left++, right--;
+			}
+
+			/* 
+			 * XXX: check for center line, otherwise
+			 * it will be reverted back
+			 */
+			if (top != bottom) {
+				left = bottom;
+				right = left + rwidth - 1;
+				while ( left < right ) {
+					uint32 temp = *left;
+					*left = *right;
+					*right = temp;
+					left++, right--;
+				}
+			}
+
+			_TIFFmemcpy(linebuf, top, rwidth * sizeof(uint32));
+			_TIFFmemcpy(top, bottom, rwidth * sizeof(uint32));
+			_TIFFmemcpy(bottom, linebuf, rwidth * sizeof(uint32));
+		}
+
+		_TIFFfree(linebuf);
+	} else if (orientation == ORIENTATION_BOTRIGHT ||
+		   orientation == ORIENTATION_RIGHTBOT) {
+		uint32 line;
+
+		for (line = 0; line < rheight; line++) {
+			uint32 *left = raster + (line * rwidth);
+			uint32 *right = left + rwidth - 1;
+
+			while ( left < right ) {
+				uint32 temp = *left;
+				*left = *right;
+				*right = temp;
+				left++, right--;
+			}
+		}
+	}
     } else {
 	TIFFError(TIFFFileName(tif), emsg);
 	ok = 0;
@@ -463,7 +582,7 @@ gtTileContig(TIFFRGBAImage* img, uint32* raster, uint32 w, uint32 h)
     u_char* buf;
     int32 fromskew, toskew;
     uint32 nrow;
- 
+
     buf = (u_char*) _TIFFmalloc(TIFFTileSize(tif));
     if (buf == 0) {
 	TIFFError(TIFFFileName(tif), "No space for tile buffer");
@@ -474,7 +593,7 @@ gtTileContig(TIFFRGBAImage* img, uint32* raster, uint32 w, uint32 h)
     y = setorientation(img, h);
     orientation = img->orientation;
     toskew = -(int32) (orientation == ORIENTATION_TOPLEFT ? tw+w : tw-w);
-    for (row = 0; row < h; row += nrow) 
+    for (row = 0; row < h; row += nrow)
     {
         rowstoread = th - (row + img->row_offset) % th;
     	nrow = (row + rowstoread > h ? h - row : rowstoread);
@@ -486,7 +605,7 @@ gtTileContig(TIFFRGBAImage* img, uint32* raster, uint32 w, uint32 h)
                 ret = 0;
                 break;
             }
-
+	    
             pos = ((row+img->row_offset) % th) * TIFFTileRowSize(tif);
 
     	    if (col + tw > w) 
@@ -504,6 +623,8 @@ gtTileContig(TIFFRGBAImage* img, uint32* raster, uint32 w, uint32 h)
             {
                 (*put)(img, raster+y*w+col, col, y, tw, nrow, 0, toskew, buf + pos);
             }
+
+	    
         }
 
         y += (orientation == ORIENTATION_TOPLEFT ? -(int32) nrow : (int32) nrow);
@@ -1836,7 +1957,7 @@ TIFFYCbCrToRGBInit(TIFFYCbCrToRGB* ycbcr, TIFF* tif)
     _TIFFmemset(clamptab, 0, 256);		/* v < 0 => 0 */
     ycbcr->clamptab = (clamptab += 256);
     for (i = 0; i < 256; i++)
-	clamptab[i] = i;
+	clamptab[i] = (TIFFRGBValue) i;
     _TIFFmemset(clamptab+256, 255, 2*256);	/* v > 255 => 255 */
     TIFFGetFieldDefaulted(tif, TIFFTAG_YCBCRCOEFFICIENTS, &coeffs);
     _TIFFmemcpy(ycbcr->coeffs, coeffs, 3*sizeof (float));
@@ -2083,7 +2204,7 @@ makecmap(TIFFRGBAImage* img)
     for (i = 0; i < 256; i++) {
 	TIFFRGBValue c;
 	img->PALmap[i] = p;
-#define	CMAP(x)	c = x; *p++ = PACK(r[c]&0xff, g[c]&0xff, b[c]&0xff);
+#define	CMAP(x)	c = (TIFFRGBValue) x; *p++ = PACK(r[c]&0xff, g[c]&0xff, b[c]&0xff);
 	switch (bitspersample) {
 	case 1:
 	    CMAP(i>>7);
@@ -2296,7 +2417,7 @@ TIFFReadRGBAStrip(TIFF* tif, uint32 row, uint32 * raster )
 	return (0);
     }
 
-    if (TIFFRGBAImageBegin(&img, tif, 0, emsg)) {
+    if (TIFFRGBAImageOK(tif, emsg) && TIFFRGBAImageBegin(&img, tif, 0, emsg)) {
 
         img.row_offset = row;
         img.col_offset = 0;
@@ -2360,7 +2481,7 @@ TIFFReadRGBATile(TIFF* tif, uint32 col, uint32 row, uint32 * raster)
      * Setup the RGBA reader.
      */
     
-    if ( !TIFFRGBAImageBegin(&img, tif, 0, emsg)) {
+    if (!TIFFRGBAImageOK(tif, emsg) || !TIFFRGBAImageBegin(&img, tif, 0, emsg)) {
 	TIFFError(TIFFFileName(tif), emsg);
         return( 0 );
     }

@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/osrs/libtiff/libtiff/tiffconf.h,v 1.3 2001/05/12 03:59:50 warmerda Exp $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tiffconf.h,v 1.7 2002/07/31 20:55:12 warmerda Exp $ */
 /*
  * Copyright (c) 1988-1997 Sam Leffler
  * Copyright (c) 1991-1997 Silicon Graphics, Inc.
@@ -111,10 +111,6 @@
 #define	THUNDER_SUPPORT
 #define	NEXT_SUPPORT
 #define LOGLUV_SUPPORT
-#define JPEG_SUPPORT
-#define ZIP_SUPPORT
-#define PIXARLOG_SUPPORT
-#define LOGLUV_SUPPORT
 #endif /* COMPRESSION_SUPPORT */
 
 /*
@@ -137,6 +133,16 @@
  *			or not to convert single-strip uncompressed images
  *			to mutiple strips of ~8Kb--to reduce memory use)
  * SUBIFD_SUPPORT	enable support for SubIFD tag (thumbnails and such)
+ * DEFAULT_EXTRASAMPLE_AS_ALPHA
+ *                      The RGBA interface will treat a fourth sample with
+ *                      no EXTRASAMPLE_ value as being ASSOCALPHA.  Many
+ *                      packages produce RGBA files but don't mark the alpha
+ *                      properly.
+ * CHECK_JPEG_YCBCR_SUBSAMPLING
+ *                      Enable picking up YCbCr subsampling info from the
+ *                      JPEG data stream to support files lacking the tag.
+ *                      See Bug 168 in Bugzilla, and JPEGFixupTestSubsampling()
+ *                      for details. 
  */
 #ifndef STRIPCHOP_DEFAULT
 #define	STRIPCHOP_DEFAULT	TIFF_STRIPCHOP	/* default is to enable */
@@ -144,4 +150,11 @@
 #ifndef SUBIFD_SUPPORT
 #define	SUBIFD_SUPPORT		1	/* enable SubIFD tag (330) support */
 #endif
+#ifndef DEFAULT_EXTRASAMPLE_AS_ALPHA
+#define DEFAULT_EXTRASAMPLE_AS_ALPHA 1
+#endif
+#ifndef CHECK_JPEG_YCBCR_SUBSAMPLING
+#define CHECK_JPEG_YCBCR_SUBSAMPLING 1
+#endif
+
 #endif /* _TIFFCONF_ */

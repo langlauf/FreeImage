@@ -1,4 +1,4 @@
-#	$Header: /cvsroot/osrs/libtiff/libtiff/Makefile.in,v 1.16 2001/09/09 15:56:04 warmerda Exp $
+#	$Header: /cvsroot/osrs/libtiff/libtiff/Makefile.in,v 1.23 2003/08/12 09:48:12 dron Exp $
 #
 # Tag Image File Format Library
 #
@@ -64,7 +64,8 @@ IPATH	= -I. -I${SRCDIR} @COPT_LIBINC@
 CONF_LIBRARY=@CONF_JPEG@ @CONF_ZIP@
 COPTS	= @GCOPTS@
 OPTIMIZER=@OPTIMIZER@
-CFLAGS	= @ENVOPTS@ @LIBCOPTS@ ${COPTS} ${OPTIMIZER} ${IPATH} ${CONF_LIBRARY}
+LFSOPTS=@LFSOPTS@
+CFLAGS	= @ENVOPTS@ @LIBCOPTS@ ${COPTS} ${OPTIMIZER} ${LFSOPTS} ${IPATH} ${CONF_LIBRARY}
 #
 SRCS	= \
 	tif_aux.c \
@@ -77,6 +78,7 @@ SRCS	= \
 	tif_dirwrite.c \
 	tif_dumpmode.c \
 	tif_error.c \
+	tif_extension.c \
 	tif_fax3.c \
 	tif_fax3sm.c \
 	tif_getimage.c \
@@ -85,7 +87,7 @@ SRCS	= \
 	tif_luv.c \
 	tif_lzw.c \
 	tif_next.c \
-	tif_ojpeg.c \
+	nnnntif_ojpeg.c \
 	tif_open.c \
 	tif_packbits.c \
 	tif_pixarlog.c \
@@ -113,6 +115,7 @@ OBJS	= \
 	tif_dirwrite.o \
 	tif_dumpmode.o \
 	tif_error.o \
+	tif_extension.o \
 	tif_fax3.o \
 	tif_fax3sm.o \
 	tif_getimage.o \
@@ -211,7 +214,7 @@ GNULDdso: ${OBJS}
 	fi
 	touch $@
 DARWINdso: ${OBJS}
-	${CC} -dynamiclib -undefined suppress \
+	${CC} -dynamiclib -undefined error \
 	  -install_name libtiff.@DSOSUF@ \
 	  -o libtiff.@DSOSUF_VERSION@  ${OBJS} \
 	  @LIBJPEG@ @LIBGZ@ @MACHDEPLIBS@
@@ -244,6 +247,13 @@ OPENBSDdso: ${OBJS}
 	${CC} -shared @LIBCOPTS@ -o libtiff.@DSOSUF_VERSION@ ${OBJS} @LIBJPEG@ @LIBGZ@ -lm
 	touch $@
 
+OPENSERVERdso:  ${OBJS}
+	${CC} -shared -fPIC \
+	  -o libtiff.@DSOSUF_VERSION@  ${OBJS} \
+		@LIBJPEG@ @LIBGZ@
+	rm -f libtiff.@DSOSUF@
+	@LN@ @LN_S@ libtiff.@DSOSUF_VERSION@ libtiff.@DSOSUF@
+	touch $@
 
 ${OBJS}: ${SRCDIR}/tiffio.h ${SRCDIR}/tiff.h ${SRCDIR}/tif_dir.h
 ${OBJS}: ${SRCDIR}/tiffcomp.h ${SRCDIR}/tiffiop.h ${SRCDIR}/tiffconf.h
@@ -255,6 +265,8 @@ ${SRCDIR}/tiffvers.h: ${VERSION} ${SRCDIR}/mkversion.c
 	${CC} -o mkversion ${CFLAGS} ${SRCDIR}/mkversion.c
 	rm -f ${SRCDIR}/tiffvers.h
 	./mkversion -v ${VERSION} ${SRCDIR}/tiffvers.h
+
+tiffvers.h:	${SRCDIR}/tiffvers.h
 
 #
 # The finite state machine tables used by the G3/G4 decoders
@@ -285,6 +297,8 @@ tif_dumpmode.o: ${SRCDIR}/tif_dumpmode.c
 	${CC} -c ${CFLAGS} ${SRCDIR}/tif_dumpmode.c
 tif_error.o: ${SRCDIR}/tif_error.c
 	${CC} -c ${CFLAGS} ${SRCDIR}/tif_error.c
+tif_extension.o: ${SRCDIR}/tif_extension.c
+	${CC} -c ${CFLAGS} ${SRCDIR}/tif_extension.c
 tif_fax3.o: ${SRCDIR}/tif_fax3.c ${SRCDIR}/t4.h ${SRCDIR}/tif_fax3.h
 	${CC} -c ${CFLAGS} ${SRCDIR}/tif_fax3.c
 tif_getimage.o: ${SRCDIR}/tif_getimage.c
@@ -299,6 +313,8 @@ tif_lzw.o: ${SRCDIR}/tif_lzw.c ${SRCDIR}/tif_predict.h
 	${CC} -c ${CFLAGS} ${SRCDIR}/tif_lzw.c
 tif_next.o: ${SRCDIR}/tif_next.c
 	${CC} -c ${CFLAGS} ${SRCDIR}/tif_next.c
+tif_ojpeg.o: ${SRCDIR}/tif_ojpeg.c
+	${CC} -c ${CFLAGS} ${SRCDIR}/tif_ojpeg.c
 tif_open.o: ${SRCDIR}/tif_open.c
 	${CC} -c ${CFLAGS} ${SRCDIR}/tif_open.c
 tif_packbits.o: ${SRCDIR}/tif_packbits.c
@@ -364,15 +380,15 @@ installPrivateHdrs: ${INCS_PRIVATE}
 
 installDSO: @DSO@dso
 	if [ @DSOSUF_VERSION@ != @DSOSUF@ ]; then			\
-	    ${INSTALL} -idb tiff.sw.tools -m 555 -F ${DESTDIR}@DIR_LIB@	\
-		-O libtiff.@DSOSUF_VERSION@;				\
+	    ${INSTALL} -idb tiff.sw.tools.nostrip -m 555		\
+		-F ${DESTDIR}@DIR_LIB@ -O libtiff.@DSOSUF_VERSION@;	\
 	    ${INSTALL} -idb tiff.sw.tools -F ${DESTDIR}@DIR_LIB@	\
 		-lns libtiff.@DSOSUF_VERSION@ -O libtiff.@DSOSUF@;	\
 	    ${INSTALL} -idb tiff.sw.tools -F ${DESTDIR}@DIR_LIB@	\
 		-lns libtiff.@DSOSUF@ -O libtiff.so;			\
 	else								\
-	    ${INSTALL} -idb tiff.sw.tools -m 555 -F ${DESTDIR}@DIR_LIB@	\
-		-O libtiff.@DSOSUF@;					\
+	    ${INSTALL} -idb tiff.sw.tools.nostrip -m 555		\
+		-F ${DESTDIR}@DIR_LIB@ -O libtiff.@DSOSUF@;		\
 	fi
 
 install: all installHdrs

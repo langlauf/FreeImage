@@ -52,11 +52,9 @@ const BYTE BLACK = 0;
 
 // ----------------------------------------------------------
 
-/** Class fipGenericImage.
-
-	Abstract base class for all image types used by the library.
+/** Abstract base class for all image types used by the library.
 	@version FreeImage 3.0
-	@author Hervé Drolon <drolon@infonie.fr>
+	@author Hervé Drolon
 */
 
 class FIP_API fipGenericImage
@@ -92,10 +90,10 @@ class FIP_API fipGenericImage
 
 /** A class used to manage all photo related images.
 
-	fipImage encapsulates the DIB format. It relies on the FreeImage library, especially for 
+	fipImage encapsulates the FIBITMAP format. It relies on the FreeImage library, especially for 
 	loading / saving images and for bit depth conversion.
 	@version FreeImage 3.0
-	@author Hervé Drolon <drolon@infonie.fr>
+	@author Hervé Drolon
 */
 
 class FIP_API fipImage : public fipGenericImage
@@ -192,20 +190,21 @@ public:
 
 	/// Saves an image using the specified FreeImageIO struct and fi_handle, and an optional flag.
 	/**
+	@param fif Format identifier (FreeImage format)
 	@param io FreeImageIO structure
 	@param handle FreeImage fi_handle
-	@param flag The signification of this flag depends on the image to be read.
+	@param flag The signification of this flag depends on the image to be saved.
 	@return Returns TRUE if successful, FALSE otherwise.
 	@see FreeImage.h, FreeImage documentation
 	*/
-	BOOL saveToHandle(FreeImageIO *io, fi_handle handle, int flag = 0);
+	BOOL saveToHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle, int flag = 0);
 	//@}
 
 	/**	@name Information functions
 	 *  Accessors to the DIB BITMAPINFO structure.
 	 */
 	//@{	
-	// Returns a const pointer to the FIBITMAP data. Used for direct access from FREEIMAGE functions.
+	/// Returns a pointer to the FIBITMAP data. Used for direct access from FREEIMAGE functions.
 	FIBITMAP* getFIBITMAP();
 
 	/// Returns TRUE if the image is allocated, FALSE otherwise
@@ -324,11 +323,7 @@ public:
 
 	/** @brief Converts a 8-bit image to a monochrome image using a dithering algorithm.
 
-	@param algorithm Dithering algorithm to use.<br>Possible values are :
-		<table border = 1>
-		<tr><td>IPL_WU</td><td>Wu's color quantization algorithm</td></tr>
-		<tr><td>IPL_NEUQUANT</td><td>NeuQuant neural network quantization algorithm</td></tr>
-		</table>
+		@param algorithm Dithering algorithm to use.
 		@return Returns TRUE if successfull, FALSE otherwise. 
 		@see FREE_IMAGE_DITHER
 	*/
@@ -489,37 +484,29 @@ public:
 
 	@param new_width New image width
 	@param new_height New image height
-	@param filter The filter parameter specifies which resampling filter should be used.<br>
-	 Possible values are : 
-	<table border = 1>
-	<tr><td>FILTER_BOX</td><td>Box, pulse, Fourier window, 1st order (constant) b-spline</td></tr>
-	<tr><td>FILTER_BICUBIC</td><td>Mitchell & Netravali's two-param cubic filter</td></tr>
-	<tr><td>FILTER_BILINEAR</td><td>Bilinear filter</td></tr>
-	<tr><td>FILTER_BSPLINE</td><td>4th order (cubic) b-spline</td></tr>
-	<tr><td>FILTER_CATMULLROM</td><td>Catmull-Rom spline, Overhauser spline</td></tr>
-	<tr><td>FILTER_LANCZOS3</td><td>Lanczos3 filter</td></tr>
-	</table>
+	@param filter The filter parameter specifies which resampling filter should be used.
 	@return Returns TRUE if the operation was successful, FALSE otherwise
+	@see FREE_IMAGE_FILTER
 	*/
 	BOOL rescale(WORD new_width, WORD new_height, FREE_IMAGE_FILTER filter);
 	//@}
 
 
   protected:
-	  /// Internal use
+	/**@name Internal use */
+	//@{
 	  void updateInfo();
 	  BOOL replace(FIBITMAP *new_dib);
 	  BOOL replace(fipImage& img) {
 		  return replace(img.getFIBITMAP());
 	  }
+	//@}
 
 };
 
 // ----------------------------------------------------------
 
-/** Class fipWinImage.
-
-	A class designed for MS Windows (TM) platforms that encapsulates the DIB format.
+/** A class designed for MS Windows (TM) platforms.
 
     fipWinImage provides methods used to :
 	<ul>
@@ -527,7 +514,7 @@ public:
 	<li>Copy / Paste a DIB to/from Windows devices (HANDLE, HBITMAP, Clipboard)
 	</ul>
 	@version FreeImage 3.0
-	@author Hervé Drolon <drolon@infonie.fr>
+	@author Hervé Drolon
 */
 #ifdef WIN32
 

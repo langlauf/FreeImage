@@ -25,12 +25,14 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "FreeImage.h"
+#include "Utilities.h"
 
 //----------------------------------------------------------------------
 
-static const char *s_version = "3.0.0";
+static const char *s_version = "3.0.1";
 static const char *s_copyright = "This program uses FreeImage, a free, open source image library supporting all common bitmap formats. See http://freeimage.sourceforge.net for details";
 
 //----------------------------------------------------------------------

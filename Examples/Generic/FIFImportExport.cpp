@@ -19,6 +19,10 @@
 // Use at own risk!
 // ==========================================================
 
+// This example shows how to use Plugin fonctions to explore FreeImage capabilities. 
+// Whenever an external plugin is added to the library, it is automatically loaded 
+// with FreeImage and can be asked for its capabilities via the plugin functions.
+// 
 // Functions used in this sample : 
 // FreeImage_FIFSupportsExportBPP, FreeImage_FIFSupportsICCProfiles, FreeImage_FIFSupportsReading, 
 // FreeImage_FIFSupportsWriting, FreeImage_GetFIFCount, FreeImage_GetFIFDescription, 
@@ -120,9 +124,9 @@ main(int argc, char *argv[]) {
 	// print version & copyright infos
 
 	cout << "FreeImage " << FreeImage_GetVersion() << "\n";
-	cout << FreeImage_GetCopyrightMessage() << "\n";
+	cout << FreeImage_GetCopyrightMessage() << "\n\n";
 
-	// Print input formats (including plugins) known by the library
+	// Print input formats (including external plugins) known by the library
 	fstream importFile("fif_import.csv", ios::out);
 	PrintImportFormats(importFile);
 	importFile.close();

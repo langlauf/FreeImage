@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_fax3.c,v 1.15 2001/09/09 16:10:37 warmerda Exp $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_fax3.c,v 1.19 2003/09/30 05:20:16 dron Exp $ */
 
 /*
  * Copyright (c) 1990-1997 Sam Leffler
@@ -240,8 +240,6 @@ Fax3Decode1D(TIFF* tif, tidata_t buf, tsize_t occ, tsample_t s)
 		(*sp->fill)(buf, thisrun, pa, lastx);
 		buf += sp->b.rowbytes;
 		occ -= sp->b.rowbytes;
-		if (occ != 0)
-			tif->tif_row++;
 		continue;
 	EOF1D:				/* premature EOF */
 		CLEANUP_RUNS();
@@ -294,8 +292,6 @@ Fax3Decode2D(TIFF* tif, tidata_t buf, tsize_t occ, tsample_t s)
 		SWAP(uint32*, sp->curruns, sp->refruns);
 		buf += sp->b.rowbytes;
 		occ -= sp->b.rowbytes;
-		if (occ != 0)
-			tif->tif_row++;
 		continue;
 	EOF2D:				/* premature EOF */
 		CLEANUP_RUNS();
@@ -315,7 +311,7 @@ Fax3Decode2D(TIFF* tif, tidata_t buf, tsize_t occ, tsample_t s)
  * this is <8 bytes.  We optimize the code here to reflect the
  * machine characteristics.
  */
-#if defined(__alpha) || _MIPS_SZLONG == 64 || defined(__LP64__)
+#if defined(__alpha) || _MIPS_SZLONG == 64 || defined(__LP64__) || defined(__arch64__)
 #define FILL(n, cp)							    \
     switch (n) {							    \
     case 15:(cp)[14] = 0xff; case 14:(cp)[13] = 0xff; case 13: (cp)[12] = 0xff;\
@@ -532,14 +528,14 @@ Fax3SetupState(TIFF* tif)
 #define	Fax3FlushBits(tif, sp) {				\
 	if ((tif)->tif_rawcc >= (tif)->tif_rawdatasize)		\
 		(void) TIFFFlushData1(tif);			\
-	*(tif)->tif_rawcp++ = (sp)->data;			\
+	*(tif)->tif_rawcp++ = (tidataval_t) (sp)->data;		\
 	(tif)->tif_rawcc++;					\
 	(sp)->data = 0, (sp)->bit = 8;				\
 }
 #define	_FlushBits(tif) {					\
 	if ((tif)->tif_rawcc >= (tif)->tif_rawdatasize)		\
 		(void) TIFFFlushData1(tif);			\
-	*(tif)->tif_rawcp++ = data;				\
+	*(tif)->tif_rawcp++ = (tidataval_t) data;		\
 	(tif)->tif_rawcc++;					\
 	data = 0, bit = 8;					\
 }
@@ -1027,8 +1023,6 @@ Fax3Encode(TIFF* tif, tidata_t bp, tsize_t cc, tsample_t s)
 		}
 		bp += sp->b.rowbytes;
 		cc -= sp->b.rowbytes;
-		if (cc != 0)
-			tif->tif_row++;
 	}
 	return (1);
 }
@@ -1290,11 +1284,11 @@ InitCCITTFax3(TIFF* tif)
 	 * override parent get/set field methods.
 	 */
 	_TIFFMergeFieldInfo(tif, faxFieldInfo, N(faxFieldInfo));
-	sp->vgetparent = tif->tif_vgetfield;
-	tif->tif_vgetfield = Fax3VGetField;	/* hook for codec tags */
-	sp->vsetparent = tif->tif_vsetfield;
-	tif->tif_vsetfield = Fax3VSetField;	/* hook for codec tags */
-	tif->tif_printdir = Fax3PrintDir;	/* hook for codec tags */
+	sp->vgetparent = tif->tif_tagmethods.vgetfield;
+	tif->tif_tagmethods.vgetfield = Fax3VGetField;	/* hook for codec tags */
+	sp->vsetparent = tif->tif_tagmethods.vsetfield;
+	tif->tif_tagmethods.vsetfield = Fax3VSetField;	/* hook for codec tags */
+	tif->tif_tagmethods.printdir = Fax3PrintDir;	/* hook for codec tags */
 	sp->groupoptions = 0;	
 	sp->recvparams = 0;
 	sp->subaddress = NULL;
@@ -1375,8 +1369,6 @@ Fax4Decode(TIFF* tif, tidata_t buf, tsize_t occ, tsample_t s)
 		SWAP(uint32*, sp->curruns, sp->refruns);
 		buf += sp->b.rowbytes;
 		occ -= sp->b.rowbytes;
-		if (occ != 0)
-			tif->tif_row++;
 		continue;
 	EOFG4:
                 NeedBits16( 13, BADG4 );
@@ -1410,8 +1402,6 @@ Fax4Encode(TIFF* tif, tidata_t bp, tsize_t cc, tsample_t s)
 		_TIFFmemcpy(sp->refline, bp, sp->b.rowbytes);
 		bp += sp->b.rowbytes;
 		cc -= sp->b.rowbytes;
-		if (cc != 0)
-			tif->tif_row++;
 	}
 	return (1);
 }
@@ -1492,8 +1482,6 @@ Fax3DecodeRLE(TIFF* tif, tidata_t buf, tsize_t occ, tsample_t s)
 		}
 		buf += sp->b.rowbytes;
 		occ -= sp->b.rowbytes;
-		if (occ != 0)
-			tif->tif_row++;
 		continue;
 	EOFRLE:				/* premature EOF */
 		(*sp->fill)(buf, thisrun, pa, lastx);

@@ -5,6 +5,8 @@
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Markus Loibl (markus.loibl@epost.de)
 // - Martin Weber (martweb@gmx.net)
+// - Hervé Drolon (drolon@infonie.fr)
+// - Michal Novotny (michal@etc.cz)
 //
 // This file is part of FreeImage 3
 //
@@ -29,14 +31,14 @@
 //   Constants + headers
 // ----------------------------------------------------------
 
-const RLE_COMMAND     = 0;
-const RLE_ENDOFLINE   = 0;
-const RLE_ENDOFBITMAP = 1;
-const RLE_DELTA       = 2;
-const BI_RGB          = 0;
-const BI_RLE8         = 1;
-const BI_RLE4         = 2;
-const BI_BITFIELDS    = 3;
+static const BYTE RLE_COMMAND     = 0;
+static const BYTE RLE_ENDOFLINE   = 0;
+static const BYTE RLE_ENDOFBITMAP = 1;
+static const BYTE RLE_DELTA       = 2;
+static const BYTE BI_RGB          = 0;
+static const BYTE BI_RLE8         = 1;
+static const BYTE BI_RLE4         = 2;
+static const BYTE BI_BITFIELDS    = 3;
 
 // ----------------------------------------------------------
 
@@ -94,7 +96,7 @@ static int s_format_id;
 
 static FIBITMAP *
 LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_offset) {
-	FIBITMAP *dib;
+	FIBITMAP *dib = NULL;
 
 	try {
 		long info_header_position = io->tell_proc(handle);
@@ -165,6 +167,7 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 						BYTE second_byte = 0;
 						int scanline = 0;
 						int bits = 0;
+						int align = 0;
 						BOOL low_nibble = FALSE;
 
 						for (;;) {
@@ -188,8 +191,8 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 										{
 											// read the delta values
 
-											BYTE delta_x;
-											BYTE delta_y;
+											BYTE delta_x = 0;
+											BYTE delta_y = 0;
 
 											io->read_proc(&delta_x, sizeof(BYTE), 1, handle);
 											io->read_proc(&delta_y, sizeof(BYTE), 1, handle);
@@ -202,6 +205,7 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 										}
 
 										default :
+										{
 											io->read_proc(&second_byte, sizeof(BYTE), 1, handle);
 
 											BYTE *sline = FreeImage_GetScanLine(dib, scanline);
@@ -221,8 +225,16 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 												low_nibble = !low_nibble;
 											}
 
+											// align run length to even number of bytes 
+
+											align = status_byte % 4;
+											if((align == 1) || (align == 2)) {
+												io->read_proc(&second_byte, sizeof(BYTE), 1, handle);
+											}
+
 											break;
-									};
+										}
+									}
 
 									break;
 
@@ -246,7 +258,7 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 								}
 
 								break;
-							};
+							}
 						}
 
 						return (FIBITMAP *)dib;
@@ -279,8 +291,8 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 										{
 											// read the delta values
 
-											BYTE delta_x;
-											BYTE delta_y;
+											BYTE delta_x = 0;
+											BYTE delta_y = 0;
 
 											io->read_proc(&delta_x, sizeof(BYTE), 1, handle);
 											io->read_proc(&delta_y, sizeof(BYTE), 1, handle);
@@ -398,6 +410,9 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 			}
 		}
 	} catch(const char *message) {
+		if(dib)
+			FreeImage_Unload(dib);
+
 		FreeImage_OutputMessageProc(s_format_id, message);
 	}
 
@@ -712,6 +727,9 @@ LoadOS22XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 			}
 		}
 	} catch(const char *message) {
+		if(dib)
+			FreeImage_Unload(dib);
+
 		FreeImage_OutputMessageProc(s_format_id, message);
 	}
 
@@ -827,6 +845,9 @@ LoadOS21XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 			}
 		}
 	} catch(const char *message) {	
+		if(dib)
+			FreeImage_Unload(dib);
+
 		FreeImage_OutputMessageProc(s_format_id, message);
 	}
 

@@ -8,6 +8,8 @@ EXPORTS TIFFOpen
 	TIFFVGetField
 	TIFFGetFieldDefaulted
 	TIFFVGetFieldDefaulted
+	TIFFGetTagListEntry
+	TIFFGetTagListCount
 	TIFFReadDirectory
 	TIFFScanlineSize
 	TIFFStripSize
@@ -23,6 +25,7 @@ EXPORTS TIFFOpen
 	TIFFCurrentDirectory
 	TIFFCurrentStrip
 	TIFFCurrentTile
+	TIFFDataWidth
 	TIFFReadBufferSetup
 	TIFFLastDirectory
 	TIFFSetDirectory
@@ -30,6 +33,7 @@ EXPORTS TIFFOpen
 	TIFFUnlinkDirectory
 	TIFFSetField
 	TIFFVSetField
+	TIFFCheckpointDirectory
 	TIFFWriteDirectory
 	TIFFRewriteDirectory
 	TIFFPrintDirectory
@@ -54,6 +58,8 @@ EXPORTS TIFFOpen
 	TIFFWriteTile
 	TIFFComputeStrip
 	TIFFNumberOfStrips
+	TIFFRGBAImageBegin
+	TIFFRGBAImageEnd
 	TIFFReadEncodedStrip
 	TIFFReadRawStrip
 	TIFFReadEncodedTile
@@ -65,6 +71,7 @@ EXPORTS TIFFOpen
 	TIFFWriteEncodedTile
 	TIFFWriteRawTile
 	TIFFSetWriteOffset
+	TIFFSwabDouble
 	TIFFSwabShort
 	TIFFSwabLong
 	TIFFSwabArrayOfShort

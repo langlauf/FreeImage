@@ -26,8 +26,7 @@
 ///////////////////////////////////////////////////////////////////
 // Copying
 
-HANDLE fipWinImage::copyToHandle()
-{
+HANDLE fipWinImage::copyToHandle() {
 	HANDLE hMem = NULL;
 
 	if(m_dib) {
@@ -68,8 +67,7 @@ HANDLE fipWinImage::copyToHandle()
 	return hMem;
 }
 
-void fipWinImage::copyFromHandle(HANDLE hMem)
-{
+void fipWinImage::copyFromHandle(HANDLE hMem) {
 	// Get a pointer to the bitmap
 	BYTE *lpVoid = (BYTE *)GlobalLock(hMem);
 	// Get a pointer to the bitmap header
@@ -103,8 +101,7 @@ void fipWinImage::copyFromHandle(HANDLE hMem)
 	}
 }
 
-void fipWinImage::copyFromBitmap(HBITMAP hbmp)
-{
+void fipWinImage::copyFromBitmap(HBITMAP hbmp) {
 	if(hbmp) { 
         BITMAP bm;
 		// get informations about the bitmap
@@ -135,8 +132,7 @@ void fipWinImage::copyFromBitmap(HBITMAP hbmp)
 ///////////////////////////////////////////////////////////////////
 // Painting operations
 
-void fipWinImage::draw(HDC hDC, RECT& rcDest)
-{
+void fipWinImage::draw(HDC hDC, RECT& rcDest) {
 	// Draw the dib
 	SetStretchBltMode(hDC, COLORONCOLOR);	
 	StretchDIBits(hDC, rcDest.left, rcDest.top, 

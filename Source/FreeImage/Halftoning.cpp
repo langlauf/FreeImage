@@ -3,6 +3,8 @@
 // Thresholding and halftoning functions
 // Design and implementation by
 // - Hervé Drolon (drolon@infonie.fr)
+// - Dennis Lim (dlkj@users.sourceforge.net)
+//
 // Main reference : Ulichney, R., Digital Halftoning, The MIT Press, Cambridge, MA, 1987
 //
 // This file is part of FreeImage 3
@@ -113,6 +115,9 @@ static FIBITMAP* FloydSteinberg(FIBITMAP *dib) {
 		// swap error buffers
 		int *terr = lerr; lerr = cerr; cerr = terr;
 	}
+
+	free(lerr);
+	free(cerr);
 
 	return new_dib;
 }
