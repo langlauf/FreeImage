@@ -667,8 +667,12 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 		BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 		TIFFSetField(out, TIFFTAG_RESOLUTIONUNIT, RESUNIT_INCH);
-		TIFFSetField(out, TIFFTAG_XRESOLUTION, 0.0254*((float)pInfoHeader->biXPelsPerMeter));
-		TIFFSetField(out, TIFFTAG_YRESOLUTION, 0.0254*((float)pInfoHeader->biYPelsPerMeter));
+
+		double res = (unsigned long) (0.5 + 0.0254 * pInfoHeader->biXPelsPerMeter); // rounded ! (99,9998 -> 100)
+		TIFFSetField(out, TIFFTAG_XRESOLUTION, res);
+		
+		res = (unsigned long) (0.5 + 0.0254 * pInfoHeader->biYPelsPerMeter);
+		TIFFSetField(out, TIFFTAG_YRESOLUTION, res);
 
 		// multi-paging
 
@@ -716,6 +720,16 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			case 24 :
 			case 32 :
 				compression = COMPRESSION_PACKBITS;
+
+				if (flags & TIFF_PACKBITS)
+					compression = COMPRESSION_PACKBITS;
+				else if (flags & TIFF_DEFLATE)
+					compression = COMPRESSION_DEFLATE;
+				else if (flags & TIFF_ADOBE_DEFLATE)
+					compression = COMPRESSION_ADOBE_DEFLATE;
+				else if (flags & TIFF_NONE)
+					compression = COMPRESSION_NONE;
+
 				break;
 
 			default :
@@ -731,7 +745,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 		
 		pitch = freeimage->get_pitch_proc(dib);
 		
-		switch(bitspersample) {			
+		switch(bitspersample) {
 			case 1 :
 			case 4 :
 			case 8 :

@@ -316,6 +316,24 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 			if (!load_local_plugins_only) {
 				int count = 0;
 				char buffer[MAX_PATH + 200];
+				char current_dir[2 * _MAX_PATH], module[2 * _MAX_PATH];
+				BOOL bOk = FALSE;
+
+				// store the current directory. then set the directory to the application location
+
+				if (GetCurrentDirectory(2 * _MAX_PATH, current_dir) != 0) {
+					if (GetModuleFileName(NULL, module, 2 * _MAX_PATH) != 0) {
+						char *last_point = strrchr(module, '\\');
+
+						if (last_point) {
+							*last_point = '\0';
+
+							bOk = SetCurrentDirectory(module);
+						}
+					}
+				}
+
+				// search for plugins
 
 				while (count < s_search_list_size) {
 					_finddata_t find_data;
@@ -346,6 +364,11 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 
 					count++;
 				}
+
+				// restore the current directory
+
+				if (bOk)
+					SetCurrentDirectory(current_dir);
 			}
 #endif
 		}

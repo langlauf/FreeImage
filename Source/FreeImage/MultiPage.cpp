@@ -39,7 +39,7 @@ enum BlockType { BLOCK_CONTINUEUS, BLOCK_REFERENCE };
 
 // ----------------------------------------------------------
 
-struct Block {
+struct BlockTypeS {
 	BlockType m_type;
 };
 
@@ -71,8 +71,8 @@ struct BlockReference {
 
 // ----------------------------------------------------------
 
-typedef std::list<Block *> BlockList;
-typedef std::list<Block *>::iterator BlockListIterator;
+typedef std::list<BlockTypeS *> BlockList;
+typedef std::list<BlockTypeS *>::iterator BlockListIterator;
 
 // ----------------------------------------------------------
 
@@ -109,7 +109,7 @@ FreeImage_FindBlock(FIMULTIBITMAP *bitmap, int position) {
 		int prev_count = 0;
 		int count = 0;
 		BlockListIterator i;
-		Block *current_block = NULL;
+		BlockTypeS *current_block = NULL;
 
 		for (i = header->m_blocks.begin(); i != header->m_blocks.end(); ++i) {
 			prev_count = count;
@@ -151,24 +151,24 @@ FreeImage_FindBlock(FIMULTIBITMAP *bitmap, int position) {
 
 						if (item != block->m_start) {
 							BlockContinueus *block_a = new BlockContinueus(block->m_start, item - 1);
-							header->m_blocks.insert(i, (Block *)block_a);
+							header->m_blocks.insert(i, (BlockTypeS *)block_a);
 						}
 
 						// middle part
 
 						BlockContinueus *block_b = new BlockContinueus(item, item);
-						BlockListIterator block_target = header->m_blocks.insert(i, (Block *)block_b);
+						BlockListIterator block_target = header->m_blocks.insert(i, (BlockTypeS *)block_b);
 
 						// right part
 
 						if (item != block->m_end) {
 							BlockContinueus *block_c = new BlockContinueus(item + 1, block->m_end);
-							header->m_blocks.insert(i, (Block *)block_c);
+							header->m_blocks.insert(i, (BlockTypeS *)block_c);
 						}
 
 						// remove the old block that was just splitted
 
-						header->m_blocks.remove((Block *)block);
+						header->m_blocks.remove((BlockTypeS *)block);
 						delete block;
 
 						// return the splitted block
@@ -287,7 +287,7 @@ FreeImage_OpenMultiBitmap(FREE_IMAGE_FORMAT fif, const char *filename, BOOL crea
 							// allocate a continueus block to describe the bitmap
 
 							if (!create_new)
-								header->m_blocks.push_back((Block *)new BlockContinueus(0, header->page_count - 1));
+								header->m_blocks.push_back((BlockTypeS *)new BlockContinueus(0, header->page_count - 1));
 
 							// set up the cache
 
@@ -520,7 +520,7 @@ FreeImage_AppendPage(FIMULTIBITMAP *bitmap, FIBITMAP *data) {
 
 			// add the block
 
-			header->m_blocks.push_back((Block *)block);
+			header->m_blocks.push_back((BlockTypeS *)block);
 			header->changed = true;
 			header->page_count = -1;
 		}
@@ -552,11 +552,11 @@ FreeImage_InsertPage(FIMULTIBITMAP *bitmap, int page, FIBITMAP *data) {
 
 					BlockReference *block = new BlockReference(ref, compressed_size, size);
 
-					header->m_blocks.insert(block_source, (Block *)block);
+					header->m_blocks.insert(block_source, (BlockTypeS *)block);
 				} else {
 					BlockReference *block = new BlockReference(ref, compressed_size, size);
 
-					header->m_blocks.push_front((Block *)block);
+					header->m_blocks.push_front((BlockTypeS *)block);
 				}
 
 				// get rid of the compressed buffer
@@ -677,7 +677,7 @@ FreeImage_UnlockPage(FIMULTIBITMAP *bitmap, FIBITMAP *page, BOOL changed) {
 
 						delete (*i);
 
-						*i = (Block *)new BlockReference(page, compressed_size, size);
+						*i = (BlockTypeS *)new BlockReference(page, compressed_size, size);
 
 						break;
 					}
@@ -692,7 +692,7 @@ FreeImage_UnlockPage(FIMULTIBITMAP *bitmap, FIBITMAP *page, BOOL changed) {
 
 						int page = header->m_cachefile->writeFile(compressed_data, compressed_size);
 
-						*i = (Block *)new BlockReference(page, compressed_size, size);
+						*i = (BlockTypeS *)new BlockReference(page, compressed_size, size);
 
 						break;
 					}

@@ -87,7 +87,10 @@ static BYTE *
 Internal_GetScanLine(FreeImage *freeimage, FIBITMAP *dib, int scanline, int flipvert) {
 	//assert ((scanline >= 0) && (scanline < (int)freeimage->get_height_proc(dib)));
 
-	return freeimage->get_scanline_proc(dib, flipvert ? scanline : freeimage->get_height_proc(dib) - scanline - 1);
+	if (flipvert)
+		return freeimage->get_scanline_proc(dib, scanline);
+	else
+		return freeimage->get_scanline_proc(dib, freeimage->get_height_proc(dib) - scanline - 1);
 }
 
 // ==========================================================

@@ -107,9 +107,8 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 void DLL_CALLCONV
 FreeImage_Free(FIBITMAP *dib) {
 	if (dib != NULL) {
-		if (dib->data != NULL) {
+		if (dib->data != NULL)
 			free(dib->data);
-		}
 
 		// and the wrapper
 

@@ -5,7 +5,7 @@
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
 /* * file      : libmng_pixels.c           copyright (c) 2000 G.Juyn        * */
-/* * version   : 1.0.2                                                      * */
+/* * version   : 1.0.4                                                      * */
 /* *                                                                        * */
 /* * purpose   : Pixel-row management routines (implementation)             * */
 /* *                                                                        * */
@@ -101,6 +101,12 @@
 /* *                                                                        * */
 /* *             1.0.2 - 06/25/2001 - G.Juyn                                * */
 /* *             - added option to turn off progressive refresh             * */
+/* *                                                                        * */
+/* *             1.0.4 - 11/04/2001 - G.Juyn                                * */
+/* *             - fixed possible compile-problem in cleanup_rowproc        * */
+/* *             1.0.4 - 06/22/2002 - G.Juyn                                * */
+/* *             - B558212 - off by one error                               * */
+/* *             - MNG subimage alpha composite wrong for rgba8 images      * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -655,7 +661,7 @@ mng_retcode display_argb8 (mng_datap pData)
       {
         for (iX = pData->iSourcel + pData->iCol; iX < pData->iSourcer; iX += pData->iColinc)
         {                              /* copy the values */
-          *pScanline     = *(pDataline+2);
+          *pScanline     = *(pDataline+3);
           *(pScanline+1) = *pDataline;
           *(pScanline+2) = *(pDataline+1);
           *(pScanline+3) = *(pDataline+2);
@@ -935,7 +941,7 @@ mng_retcode display_rgb8_a8 (mng_datap pData)
         for (iX = pData->iSourcel + pData->iCol; iX < pData->iSourcer; iX += pData->iColinc)
         {
           iFGa8 = *(pDataline+3);      /* get alpha values */
-          iBGa8 = *(pScanline+3);
+          iBGa8 = *pAlphaline;
 
           if (iFGa8)                   /* any opacity at all ? */
           {                            /* fully opaque or background fully transparent ? */
@@ -8333,10 +8339,12 @@ mng_retcode cleanup_rowproc (mng_datap pData)
 #endif
 
 #ifdef MNG_INCLUDE_LCMS                /* cleanup cms profile/transform */
-  mng_retcode iRetcode = mng_clear_cms (pData);
-  
-  if (iRetcode)                        /* on error bail out */
-    return iRetcode;
+  {
+    mng_retcode iRetcode = mng_clear_cms (pData);
+
+    if (iRetcode)                      /* on error bail out */
+      return iRetcode;
+  }
 #endif /* MNG_INCLUDE_LCMS */
 
   if (pData->pWorkrow)                 /* cleanup buffer for working row */

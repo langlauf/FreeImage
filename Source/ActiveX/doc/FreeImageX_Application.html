@@ -1,0 +1,385 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="de">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>FreeImage ActiveX-Interface: Freeimage.Application</title>
+</head>
+
+<body>
+
+<p align="center"><a target="_blank" href="http://www.6ixsoft.com/">
+<IMG alt="The FreeImage Project" 
+src="freeimage.png" border=0 width="600" height="100"></a> </p>
+<P class=title align="center"><FONT size=+2><EM>The Free, Quality Image library for 
+Windows</EM> </FONT></P> 
+<P class=title align="center"><font size="+2"><em>ActiveX-Library: 
+Freeimage.Application</em></font></P>
+
+<hr>
+<P class=title align="left"><b>Design and implementation by</b></P>
+<ul>
+  <li> 
+<P class=title align="left">Markus Loibl <a href="mailto:(markus.loibl@epost.de">
+(markus.loibl@epost.de</a>)<br>
+&nbsp;</P></li>
+</ul>
+<P class=title align="left"><b>This file is part of FreeImage 2.6.0</b></P>
+
+<p class="title" align="left"><a href="FreeImageX.html">.. back to the main page</a></p>
+
+<hr>
+<p class="title" align="left"><b>Sample</b></p>
+<p class="title" align="left"><font face="Courier New">Option explicit<br>
+  <br>
+  dim ctrl<br>
+  dim title<br>
+  dim text<br>
+  <br>
+  set ctrl = createObject(&quot;FreeImage.Application&quot;)<br>
+  <br>
+  title = ctrl.Version<br>
+  text = ctrl.Copyright<br>
+  MsgBox text, 0, title<br>
+  set ctrl = Nothing<br>
+&nbsp;</font></p>
+
+<hr>
+<p class="title" align="left"><b>Reference</b></p>
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Test"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Test</b></td>
+    <td width="62%" valign="top">Shows a Message-Box (for testing and debugging 
+    purposes)</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">This string appears in the messagebox (message)</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">This string appears in the messagebox (title)</td>
+  </tr>
+</table>
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Version"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Version</b></td>
+    <td width="62%" valign="top">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">String with the freeimage-version</td>
+  </tr>
+</table>
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Copyright"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Copyright</b></td>
+    <td width="62%" valign="top">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">String with the freeimage-copyright</td>
+  </tr>
+</table>
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="IsValidImage"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>IsValidImage</b></td>
+    <td width="62%" valign="top">Checks the extension of the file</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">filename</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">-1: not a valid extension (FIF_UNKNOWN)<br>
+    else: the id for the corresponding image-format</td>
+  </tr>
+</table>
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="ShowMessages"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>ShowMessages</b></td>
+    <td width="62%" valign="top">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get/set</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">This property specifies, if freeimage-messages 
+    should be shown in a messagebox (1) or not (0).</td>
+  </tr>
+</table>
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="GetImageType"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>GetImageType</b></td>
+    <td width="62%" valign="top">Checks if the file can be opened by freeimage</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">0: Checks only the extension (similar to
+    <a href="#IsValidImage">IsValidImage</a>)<br>
+    1: Checks by opening the image (looking for &quot;characteristic bytes&quot;</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">filename</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">-1: not a valid image (FIF_UNKNOWN)<br>
+    else: the id for the corresponding image-format</td>
+  </tr>
+</table>
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="SupportsReading"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>SupportsReading</b></td>
+    <td width="62%" valign="top">Checks if the image-format supports beeing read. 
+    Accessing this property may fail if the specified image-format is invalid.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">Image-format to test for. Can be inquired by
+    <a href="#GetImageType">GetImageType</a> or <a href="#IsValidImage">
+    IsValidImage</a></td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">0: This image-format cannot be read<br>
+    1: Freeimag can read this image-format</td>
+  </tr>
+</table>
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="SupportsWriting"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>SupportsWriting</b></td>
+    <td width="62%" valign="top">Checks if the image-format supports beeing 
+    written. Accessing this property may fail if the specified image-format is 
+    invalid.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">Image-format to test for. Can be inquired by
+    <a href="#GetImageType">GetImageType</a> or <a href="#IsValidImage">
+    IsValidImage</a></td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">0: This image-format cannot be written<br>
+    1: Freeimag can write this image-format</td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p><a name="ImageFormats"></a>With version 2.5.3 the following image-formats are supported:</p>
+<p>(see also
+<a target="_blank" href="http://www.6ixsoft.com/intro.html#features">features of 
+freeimage</a>)</p>
+<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#808080" width="100%" id="AutoNumber1" bordercolorlight="#C0C0C0" bordercolordark="#808080" height="478">
+  <tr>
+    <td width="12%" height="19"><b>Image-format</b></td>
+    <td width="22%" height="19"><b>Description</b></td>
+    <td width="24%" height="19"><b>extensions</b></td>
+    <td width="19%" height="19"><b>loading</b></td>
+    <td width="46%" height="19"><b>saving</b></td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">0</td>
+    <td width="22%" height="19">Windows or OS/2 Bitmap</td>
+    <td width="24%" height="19">bmp</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">1</td>
+    <td width="22%" height="19">Windows Icon</td>
+    <td width="24%" height="19">ico</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">2</td>
+    <td width="22%" height="19">JPEG - JFIF Compliant</td>
+    <td width="24%" height="19">jpg,jif,jpeg</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">3</td>
+    <td width="22%" height="19">JPEG Network Graphics</td>
+    <td width="24%" height="19">jng</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">-</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">4</td>
+    <td width="22%" height="19">C64 Koala Graphics</td>
+    <td width="24%" height="19">koa</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">-</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">5</td>
+    <td width="22%" height="19">IFF Interleaved Bitmap</td>
+    <td width="24%" height="19">iff,lbm</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">-</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">6</td>
+    <td width="22%" height="19">Multiple Network Graphics</td>
+    <td width="24%" height="19">mng</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">-</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">7</td>
+    <td width="22%" height="19">Portable Bitmap (ASCII)</td>
+    <td width="24%" height="19">pbm</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">8</td>
+    <td width="22%" height="19">Portable Bitmap (RAW)</td>
+    <td width="24%" height="19">pbmraw</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">9</td>
+    <td width="22%" height="19">Kodak PhotoCD</td>
+    <td width="24%" height="19">pcd</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">-</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">10</td>
+    <td width="22%" height="19">Zsoft Paintbrush</td>
+    <td width="24%" height="19">pcx</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">-</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">11</td>
+    <td width="22%" height="19">Portable Network Media</td>
+    <td width="24%" height="19">pbm,pgm,ppm</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">12</td>
+    <td width="22%" height="19">Portable Greymap (RAW)</td>
+    <td width="24%" height="19">pgmraw</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">13</td>
+    <td width="22%" height="19">Portable Network Graphics</td>
+    <td width="24%" height="19">png</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">14</td>
+    <td width="22%" height="19">Portable Pixelmap (ASCII)</td>
+    <td width="24%" height="19">ppm</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">15</td>
+    <td width="22%" height="19">Portable Pixelmap (RAW)</td>
+    <td width="24%" height="19">ppmraw</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">16</td>
+    <td width="22%" height="19">Sun Raster Image</td>
+    <td width="24%" height="19">ras</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">-</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">17</td>
+    <td width="22%" height="19">Truevision Targa</td>
+    <td width="24%" height="19">tga,targa</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">18</td>
+    <td width="22%" height="19">Tagged Image File Format</td>
+    <td width="24%" height="19">tif,tiff</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">19</td>
+    <td width="22%" height="19">Wireless Bitmap</td>
+    <td width="24%" height="19">wap,wbmp,wbm</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">x</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">20</td>
+    <td width="22%" height="19">Adobe Photoshop</td>
+    <td width="24%" height="19">psd</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">-</td>
+  </tr>
+  <tr>
+    <td width="12%" height="18">21</td>
+    <td width="22%" height="18">Dr. Halo</td>
+    <td width="24%" height="18">cut</td>
+    <td width="19%" height="18">x</td>
+    <td width="46%" height="18">-</td>
+  </tr>
+  <tr>
+    <td width="12%" height="19">22</td>
+    <td width="22%" height="19">IFF Interleaved Bitmap</td>
+    <td width="24%" height="19">iff,lbm</td>
+    <td width="19%" height="19">x</td>
+    <td width="46%" height="19">-</td>
+  </tr>
+</table>
+
+</body>
+
+</html>

@@ -21,30 +21,9 @@
 
 #pragma warning (disable : 4786)
 
-// ----------------------------------------------------------
-
 #include <math.h>
 
 #include "CacheFile.h"
-
-// ----------------------------------------------------------
-
-const int CACHE_SIZE = 32;
-const int BLOCK_SIZE = 64 * 1024;
-
-// ----------------------------------------------------------
-
-#pragma pack(push, 1)
-struct Block {
-	long next;
-	BYTE data[BLOCK_SIZE - 4];
-};
-
-struct Cache {
-	int nr;
-	Block *data;
-};
-#pragma pack(pop)
 
 // ----------------------------------------------------------
 

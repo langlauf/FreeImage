@@ -1,5 +1,0 @@
-What's there to do for FreeImage
-
-Short term development:
-* add independent palette storage support
-* add more bitmap formats

@@ -150,8 +150,10 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 						if (height > 0) {
 							io->read_proc((void *)freeimage->get_bits_proc(dib), height * pitch, 1, handle);
 						} else {
-							for (int c = 0; c < abs(height); ++c) {
-								io->read_proc((void *)freeimage->get_scanline_proc(dib, height - c - 1), pitch, 1, handle);								
+							int tmp = abs(height);
+
+							for (int c = 0; c < tmp; ++c) {
+								io->read_proc((void *)freeimage->get_scanline_proc(dib, tmp - c - 1), pitch, 1, handle);
 							}
 						}
 						
@@ -219,9 +221,6 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 												low_nibble = !low_nibble;
 											}
 
-											if (((status_byte / 2) & 1 )== 1)
-												io->read_proc(&second_byte, sizeof(BYTE), 1, handle);												
-
 											break;
 									};
 
@@ -250,7 +249,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 							};
 						}
 
-						break;
+						return (FIBITMAP *)dib;
 					}
 
 					case BI_RLE8 :

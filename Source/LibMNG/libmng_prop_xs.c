@@ -5,7 +5,7 @@
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
 /* * file      : libmng_prop_xs.c          copyright (c) 2000 G.Juyn        * */
-/* * version   : 1.0.3                                                      * */
+/* * version   : 1.0.4                                                      * */
 /* *                                                                        * */
 /* * purpose   : property get/set interface (implementation)                * */
 /* *                                                                        * */
@@ -72,6 +72,9 @@
 /* *                                                                        * */
 /* *             1.0.3 - 08/06/2001 - G.Juyn                                * */
 /* *             - added get function for last processed BACK chunk         * */
+/* *                                                                        * */
+/* *             1.0.4 - 06/22/2002 - G.Juyn                                * */
+/* *             - B495442 - invalid returnvalue in mng_get_suspensionmode  * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -2014,7 +2017,7 @@ mng_bool MNG_DECL mng_get_suspensionmode (mng_handle hHandle)
 #endif
 
   if ((hHandle == 0) || (((mng_datap)hHandle)->iMagic != MNG_MAGIC))
-    return mng_st_normal;
+    return MNG_FALSE;
 
 #ifdef MNG_SUPPORT_TRACE
   MNG_TRACEX (((mng_datap)hHandle), MNG_FN_GET_SUSPENSIONMODE, MNG_LC_END)

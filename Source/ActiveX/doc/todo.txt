@@ -1,0 +1,359 @@
+- you wanna debug ? simply add:
+  _CrtDbgBreak();
+
+- you wanna log to a file ?
+	#define _LOG_ME_ 
+	#ifdef _LOG_ME_
+
+	const char *szLog = "G:\\Library\\graphics\\freeimage\\current\\253\\Source\\ActiveX\\test\\clone.txt";
+	#endif
+	#ifdef _LOG_ME_
+		FILE *pFile = fopen(szLog, "at");
+		if( pFile )
+		{
+			USES_CONVERSION;
+			fprintf(pFile, "CPainting::set filename to %s\n", OLE2T(m_currentFilename.m_str));
+		}
+		fclose(pFile);
+	#endif
+
+- you wanna convert to ascii ?
+		USES_CONVERSION;
+		LPTSTR	szFileName;
+
+		if( m_currentFilename.Length() )
+				szFileName = OLE2T(m_currentFilename.m_str);
+		else	szFileName = NULL;
+
+- you wanna open FreeImage.h:
+  Right MouseClick on "../../Dist/FreeImage.h"
+
+////////////////
+//
+// VARIANT
+//
+////////////////
+
+/*
+ * VARENUM usage key,
+ *
+ * * [V] - may appear in a VARIANT
+ * * [T] - may appear in a TYPEDESC
+ * * [P] - may appear in an OLE property set
+ * * [S] - may appear in a Safe Array
+ *
+ *
+ *  VT_EMPTY            [V]   [P]     nothing
+ *  VT_NULL             [V]   [P]     SQL style Null
+ *  VT_I2               [V][T][P][S]  2 byte signed int
+ *  VT_I4               [V][T][P][S]  4 byte signed int
+ *  VT_R4               [V][T][P][S]  4 byte real
+ *  VT_R8               [V][T][P][S]  8 byte real
+ *  VT_CY               [V][T][P][S]  currency
+ *  VT_DATE             [V][T][P][S]  date
+ *  VT_BSTR             [V][T][P][S]  OLE Automation string
+ *  VT_DISPATCH         [V][T][P][S]  IDispatch *
+ *  VT_ERROR            [V][T][P][S]  SCODE
+ *  VT_BOOL             [V][T][P][S]  True=-1, False=0
+ *  VT_VARIANT          [V][T][P][S]  VARIANT *
+ *  VT_UNKNOWN          [V][T]   [S]  IUnknown *
+ *  VT_DECIMAL          [V][T]   [S]  16 byte fixed point
+ *  VT_RECORD           [V]   [P][S]  user defined type
+ *  VT_I1               [V][T][P][s]  signed char
+ *  VT_UI1              [V][T][P][S]  unsigned char
+ *  VT_UI2              [V][T][P][S]  unsigned short
+ *  VT_UI4              [V][T][P][S]  unsigned short
+ *  VT_I8                  [T][P]     signed 64-bit int
+ *  VT_UI8                 [T][P]     unsigned 64-bit int
+ *  VT_INT              [V][T][P][S]  signed machine int
+ *  VT_UINT             [V][T]   [S]  unsigned machine int
+ *  VT_VOID                [T]        C style void
+ *  VT_HRESULT             [T]        Standard return type
+ *  VT_PTR                 [T]        pointer type
+ *  VT_SAFEARRAY           [T]        (use VT_ARRAY in VARIANT)
+ *  VT_CARRAY              [T]        C style array
+ *  VT_USERDEFINED         [T]        user defined type
+ *  VT_LPSTR               [T][P]     null terminated string
+ *  VT_LPWSTR              [T][P]     wide null terminated string
+ *  VT_FILETIME               [P]     FILETIME
+ *  VT_BLOB                   [P]     Length prefixed bytes
+ *  VT_STREAM                 [P]     Name of the stream follows
+ *  VT_STORAGE                [P]     Name of the storage follows
+ *  VT_STREAMED_OBJECT        [P]     Stream contains an object
+ *  VT_STORED_OBJECT          [P]     Storage contains an object
+ *  VT_BLOB_OBJECT            [P]     Blob contains an object 
+ *  VT_CF                     [P]     Clipboard format
+ *  VT_CLSID                  [P]     A Class ID
+ *  VT_VECTOR                 [P]     simple counted array
+ *  VT_ARRAY            [V]           SAFEARRAY*
+ *  VT_BYREF            [V]           void* for local use
+ *  VT_BSTR_BLOB                      Reserved for system use
+ */
+
+struct  tagVARIANT
+    {
+    union 
+        {
+        struct  __tagVARIANT
+            {
+            VARTYPE vt;
+            WORD wReserved1;
+            WORD wReserved2;
+            WORD wReserved3;
+            union 
+                {
+                LONG lVal;
+                BYTE bVal;
+                SHORT iVal;
+                FLOAT fltVal;
+                DOUBLE dblVal;
+                VARIANT_BOOL boolVal;
+                _VARIANT_BOOL bool;
+                SCODE scode;
+                CY cyVal;
+                DATE date;
+                BSTR bstrVal;
+                IUnknown __RPC_FAR *punkVal;
+                IDispatch __RPC_FAR *pdispVal;
+                SAFEARRAY __RPC_FAR *parray;
+                BYTE __RPC_FAR *pbVal;
+                SHORT __RPC_FAR *piVal;
+                LONG __RPC_FAR *plVal;
+                FLOAT __RPC_FAR *pfltVal;
+                DOUBLE __RPC_FAR *pdblVal;
+                VARIANT_BOOL __RPC_FAR *pboolVal;
+                _VARIANT_BOOL __RPC_FAR *pbool;
+                SCODE __RPC_FAR *pscode;
+                CY __RPC_FAR *pcyVal;
+                DATE __RPC_FAR *pdate;
+                BSTR __RPC_FAR *pbstrVal;
+                IUnknown __RPC_FAR *__RPC_FAR *ppunkVal;
+                IDispatch __RPC_FAR *__RPC_FAR *ppdispVal;
+                SAFEARRAY __RPC_FAR *__RPC_FAR *pparray;
+                VARIANT __RPC_FAR *pvarVal;
+                PVOID byref;
+                CHAR cVal;
+                USHORT uiVal;
+                ULONG ulVal;
+                INT intVal;
+                UINT uintVal;
+                DECIMAL __RPC_FAR *pdecVal;
+                CHAR __RPC_FAR *pcVal;
+                USHORT __RPC_FAR *puiVal;
+                ULONG __RPC_FAR *pulVal;
+                INT __RPC_FAR *pintVal;
+                UINT __RPC_FAR *puintVal;
+                struct  __tagBRECORD
+                    {
+                    PVOID pvRecord;
+                    IRecordInfo __RPC_FAR *pRecInfo;
+                    }	__VARIANT_NAME_4;
+                }	__VARIANT_NAME_3;
+            }	__VARIANT_NAME_2;
+        DECIMAL decVal;
+        }	__VARIANT_NAME_1;
+    };
+typedef VARIANT __RPC_FAR *LPVARIANT;
+
+
+////////////////
+//
+// Todo
+//
+////////////////
+- palette support
+
+HRESULT CBullsEye::OnDraw(ATL_DRAWINFO& di)
+{
+    CRect rc = *(RECT*)di.prcBounds;
+    HDC hdc  = di.hdcDraw;
+
+    // Create the background color brush only when necessary
+    if (NULL == m_backBrush) {
+        OLE_COLOR ocBack;
+        HRESULT hr = get_BackColor (&ocBack);  // Get the background color
+        ATLASSERT (SUCCEEDED (hr));
+
+        COLORREF  crBack;                  // Translate the color to a COLORREF
+        hr = ::OleTranslateColor (ocBack, NULL, &crBack);
+        ATLASSERT (SUCCEEDED (hr));
+
+        m_backBrush = ::CreateSolidBrush (crBack);  // Create the background 
+                                                    // brush
+        ATLASSERT (NULL != m_backBrush);
+    }
+
+    // First, fill in background color in invalid area when BackStyle is Opaque
+    if (1 /* Opaque*/ == m_nBackStyle) {
+        int s = ::FillRect (hdc, &rc, m_backBrush);
+        ATLASSERT (0 != s);
+    }
+
+    int nPrevMapMode;
+    POINT   ptWOOrig, ptVOOrig;
+    SIZE szWEOrig, szVEOrig;
+
+    BOOL bMetafile = GetDeviceCaps(di.hdcDraw, TECHNOLOGY) == DT_METAFILE;
+    if (!bMetafile) {
+        // OnDrawAdvanced normalized the device context
+        // We are now using MM_TEXT and the coordinates are in device 
+        // coordinates.
+
+        // Establish a convenient coordinate system - how about 1000 x 1000
+        nPrevMapMode = ::SetMapMode (hdc, MM_ISOTROPIC);
+        ATLASSERT (0 != nPrevMapMode);
+
+        // Map logical 0,0 to physical center of rectangle
+        BOOL bSuccess = ::SetWindowOrgEx (hdc, 0, 0, &ptWOOrig);
+        ATLASSERT (0 != bSuccess);
+        bSuccess = ::SetViewportOrgEx (hdc, rc.left + rc.Width () / 2,
+                                       rc.top  + rc.Height () / 2,
+                                       &ptVOOrig);
+        ATLASSERT (0 != bSuccess);
+
+        // Map logical extent (LOGWIDTH, LOGWIDTH) to physical extent of 
+        // rectangle
+        bSuccess = ::SetWindowExtEx (hdc, LOGWIDTH, LOGWIDTH, &szWEOrig);
+        ATLASSERT (0 != bSuccess);
+        bSuccess = ::SetViewportExtEx (hdc, rc.Width (), -rc.Height (),
+                                       &szVEOrig);
+        ATLASSERT (0 != bSuccess);
+    }
+    else {
+    // We will be played back in ANISOTROPIC mapping mode
+
+    // The rectangle will be in device units
+    CRect rcBoundsDP (rc) ;
+
+    // We can't use SetViewportOrg and SetViewportExt in a metafile
+    // because the container will want to place the metafile.
+    // 
+    // Find the center coordinate and the shorter side
+    CSize size = rcBoundsDP.Size () ;
+    int iShortSide = min (size.cx, size.cy) ;
+    CPoint ptCenter (rcBoundsDP.left + size.cx / 2,
+                     rcBoundsDP.top  + size.cy / 2) ;    
+
+       // Compute the ratio of LOGWIDTH / shorter side
+       double dRatio = (double) LOGWIDTH / (double) iShortSide ;
+
+       // Set the logical origin of the window and swap coordinate axes
+       BOOL bSuccess = SetWindowOrgEx (hdc,
+                                       -int (ptCenter.x * dRatio), 
+                                        int (ptCenter.y * dRatio), &ptWOOrig) ;
+       ATLASSERT (0 != bSuccess);
+
+       // Set the logical extent of the window
+       // Compensate for the drawing code which draws from -LOGWIDTH to 
+       // +LOGWIDTH
+       bSuccess = SetWindowExtEx (hdc,  int (size.cx * dRatio),
+                                  -int (size.cy * dRatio), &szWEOrig) ;
+       ATLASSERT (0 != bSuccess);
+    }
+
+    // Draw the BullsEye
+    DrawBullsEye (di);
+
+    // Note on optimized drawing:
+    // Even when using optimized drawing, a control cannot
+    // leave a changed mapping mode, coordinate transformation value,
+    // selected bitmap, clip region, or metafile in the device context.
+
+    if (!bMetafile) {
+        ::SetMapMode (hdc, nPrevMapMode);
+
+        ::SetViewportOrgEx (hdc, ptVOOrig.x,  ptVOOrig.y,  NULL);
+        ::SetViewportExtEx (hdc, szVEOrig.cx, szVEOrig.cy, NULL);
+    }
+
+    ::SetWindowOrgEx (hdc, ptWOOrig.x,  ptWOOrig.y,  NULL);
+    ::SetWindowExtEx (hdc, szWEOrig.cx, szWEOrig.cy, NULL);
+
+    return S_OK;
+}
+
+void CBullsEye::DrawBullsEye (ATL_DRAWINFO& di)
+{
+    HDC hdc  = di.hdcDraw;
+
+    // Create the border pen only when necessary
+    if (NULL == m_borderPen) {
+        OLE_COLOR ocFore;
+        HRESULT hr = get_ForeColor (&ocFore);
+        ATLASSERT (SUCCEEDED (hr));
+
+        COLORREF crFore;
+        hr = ::OleTranslateColor (ocFore, NULL, &crFore);
+        ATLASSERT (SUCCEEDED (hr));
+
+        m_borderPen = ::CreatePen (PS_SOLID, 0, crFore);
+        ATLASSERT (NULL != m_borderPen);
+    }
+
+    // Create the center color brush only when necessary
+    if (NULL == m_centerBrush) {
+        COLORREF  crCenter;
+        HRESULT hr = ::OleTranslateColor (m_clrCenterColor, NULL, &crCenter);
+        ATLASSERT (SUCCEEDED (hr));
+
+        m_centerBrush = ::CreateSolidBrush (crCenter);
+        ATLASSERT (NULL != m_centerBrush);
+    }
+
+    // Create the alternate color brush only when necessary
+    if (NULL == m_alternateBrush) {
+        COLORREF  crAlternate;
+        HRESULT hr =
+            ::OleTranslateColor (m_clrAlternateColor, NULL, &crAlternate);
+        ATLASSERT (SUCCEEDED (hr));
+
+        m_alternateBrush = ::CreateSolidBrush (crAlternate);
+        ATLASSERT (NULL != m_alternateBrush);
+    }
+
+    // Compute the width of a ring
+    short sRingCount;
+    HRESULT hr = get_RingCount (&sRingCount);
+    ATLASSERT (SUCCEEDED (hr));
+
+    int ringWidth = LOGWIDTH / (sRingCount * 2 - 1);
+
+    // Draw the border between rings using the border pen
+    HPEN hOldPen = (HPEN) SelectObject (hdc, m_borderPen);
+
+    HBRUSH hOldBrush = NULL;
+
+    // Draw each ring from outermost to innermost
+    // This isn't nearly as efficient as it could be
+    for (short i = sRingCount - 1; i >= 0; i--) {
+
+        // Compute the ring's bounding rectangle
+        int ringDiameter = i * 2 * ringWidth + ringWidth;
+        int ringRadius   = ringDiameter / 2;
+        CRect rcRing (-ringRadius, ringRadius, ringRadius, -ringRadius);
+
+        // Rings are numbered from 1 to N from center to outside.
+        // However the loop iterates from N-1 to 0 from outside to center.
+        // Therefore even numbered rings should be the center color
+        // which implies odd numbered rings use the alternate color.
+        HBRUSH& ringBrush = i & 1 ? m_alternateBrush : m_centerBrush;
+
+        // Set the correct ring color
+        HBRUSH hBrush = (HBRUSH) ::SelectObject (hdc, ringBrush);
+        if (NULL == hOldBrush) // First time through, save the original brush
+            hOldBrush = hBrush;
+
+        BOOL bStatus =  // Draw the ring
+          ::Ellipse (hdc, rcRing.left, rcRing.right, rcRing.top, 
+                     rcRing.bottom);
+        ATLASSERT (NULL != bStatus);
+    }
+
+    // When optimized drawing is not in effect, restore the original pen and 
+    // brush
+    if (!di.bOptimize) {
+        ::SelectObject (hdc, hOldPen);
+        ::SelectObject (hdc, hOldBrush);
+    }
+}
+ 

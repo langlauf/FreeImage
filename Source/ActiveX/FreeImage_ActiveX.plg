@@ -1,0 +1,226 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: LibMNG - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP239.tmp" with contents
+[
+/nologo /MT /W3 /GX /O2 /I "..\Zlib" /I "..\libjpeg" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibMNG.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_callback_xs.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_chunk_io.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_chunk_prc.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_chunk_xs.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_cms.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_display.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_dither.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_error.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_filter.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_hlapi.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_jpeg.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_object_prc.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_pixels.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_prop_xs.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_read.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_trace.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_write.c"
+"F:\Programming Projects\FreeImage\Source\LibMNG\libmng_zlib.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP239.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP23A.tmp" with contents
+[
+/nologo /out:"Release\LibMNG.lib" 
+".\Release\libmng_callback_xs.obj"
+".\Release\libmng_chunk_io.obj"
+".\Release\libmng_chunk_prc.obj"
+".\Release\libmng_chunk_xs.obj"
+".\Release\libmng_cms.obj"
+".\Release\libmng_display.obj"
+".\Release\libmng_dither.obj"
+".\Release\libmng_error.obj"
+".\Release\libmng_filter.obj"
+".\Release\libmng_hlapi.obj"
+".\Release\libmng_jpeg.obj"
+".\Release\libmng_object_prc.obj"
+".\Release\libmng_pixels.obj"
+".\Release\libmng_prop_xs.obj"
+".\Release\libmng_read.obj"
+".\Release\libmng_trace.obj"
+".\Release\libmng_write.obj"
+".\Release\libmng_zlib.obj"
+"\Programming Projects\FreeImage\Source\ZLib\Release\ZLib.lib"
+]
+Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP23A.tmp"
+<h3>Output Window</h3>
+Compiling...
+libmng_callback_xs.c
+libmng_chunk_io.c
+libmng_chunk_prc.c
+libmng_chunk_xs.c
+libmng_cms.c
+libmng_display.c
+libmng_dither.c
+libmng_error.c
+libmng_filter.c
+libmng_hlapi.c
+libmng_jpeg.c
+libmng_object_prc.c
+libmng_pixels.c
+libmng_prop_xs.c
+libmng_read.c
+libmng_trace.c
+libmng_write.c
+libmng_zlib.c
+Creating library...
+<h3>
+--------------------Configuration: FreeImage - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP23B.tmp" with contents
+[
+/nologo /MT /W3 /GX /O1 /I "Source" /I "Source\ZLib" /I "Source\DeprecationManager" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /Fo"Release/" /Fd"Release/" /FD /c 
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginMNG.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP23B.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP23C.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"Release/FreeImage.pdb" /machine:I386 /out:"Release/FreeImage.dll" /implib:"Release/FreeImage.lib" 
+".\Release\Plugin.obj"
+".\Release\PluginBMP.obj"
+".\Release\PluginCUT.obj"
+".\Release\PluginICO.obj"
+".\Release\PluginIFF.obj"
+".\Release\PluginJPEG.obj"
+".\Release\PluginKOALA.obj"
+".\Release\PluginMNG.obj"
+".\Release\PluginPCD.obj"
+".\Release\PluginPCX.obj"
+".\Release\PluginPNG.obj"
+".\Release\PluginPNM.obj"
+".\Release\PluginPSD.obj"
+".\Release\PluginRAS.obj"
+".\Release\PluginTARGA.obj"
+".\Release\PluginTIFF.obj"
+".\Release\PluginWBMP.obj"
+".\Release\Conversion.obj"
+".\Release\Conversion16_555.obj"
+".\Release\Conversion16_565.obj"
+".\Release\Conversion24.obj"
+".\Release\Conversion32.obj"
+".\Release\Conversion8.obj"
+".\Release\NNQuantizer.obj"
+".\Release\WuQuantizer.obj"
+".\Release\DeprecationMgr.obj"
+".\Release\CacheFile.obj"
+".\Release\MultiPage.obj"
+".\Release\BitmapAccess.obj"
+".\Release\FreeImage.obj"
+".\Release\FreeImageC.obj"
+".\Release\FreeImageIO.obj"
+".\Release\GetType.obj"
+".\Release\LoadFunctions.obj"
+".\Source\LibJPEG\Release\LibJPEG.lib"
+".\Source\LibPNG\Release\LibPNG.lib"
+".\Source\LibTIFF\Release\LibTIFF.lib"
+".\Source\ZLib\Release\ZLib.lib"
+".\Source\LibMNG\Release\LibMNG.lib"
+]
+Creating command line "link.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP23C.tmp"
+<h3>Output Window</h3>
+Compiling...
+PluginMNG.cpp
+Linking...
+   Creating library Release/FreeImage.lib and object Release/FreeImage.exp
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP240.bat" with contents
+[
+@echo off
+copy Release\FreeImage.dll Dist
+copy Release\FreeImage.lib Dist
+copy Source\FreeImage.h Dist
+]
+Creating command line "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP240.bat"
+
+        1 bestand(en) gekopieerd.
+        1 bestand(en) gekopieerd.
+        1 bestand(en) gekopieerd.
+<h3>
+--------------------Configuration: FreeImage_ActiveX - Win32 Release MinDependency--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "midl.exe /tlb ".\FreeImage_ActiveX.tlb" /h "FreeImage_ActiveX.h" /iid "FreeImage_ActiveX_i.c" /Oicf "F:\Programming Projects\FreeImage\Source\ActiveX\FreeImage_ActiveX.idl""
+Creating command line "rc.exe /l 0x409 /fo"ReleaseMinDependency/FreeImage_ActiveX.res" /d "NDEBUG" "F:\Programming Projects\FreeImage\Source\ActiveX\FreeImage_ActiveX.rc"" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP241.tmp" with contents
+[
+/nologo /MT /W3 /GR /GX /O1 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_ATL_STATIC_REGISTRY" /Fp"ReleaseMinDependency/FreeImage_ActiveX.pch" /Yu"stdafx.h" /Fo"ReleaseMinDependency/" /Fd"ReleaseMinDependency/" /FD /c 
+"F:\Programming Projects\FreeImage\Source\ActiveX\Application.cpp"
+"F:\Programming Projects\FreeImage\Source\ActiveX\FreeImage_ActiveX.cpp"
+"F:\Programming Projects\FreeImage\Source\ActiveX\Image.cpp"
+"F:\Programming Projects\FreeImage\Source\ActiveX\Multipage.cpp"
+"F:\Programming Projects\FreeImage\Source\ActiveX\Painting.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP241.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP242.tmp" with contents
+[
+/nologo /MT /W3 /GR /GX /O1 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_ATL_STATIC_REGISTRY" /Fp"ReleaseMinDependency/FreeImage_ActiveX.pch" /Yc"stdafx.h" /Fo"ReleaseMinDependency/" /Fd"ReleaseMinDependency/" /FD /c 
+"F:\Programming Projects\FreeImage\Source\ActiveX\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP242.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP243.tmp" with contents
+[
+freeimage.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /incremental:no /pdb:"ReleaseMinDependency/FreeImageX.pdb" /machine:I386 /def:".\FreeImage_ActiveX.def" /out:"Bin/FreeImageX.dll" /implib:"ReleaseMinDependency/FreeImageX.lib" /libpath:"..\FreeImageLib\Release" 
+".\ReleaseMinDependency\Application.obj"
+".\ReleaseMinDependency\FreeImage_ActiveX.obj"
+".\ReleaseMinDependency\Image.obj"
+".\ReleaseMinDependency\Multipage.obj"
+".\ReleaseMinDependency\Painting.obj"
+".\ReleaseMinDependency\StdAfx.obj"
+".\ReleaseMinDependency\FreeImage_ActiveX.res"
+]
+Creating command line "link.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP243.tmp"
+<h3>Output Window</h3>
+Creating Type Library...
+Microsoft (R) MIDL Compiler Version 5.01.0164  
+Copyright (c) Microsoft Corp 1991-1997. All rights reserved.
+Processing F:\Programming Projects\FreeImage\Source\ActiveX\FreeImage_ActiveX.idl
+FreeImage_ActiveX.idl
+Processing C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE\oaidl.idl
+oaidl.idl
+Processing C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE\objidl.idl
+objidl.idl
+Processing C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE\unknwn.idl
+unknwn.idl
+Processing C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE\wtypes.idl
+wtypes.idl
+Processing C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE\ocidl.idl
+ocidl.idl
+Processing C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE\oleidl.idl
+oleidl.idl
+Processing C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE\servprov.idl
+servprov.idl
+Processing C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE\urlmon.idl
+urlmon.idl
+Processing C:\Program Files\Microsoft Visual Studio\VC98\INCLUDE\msxml.idl
+msxml.idl
+Compiling resources...
+Compiling...
+StdAfx.cpp
+Compiling...
+Application.cpp
+FreeImage_ActiveX.cpp
+Image.cpp
+Multipage.cpp
+Painting.cpp
+Generating Code...
+Linking...
+LINK : fatal error LNK1181: cannot open input file "freeimage.lib"
+Error executing link.exe.
+
+
+
+<h3>Results</h3>
+FreeImageX.dll - 1 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

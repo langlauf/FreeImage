@@ -82,11 +82,13 @@ FI_STRUCT (FIMULTIBITMAP) { void *data; };
 #define NULL 0
 #endif
 
+#ifndef LCC_WIN32
 typedef long BOOL;
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
 typedef long LONG;
+#endif
 
 #ifndef SEEK_SET
 #define SEEK_SET  0
@@ -397,6 +399,10 @@ FI_STRUCT (Plugin) {
 #define TARGA_LOAD_RGB888   1       // If set the loader converts RGB555 and ARGB8888 -> RGB888.
 #define TARGA_LOAD_RGB555   2       // This flag is obsolete
 #define TIFF_DEFAULT        0
+#define TIFF_PACKBITS       0x0100  // save using PACKBITS compression
+#define TIFF_DEFLATE        0x0200  // save using DEFLATE compression
+#define TIFF_ADOBE_DEFLATE  0x0400  // save using ADOBE DEFLATE compression
+#define TIFF_NONE           0x0800  // save without any compression
 #define WBMP_DEFAULT        0
 #define PSD_DEFAULT         0
 

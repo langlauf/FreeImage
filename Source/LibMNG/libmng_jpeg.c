@@ -5,7 +5,7 @@
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
 /* * file      : libmng_jpeg.c             copyright (c) 2000 G.Juyn        * */
-/* * version   : 1.0.0                                                      * */
+/* * version   : 1.0.4                                                      * */
 /* *                                                                        * */
 /* * purpose   : JPEG library interface (implementation)                    * */
 /* *                                                                        * */
@@ -39,6 +39,10 @@
 /* *             1.0.1 - 04/22/2001 - G.Juyn                                * */
 /* *             - fixed memory-leaks (Thanks Gregg!)                       * */
 /* *                                                                        * */
+/* *             1.0.4 - 06/22/2002 - G.Juyn                                * */
+/* *             - B526138 - returned IJGSRC6B calling convention to        * */
+/* *               default for MSVC                                         * */
+/* *                                                                        * */
 /* ************************************************************************** */
 
 #include "libmng.h"
@@ -71,7 +75,11 @@
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG_READ
+#ifdef MNG_DEFINE_JPEG_STDCALL
 void MNG_DECL mng_init_source (j_decompress_ptr cinfo)
+#else
+void mng_init_source (j_decompress_ptr cinfo)
+#endif
 {
   return;                              /* nothing needed */
 }
@@ -80,7 +88,11 @@ void MNG_DECL mng_init_source (j_decompress_ptr cinfo)
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG_READ
+#ifdef MNG_DEFINE_JPEG_STDCALL
 boolean MNG_DECL mng_fill_input_buffer (j_decompress_ptr cinfo)
+#else
+boolean mng_fill_input_buffer (j_decompress_ptr cinfo)
+#endif
 {
   return FALSE;                        /* force IJG routine to return to caller */
 }
@@ -89,7 +101,11 @@ boolean MNG_DECL mng_fill_input_buffer (j_decompress_ptr cinfo)
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG_READ
+#ifdef MNG_DEFINE_JPEG_STDCALL
 void MNG_DECL mng_skip_input_data (j_decompress_ptr cinfo, long num_bytes)
+#else
+void mng_skip_input_data (j_decompress_ptr cinfo, long num_bytes)
+#endif
 {
   if (num_bytes > 0)                   /* ignore fony calls */
   {                                    /* address my generic structure */
@@ -118,7 +134,11 @@ void MNG_DECL mng_skip_input_data (j_decompress_ptr cinfo, long num_bytes)
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG_READ
+#ifdef MNG_DEFINE_JPEG_STDCALL
 void MNG_DECL mng_skip_input_data2 (j_decompress_ptr cinfo, long num_bytes)
+#else
+void mng_skip_input_data2 (j_decompress_ptr cinfo, long num_bytes)
+#endif
 {
   if (num_bytes > 0)                   /* ignore fony calls */
   {                                    /* address my generic structure */
@@ -147,7 +167,11 @@ void MNG_DECL mng_skip_input_data2 (j_decompress_ptr cinfo, long num_bytes)
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG_READ
+#ifdef MNG_DEFINE_JPEG_STDCALL
 void MNG_DECL mng_term_source (j_decompress_ptr cinfo)
+#else
+void mng_term_source (j_decompress_ptr cinfo)
+#endif
 {
   return;                              /* nothing needed */
 }
@@ -156,7 +180,11 @@ void MNG_DECL mng_term_source (j_decompress_ptr cinfo)
 /* ************************************************************************** */
 
 #ifdef MNG_USE_SETJMP
+#ifdef MNG_DEFINE_JPEG_STDCALL
 void MNG_DECL mng_error_exit (j_common_ptr cinfo)
+#else
+void mng_error_exit (j_common_ptr cinfo)
+#endif
 {                                      /* address my generic structure */
   mng_datap pData = (mng_datap)cinfo->client_data;
 
@@ -171,7 +199,11 @@ void MNG_DECL mng_error_exit (j_common_ptr cinfo)
 /* ************************************************************************** */
 
 #ifdef MNG_USE_SETJMP
+#ifdef MNG_DEFINE_JPEG_STDCALL
 void MNG_DECL mng_output_message (j_common_ptr cinfo)
+#else
+void mng_output_message (j_common_ptr cinfo)
+#endif
 {
   return;                              /* just do nothing ! */
 }

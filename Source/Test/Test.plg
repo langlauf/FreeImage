@@ -3,208 +3,53 @@
 <pre>
 <h1>Build Log</h1>
 <h3>
---------------------Configuration: LibJPEG - Win32 Release--------------------
-</h3>
-<h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP56.tmp" with contents
-[
-/nologo /MT /W3 /GX /O1 /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibJPEG.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\FreeImage\Source\LibJPEG\jcapimin.c"
-"E:\FreeImage\Source\LibJPEG\jcapistd.c"
-"E:\FreeImage\Source\LibJPEG\jccoefct.c"
-"E:\FreeImage\Source\LibJPEG\jccolor.c"
-"E:\FreeImage\Source\LibJPEG\jcdctmgr.c"
-"E:\FreeImage\Source\LibJPEG\jchuff.c"
-"E:\FreeImage\Source\LibJPEG\jcinit.c"
-"E:\FreeImage\Source\LibJPEG\jcmainct.c"
-"E:\FreeImage\Source\LibJPEG\jcmarker.c"
-"E:\FreeImage\Source\LibJPEG\jcmaster.c"
-"E:\FreeImage\Source\LibJPEG\jcomapi.c"
-"E:\FreeImage\Source\LibJPEG\jcparam.c"
-"E:\FreeImage\Source\LibJPEG\jcphuff.c"
-"E:\FreeImage\Source\LibJPEG\jcprepct.c"
-"E:\FreeImage\Source\LibJPEG\jcsample.c"
-"E:\FreeImage\Source\LibJPEG\jctrans.c"
-"E:\FreeImage\Source\LibJPEG\jdapimin.c"
-"E:\FreeImage\Source\LibJPEG\jdapistd.c"
-"E:\FreeImage\Source\LibJPEG\jdatadst.c"
-"E:\FreeImage\Source\LibJPEG\jdatasrc.c"
-"E:\FreeImage\Source\LibJPEG\jdcoefct.c"
-"E:\FreeImage\Source\LibJPEG\jdcolor.c"
-"E:\FreeImage\Source\LibJPEG\jddctmgr.c"
-"E:\FreeImage\Source\LibJPEG\jdhuff.c"
-"E:\FreeImage\Source\LibJPEG\jdinput.c"
-"E:\FreeImage\Source\LibJPEG\jdmainct.c"
-"E:\FreeImage\Source\LibJPEG\jdmarker.c"
-"E:\FreeImage\Source\LibJPEG\jdmaster.c"
-"E:\FreeImage\Source\LibJPEG\jdmerge.c"
-"E:\FreeImage\Source\LibJPEG\jdphuff.c"
-"E:\FreeImage\Source\LibJPEG\jdpostct.c"
-"E:\FreeImage\Source\LibJPEG\jdsample.c"
-"E:\FreeImage\Source\LibJPEG\jdtrans.c"
-"E:\FreeImage\Source\LibJPEG\jerror.c"
-"E:\FreeImage\Source\LibJPEG\jfdctflt.c"
-"E:\FreeImage\Source\LibJPEG\jfdctfst.c"
-"E:\FreeImage\Source\LibJPEG\jfdctint.c"
-"E:\FreeImage\Source\LibJPEG\jidctflt.c"
-"E:\FreeImage\Source\LibJPEG\jidctfst.c"
-"E:\FreeImage\Source\LibJPEG\jidctint.c"
-"E:\FreeImage\Source\LibJPEG\jidctred.c"
-"E:\FreeImage\Source\LibJPEG\jmemmgr.c"
-"E:\FreeImage\Source\LibJPEG\jmemnobs.c"
-"E:\FreeImage\Source\LibJPEG\jquant1.c"
-"E:\FreeImage\Source\LibJPEG\jquant2.c"
-"E:\FreeImage\Source\LibJPEG\jutils.c"
-]
-Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP56.tmp" 
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP57.tmp" with contents
-[
-/nologo /out:"Release\LibJPEG.lib" 
-.\Release\jcapimin.obj
-.\Release\jcapistd.obj
-.\Release\jccoefct.obj
-.\Release\jccolor.obj
-.\Release\jcdctmgr.obj
-.\Release\jchuff.obj
-.\Release\jcinit.obj
-.\Release\jcmainct.obj
-.\Release\jcmarker.obj
-.\Release\jcmaster.obj
-.\Release\jcomapi.obj
-.\Release\jcparam.obj
-.\Release\jcphuff.obj
-.\Release\jcprepct.obj
-.\Release\jcsample.obj
-.\Release\jctrans.obj
-.\Release\jdapimin.obj
-.\Release\jdapistd.obj
-.\Release\jdatadst.obj
-.\Release\jdatasrc.obj
-.\Release\jdcoefct.obj
-.\Release\jdcolor.obj
-.\Release\jddctmgr.obj
-.\Release\jdhuff.obj
-.\Release\jdinput.obj
-.\Release\jdmainct.obj
-.\Release\jdmarker.obj
-.\Release\jdmaster.obj
-.\Release\jdmerge.obj
-.\Release\jdphuff.obj
-.\Release\jdpostct.obj
-.\Release\jdsample.obj
-.\Release\jdtrans.obj
-.\Release\jerror.obj
-.\Release\jfdctflt.obj
-.\Release\jfdctfst.obj
-.\Release\jfdctint.obj
-.\Release\jidctflt.obj
-.\Release\jidctfst.obj
-.\Release\jidctint.obj
-.\Release\jidctred.obj
-.\Release\jmemmgr.obj
-.\Release\jmemnobs.obj
-.\Release\jquant1.obj
-.\Release\jquant2.obj
-.\Release\jutils.obj
-]
-Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP57.tmp"
-<h3>Output Window</h3>
-Compiling...
-jcapimin.c
-jcapistd.c
-jccoefct.c
-jccolor.c
-jcdctmgr.c
-jchuff.c
-jcinit.c
-jcmainct.c
-jcmarker.c
-jcmaster.c
-jcomapi.c
-jcparam.c
-jcphuff.c
-jcprepct.c
-jcsample.c
-jctrans.c
-jdapimin.c
-jdapistd.c
-jdatadst.c
-jdatasrc.c
-jdcoefct.c
-jdcolor.c
-jddctmgr.c
-jdhuff.c
-jdinput.c
-jdmainct.c
-jdmarker.c
-jdmaster.c
-jdmerge.c
-jdphuff.c
-jdpostct.c
-jdsample.c
-jdtrans.c
-jerror.c
-jfdctflt.c
-jfdctfst.c
-jfdctint.c
-jidctflt.c
-jidctfst.c
-jidctint.c
-jidctred.c
-jmemmgr.c
-jmemnobs.c
-jquant1.c
-jquant2.c
-jutils.c
-Creating library...
-<h3>
 --------------------Configuration: LibPNG - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP58.tmp" with contents
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP48D.tmp" with contents
 [
 /nologo /MT /W3 /GX /O1 /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibPNG.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\FreeImage\Source\LibPNG\png.c"
-"E:\FreeImage\Source\LibPNG\pngerror.c"
-"E:\FreeImage\Source\LibPNG\pnggccrd.c"
-"E:\FreeImage\Source\LibPNG\pngget.c"
-"E:\FreeImage\Source\LibPNG\pngmem.c"
-"E:\FreeImage\Source\LibPNG\pngpread.c"
-"E:\FreeImage\Source\LibPNG\pngread.c"
-"E:\FreeImage\Source\LibPNG\pngrio.c"
-"E:\FreeImage\Source\LibPNG\pngrtran.c"
-"E:\FreeImage\Source\LibPNG\pngrutil.c"
-"E:\FreeImage\Source\LibPNG\pngset.c"
-"E:\FreeImage\Source\LibPNG\pngtrans.c"
-"E:\FreeImage\Source\LibPNG\pngvcrd.c"
-"E:\FreeImage\Source\LibPNG\pngwio.c"
-"E:\FreeImage\Source\LibPNG\pngwrite.c"
-"E:\FreeImage\Source\LibPNG\pngwtran.c"
-"E:\FreeImage\Source\LibPNG\pngwutil.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\png.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngerror.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pnggccrd.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngget.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngmem.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngpread.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngread.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngrio.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngrtran.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngrutil.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngset.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngtrans.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngvcrd.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngwio.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngwrite.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngwtran.c"
+"F:\Programming Projects\FreeImage\Source\LibPNG\pngwutil.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP58.tmp" 
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP59.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP48D.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP48E.tmp" with contents
 [
 /nologo /out:"Release\LibPNG.lib" 
-.\Release\png.obj
-.\Release\pngerror.obj
-.\Release\pnggccrd.obj
-.\Release\pngget.obj
-.\Release\pngmem.obj
-.\Release\pngpread.obj
-.\Release\pngread.obj
-.\Release\pngrio.obj
-.\Release\pngrtran.obj
-.\Release\pngrutil.obj
-.\Release\pngset.obj
-.\Release\pngtrans.obj
-.\Release\pngvcrd.obj
-.\Release\pngwio.obj
-.\Release\pngwrite.obj
-.\Release\pngwtran.obj
-.\Release\pngwutil.obj
+".\Release\png.obj"
+".\Release\pngerror.obj"
+".\Release\pnggccrd.obj"
+".\Release\pngget.obj"
+".\Release\pngmem.obj"
+".\Release\pngpread.obj"
+".\Release\pngread.obj"
+".\Release\pngrio.obj"
+".\Release\pngrtran.obj"
+".\Release\pngrutil.obj"
+".\Release\pngset.obj"
+".\Release\pngtrans.obj"
+".\Release\pngvcrd.obj"
+".\Release\pngwio.obj"
+".\Release\pngwrite.obj"
+".\Release\pngwtran.obj"
+".\Release\pngwutil.obj"
 ]
-Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP59.tmp"
+Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP48E.tmp"
 <h3>Output Window</h3>
 Compiling...
 png.c
@@ -226,336 +71,92 @@ pngwtran.c
 pngwutil.c
 Creating library...
 <h3>
---------------------Configuration: LibTIFF - Win32 Release--------------------
-</h3>
-<h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP5A.tmp" with contents
-[
-/nologo /MT /W3 /GX /O1 /I "..\libtiff\libtiff" /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibTIFF.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\FreeImage\Source\LibTIFF\fax3sm_winnt.c"
-"E:\FreeImage\Source\LibTIFF\tif_aux.c"
-"E:\FreeImage\Source\LibTIFF\tif_close.c"
-"E:\FreeImage\Source\LibTIFF\tif_codec.c"
-"E:\FreeImage\Source\LibTIFF\tif_compress.c"
-"E:\FreeImage\Source\LibTIFF\tif_dir.c"
-"E:\FreeImage\Source\LibTIFF\tif_dirinfo.c"
-"E:\FreeImage\Source\LibTIFF\tif_dirread.c"
-"E:\FreeImage\Source\LibTIFF\tif_dirwrite.c"
-"E:\FreeImage\Source\LibTIFF\tif_dumpmode.c"
-"E:\FreeImage\Source\LibTIFF\tif_error.c"
-"E:\FreeImage\Source\LibTIFF\tif_fax3.c"
-"E:\FreeImage\Source\LibTIFF\tif_flush.c"
-"E:\FreeImage\Source\LibTIFF\tif_getimage.c"
-"E:\FreeImage\Source\LibTIFF\tif_jpeg.c"
-"E:\FreeImage\Source\LibTIFF\tif_luv.c"
-"E:\FreeImage\Source\LibTIFF\tif_lzw.c"
-"E:\FreeImage\Source\LibTIFF\tif_next.c"
-"E:\FreeImage\Source\LibTIFF\tif_open.c"
-"E:\FreeImage\Source\LibTIFF\tif_packbits.c"
-"E:\FreeImage\Source\LibTIFF\tif_pixarlog.c"
-"E:\FreeImage\Source\LibTIFF\tif_predict.c"
-"E:\FreeImage\Source\LibTIFF\tif_print.c"
-"E:\FreeImage\Source\LibTIFF\tif_read.c"
-"E:\FreeImage\Source\LibTIFF\tif_strip.c"
-"E:\FreeImage\Source\LibTIFF\tif_swab.c"
-"E:\FreeImage\Source\LibTIFF\tif_thunder.c"
-"E:\FreeImage\Source\LibTIFF\tif_tile.c"
-"E:\FreeImage\Source\LibTIFF\tif_version.c"
-"E:\FreeImage\Source\LibTIFF\tif_warning.c"
-"E:\FreeImage\Source\LibTIFF\tif_write.c"
-"E:\FreeImage\Source\LibTIFF\tif_zip.c"
-]
-Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP5A.tmp" 
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP5B.tmp" with contents
-[
-/nologo /out:"Release\LibTIFF.lib" 
-.\Release\fax3sm_winnt.obj
-.\Release\tif_aux.obj
-.\Release\tif_close.obj
-.\Release\tif_codec.obj
-.\Release\tif_compress.obj
-.\Release\tif_dir.obj
-.\Release\tif_dirinfo.obj
-.\Release\tif_dirread.obj
-.\Release\tif_dirwrite.obj
-.\Release\tif_dumpmode.obj
-.\Release\tif_error.obj
-.\Release\tif_fax3.obj
-.\Release\tif_flush.obj
-.\Release\tif_getimage.obj
-.\Release\tif_jpeg.obj
-.\Release\tif_luv.obj
-.\Release\tif_lzw.obj
-.\Release\tif_next.obj
-.\Release\tif_open.obj
-.\Release\tif_packbits.obj
-.\Release\tif_pixarlog.obj
-.\Release\tif_predict.obj
-.\Release\tif_print.obj
-.\Release\tif_read.obj
-.\Release\tif_strip.obj
-.\Release\tif_swab.obj
-.\Release\tif_thunder.obj
-.\Release\tif_tile.obj
-.\Release\tif_version.obj
-.\Release\tif_warning.obj
-.\Release\tif_write.obj
-.\Release\tif_zip.obj
-]
-Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP5B.tmp"
-<h3>Output Window</h3>
-Compiling...
-fax3sm_winnt.c
-tif_aux.c
-tif_close.c
-tif_codec.c
-tif_compress.c
-tif_dir.c
-tif_dirinfo.c
-tif_dirread.c
-tif_dirwrite.c
-tif_dumpmode.c
-tif_error.c
-tif_fax3.c
-tif_flush.c
-tif_getimage.c
-tif_jpeg.c
-tif_luv.c
-tif_lzw.c
-tif_next.c
-tif_open.c
-tif_packbits.c
-tif_pixarlog.c
-tif_predict.c
-tif_print.c
-tif_read.c
-tif_strip.c
-tif_swab.c
-tif_thunder.c
-tif_tile.c
-tif_version.c
-tif_warning.c
-tif_write.c
-tif_zip.c
-Creating library...
-<h3>
---------------------Configuration: ZLib - Win32 Release--------------------
-</h3>
-<h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP5F.tmp" with contents
-[
-/nologo /MT /W3 /GX /O1 /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/ZLib.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\FreeImage\Source\ZLib\adler32.c"
-"E:\FreeImage\Source\ZLib\compress.c"
-"E:\FreeImage\Source\ZLib\crc32.c"
-"E:\FreeImage\Source\ZLib\deflate.c"
-"E:\FreeImage\Source\ZLib\gzio.c"
-"E:\FreeImage\Source\ZLib\infblock.c"
-"E:\FreeImage\Source\ZLib\infcodes.c"
-"E:\FreeImage\Source\ZLib\inffast.c"
-"E:\FreeImage\Source\ZLib\inflate.c"
-"E:\FreeImage\Source\ZLib\inftrees.c"
-"E:\FreeImage\Source\ZLib\infutil.c"
-"E:\FreeImage\Source\ZLib\trees.c"
-"E:\FreeImage\Source\ZLib\uncompr.c"
-"E:\FreeImage\Source\ZLib\zutil.c"
-]
-Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP5F.tmp" 
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP60.tmp" with contents
-[
-/nologo /out:"Release\ZLib.lib" 
-.\Release\adler32.obj
-.\Release\compress.obj
-.\Release\crc32.obj
-.\Release\deflate.obj
-.\Release\gzio.obj
-.\Release\infblock.obj
-.\Release\infcodes.obj
-.\Release\inffast.obj
-.\Release\inflate.obj
-.\Release\inftrees.obj
-.\Release\infutil.obj
-.\Release\trees.obj
-.\Release\uncompr.obj
-.\Release\zutil.obj
-]
-Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP60.tmp"
-<h3>Output Window</h3>
-Compiling...
-adler32.c
-compress.c
-crc32.c
-deflate.c
-gzio.c
-infblock.c
-infcodes.c
-inffast.c
-inflate.c
-inftrees.c
-infutil.c
-trees.c
-uncompr.c
-zutil.c
-Creating library...
-<h3>
---------------------Configuration: LibMNG - Win32 Release--------------------
-</h3>
-<h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP61.tmp" with contents
-[
-/nologo /MT /W3 /GX /O2 /I "..\Zlib" /I "..\libjpeg" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibMNG.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\FreeImage\Source\LibMNG\libmng_callback_xs.c"
-"E:\FreeImage\Source\LibMNG\libmng_chunk_io.c"
-"E:\FreeImage\Source\LibMNG\libmng_chunk_prc.c"
-"E:\FreeImage\Source\LibMNG\libmng_chunk_xs.c"
-"E:\FreeImage\Source\LibMNG\libmng_cms.c"
-"E:\FreeImage\Source\LibMNG\libmng_display.c"
-"E:\FreeImage\Source\LibMNG\libmng_dither.c"
-"E:\FreeImage\Source\LibMNG\libmng_error.c"
-"E:\FreeImage\Source\LibMNG\libmng_filter.c"
-"E:\FreeImage\Source\LibMNG\libmng_hlapi.c"
-"E:\FreeImage\Source\LibMNG\libmng_jpeg.c"
-"E:\FreeImage\Source\LibMNG\libmng_object_prc.c"
-"E:\FreeImage\Source\LibMNG\libmng_pixels.c"
-"E:\FreeImage\Source\LibMNG\libmng_prop_xs.c"
-"E:\FreeImage\Source\LibMNG\libmng_read.c"
-"E:\FreeImage\Source\LibMNG\libmng_trace.c"
-"E:\FreeImage\Source\LibMNG\libmng_write.c"
-"E:\FreeImage\Source\LibMNG\libmng_zlib.c"
-]
-Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP61.tmp" 
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP62.tmp" with contents
-[
-/nologo /out:"Release\LibMNG.lib" 
-.\Release\libmng_callback_xs.obj
-.\Release\libmng_chunk_io.obj
-.\Release\libmng_chunk_prc.obj
-.\Release\libmng_chunk_xs.obj
-.\Release\libmng_cms.obj
-.\Release\libmng_display.obj
-.\Release\libmng_dither.obj
-.\Release\libmng_error.obj
-.\Release\libmng_filter.obj
-.\Release\libmng_hlapi.obj
-.\Release\libmng_jpeg.obj
-.\Release\libmng_object_prc.obj
-.\Release\libmng_pixels.obj
-.\Release\libmng_prop_xs.obj
-.\Release\libmng_read.obj
-.\Release\libmng_trace.obj
-.\Release\libmng_write.obj
-.\Release\libmng_zlib.obj
-\FreeImage\Source\ZLib\Release\ZLib.lib
-]
-Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP62.tmp"
-<h3>Output Window</h3>
-Compiling...
-libmng_callback_xs.c
-libmng_chunk_io.c
-libmng_chunk_prc.c
-libmng_chunk_xs.c
-libmng_cms.c
-libmng_display.c
-libmng_dither.c
-libmng_error.c
-libmng_filter.c
-libmng_hlapi.c
-libmng_jpeg.c
-libmng_object_prc.c
-libmng_pixels.c
-libmng_prop_xs.c
-libmng_read.c
-libmng_trace.c
-libmng_write.c
-libmng_zlib.c
-Creating library...
-<h3>
 --------------------Configuration: FreeImage - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP67.tmp" with contents
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP48F.tmp" with contents
 [
 /nologo /MT /W3 /GX /O1 /I "Source" /I "Source\ZLib" /I "Source\DeprecationManager" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\FreeImage\SOURCE\FreeImage\Plugin.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginBMP.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginCUT.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginICO.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginIFF.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginJPEG.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginKOALA.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginMNG.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginPCD.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginPCX.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginPNG.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginPNM.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginPSD.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginRAS.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginTARGA.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginTIFF.cpp"
-"E:\FreeImage\SOURCE\FreeImage\PluginWBMP.cpp"
-"E:\FreeImage\SOURCE\FreeImage\Conversion.cpp"
-"E:\FreeImage\SOURCE\FreeImage\Conversion16_555.cpp"
-"E:\FreeImage\SOURCE\FreeImage\Conversion16_565.cpp"
-"E:\FreeImage\SOURCE\FreeImage\Conversion24.cpp"
-"E:\FreeImage\SOURCE\FreeImage\Conversion32.cpp"
-"E:\FreeImage\SOURCE\FreeImage\Conversion8.cpp"
-"E:\FreeImage\SOURCE\FreeImage\NNQuantizer.cpp"
-"E:\FreeImage\SOURCE\FreeImage\WuQuantizer.cpp"
-"E:\FreeImage\SOURCE\DeprecationManager\DeprecationMgr.cpp"
-"E:\FreeImage\SOURCE\FreeImage\CacheFile.cpp"
-"E:\FreeImage\SOURCE\FreeImage\MultiPage.cpp"
-"E:\FreeImage\SOURCE\FreeImage\BitmapAccess.cpp"
-"E:\FreeImage\SOURCE\FreeImage\FreeImage.cpp"
-"E:\FreeImage\Source\FreeImage\FreeImageC.c"
-"E:\FreeImage\SOURCE\FreeImage\FreeImageIO.cpp"
-"E:\FreeImage\SOURCE\FreeImage\GetType.cpp"
-"E:\FreeImage\SOURCE\FreeImage\LoadFunctions.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\Plugin.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginBMP.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginCUT.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginICO.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginIFF.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginJPEG.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginKOALA.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginMNG.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginPCD.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginPCX.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginPNG.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginPNM.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginPSD.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginRAS.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginTARGA.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginTIFF.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\PluginWBMP.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\Conversion.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\Conversion16_555.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\Conversion16_565.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\Conversion24.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\Conversion32.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\Conversion8.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\NNQuantizer.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\WuQuantizer.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\DeprecationManager\DeprecationMgr.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\CacheFile.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\MultiPage.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\BitmapAccess.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\FreeImage.cpp"
+"F:\Programming Projects\FreeImage\Source\FreeImage\FreeImageC.c"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\FreeImageIO.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\GetType.cpp"
+"F:\Programming Projects\FreeImage\SOURCE\FreeImage\LoadFunctions.cpp"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP67.tmp" 
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP68.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP48F.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP490.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"Release/FreeImage.pdb" /machine:I386 /out:"Release/FreeImage.dll" /implib:"Release/FreeImage.lib" 
-.\Release\Plugin.obj
-.\Release\PluginBMP.obj
-.\Release\PluginCUT.obj
-.\Release\PluginICO.obj
-.\Release\PluginIFF.obj
-.\Release\PluginJPEG.obj
-.\Release\PluginKOALA.obj
-.\Release\PluginMNG.obj
-.\Release\PluginPCD.obj
-.\Release\PluginPCX.obj
-.\Release\PluginPNG.obj
-.\Release\PluginPNM.obj
-.\Release\PluginPSD.obj
-.\Release\PluginRAS.obj
-.\Release\PluginTARGA.obj
-.\Release\PluginTIFF.obj
-.\Release\PluginWBMP.obj
-.\Release\Conversion.obj
-.\Release\Conversion16_555.obj
-.\Release\Conversion16_565.obj
-.\Release\Conversion24.obj
-.\Release\Conversion32.obj
-.\Release\Conversion8.obj
-.\Release\NNQuantizer.obj
-.\Release\WuQuantizer.obj
-.\Release\DeprecationMgr.obj
-.\Release\CacheFile.obj
-.\Release\MultiPage.obj
-.\Release\BitmapAccess.obj
-.\Release\FreeImage.obj
-.\Release\FreeImageC.obj
-.\Release\FreeImageIO.obj
-.\Release\GetType.obj
-.\Release\LoadFunctions.obj
-.\Source\LibJPEG\Release\LibJPEG.lib
-.\Source\LibPNG\Release\LibPNG.lib
-.\Source\LibTIFF\Release\LibTIFF.lib
-.\Source\ZLib\Release\ZLib.lib
-.\Source\LibMNG\Release\LibMNG.lib
+".\Release\Plugin.obj"
+".\Release\PluginBMP.obj"
+".\Release\PluginCUT.obj"
+".\Release\PluginICO.obj"
+".\Release\PluginIFF.obj"
+".\Release\PluginJPEG.obj"
+".\Release\PluginKOALA.obj"
+".\Release\PluginMNG.obj"
+".\Release\PluginPCD.obj"
+".\Release\PluginPCX.obj"
+".\Release\PluginPNG.obj"
+".\Release\PluginPNM.obj"
+".\Release\PluginPSD.obj"
+".\Release\PluginRAS.obj"
+".\Release\PluginTARGA.obj"
+".\Release\PluginTIFF.obj"
+".\Release\PluginWBMP.obj"
+".\Release\Conversion.obj"
+".\Release\Conversion16_555.obj"
+".\Release\Conversion16_565.obj"
+".\Release\Conversion24.obj"
+".\Release\Conversion32.obj"
+".\Release\Conversion8.obj"
+".\Release\NNQuantizer.obj"
+".\Release\WuQuantizer.obj"
+".\Release\DeprecationMgr.obj"
+".\Release\CacheFile.obj"
+".\Release\MultiPage.obj"
+".\Release\BitmapAccess.obj"
+".\Release\FreeImage.obj"
+".\Release\FreeImageC.obj"
+".\Release\FreeImageIO.obj"
+".\Release\GetType.obj"
+".\Release\LoadFunctions.obj"
+".\Source\LibJPEG\Release\LibJPEG.lib"
+".\Source\LibPNG\Release\LibPNG.lib"
+".\Source\LibTIFF\Release\LibTIFF.lib"
+".\Source\ZLib\Release\ZLib.lib"
+".\Source\LibMNG\Release\LibMNG.lib"
 ]
-Creating command line "link.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP68.tmp"
+Creating command line "link.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP490.tmp"
 <h3>Output Window</h3>
 Compiling...
 Plugin.cpp
@@ -601,14 +202,14 @@ LoadFunctions.cpp
 Generating Code...
 Linking...
    Creating library Release/FreeImage.lib and object Release/FreeImage.exp
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP6C.bat" with contents
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP494.bat" with contents
 [
 @echo off
 copy Release\FreeImage.dll Dist
 copy Release\FreeImage.lib Dist
 copy Source\FreeImage.h Dist
 ]
-Creating command line "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP6C.bat"
+Creating command line "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP494.bat"
 
         1 bestand(en) gekopieerd.
         1 bestand(en) gekopieerd.
@@ -617,22 +218,14 @@ Creating command line "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP6C.bat"
 --------------------Configuration: Test - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP6D.tmp" with contents
-[
-/nologo /MT /W3 /GX /O1 /I "..\\" /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\FreeImage\Source\Test\Test.cpp"
-]
-Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP6D.tmp" 
-Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP6E.tmp" with contents
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP495.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib Imm32.lib Ws2_32.lib freeimage.lib /nologo /subsystem:console /incremental:no /pdb:"Release/Test.pdb" /machine:I386 /out:"Release/Test.exe" 
-.\Release\Test.obj
-\FreeImage\Release\FreeImage.lib
+".\Release\Test.obj"
+"\Programming Projects\FreeImage\Release\FreeImage.lib"
 ]
-Creating command line "link.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP6E.tmp"
+Creating command line "link.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP495.tmp"
 <h3>Output Window</h3>
-Compiling...
-Test.cpp
 Linking...
 LINK : fatal error LNK1181: cannot open input file "freeimage.lib"
 Error executing link.exe.

@@ -3,7 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "FreeImage"=.\FreeImage.dsp - Package Owner=<4>
+Project: "FreeImage"=".\FreeImage.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -30,7 +30,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "FreeImageLib"=.\SOURCE\FreeImageLib\FreeImageLib.dsp - Package Owner=<4>
+Project: "FreeImageLib"=".\SOURCE\FreeImageLib\FreeImageLib.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -54,7 +54,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "FreeImageQt"=.\Source\FreeImageQt\FreeImageQt.dsp - Package Owner=<4>
+Project: "FreeImageQt"=".\Source\FreeImageQt\FreeImageQt.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -66,58 +66,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "LibJPEG"=.\Source\LibJPEG\LibJPEG.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "LibMNG"=.\Source\LibMNG\LibMNG.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name ZLib
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "LibPNG"=.\Source\LibPNG\LibPNG.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "LibTIFF"=.\Source\LibTIFF\LibTIFF.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "Test"=.\Source\Test\Test.dsp - Package Owner=<4>
+Project: "FreeImage_ActiveX"=".\Source\ActiveX\FreeImage_ActiveX.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -132,7 +81,73 @@ Package=<4>
 
 ###############################################################################
 
-Project: "ZLib"=.\Source\ZLib\ZLib.dsp - Package Owner=<4>
+Project: "LibJPEG"=".\Source\LibJPEG\LibJPEG.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "LibMNG"=".\Source\LibMNG\LibMNG.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name ZLib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "LibPNG"=".\Source\LibPNG\LibPNG.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "LibTIFF"=".\Source\LibTIFF\LibTIFF.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "Test"=".\Source\Test\Test.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name FreeImage
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ZLib"=".\Source\ZLib\ZLib.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

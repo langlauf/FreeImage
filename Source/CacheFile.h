@@ -38,8 +38,22 @@
 
 // ----------------------------------------------------------
 
-struct Block;
-struct Cache;
+static const int CACHE_SIZE = 32;
+static const int BLOCK_SIZE = 64 * 1024;
+
+// ----------------------------------------------------------
+
+#pragma pack(push, 1)
+struct Block {
+     long next;
+     BYTE data[BLOCK_SIZE - 4];
+};
+
+struct Cache {
+     int nr;
+     Block *data;
+};
+#pragma pack(pop)
 
 // ----------------------------------------------------------
 

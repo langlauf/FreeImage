@@ -1,0 +1,35 @@
+HKCR
+{
+	FreeImage.Painting.1 = s 'FreeImage Painting'
+	{
+		CLSID = s '{CA4D1C39-9335-4622-9F49-5B6D965DACC6}'
+		'Insertable'
+	}
+	FreeImage.Painting = s 'FreeImage Painting'
+	{
+		CLSID = s '{CA4D1C39-9335-4622-9F49-5B6D965DACC6}'
+		CurVer = s 'FreeImage.Painting.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {CA4D1C39-9335-4622-9F49-5B6D965DACC6} = s 'FreeImage Painting'
+		{
+			ProgID = s 'FreeImage.Painting.1'
+			VersionIndependentProgID = s 'FreeImage.Painting'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			ForceRemove 'Control'
+			ForceRemove 'Insertable'
+			ForceRemove 'ToolboxBitmap32' = s '%MODULE%, 107'
+			'MiscStatus' = s '0'
+			{
+			    '1' = s '131473'
+			}
+			'TypeLib' = s '{AF709562-19F1-46C5-A1D6-BDE4C1954AE0}'
+			'Version' = s '1.0'
+		}
+	}
+}

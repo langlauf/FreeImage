@@ -26,12 +26,14 @@
 #include <assert.h>
 #include <stdio.h>
 #include <io.h>
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include "Utilities.h"
 
 using namespace std;
 
@@ -51,8 +53,6 @@ using namespace std;
 #ifdef MULTI
 #include "FreeImage.h"
 #endif
-
-// ----------------------------------------------------------
 
 /*
 FIBITMAP *
@@ -111,7 +111,7 @@ TestMulti(int argc, char *argv[]) {
 	FIBITMAP *lock = FreeImage_LockPage(bitmap, 0);
 	FreeImage_UnlockPage(bitmap, lock, FALSE);
 
-	FIBITMAP *clone = FreeImage_LoadBMP("e:\\test images\\MK50TEMP.BMP");
+	FIBITMAP *clone = FreeImage_LoadBMP("h:\\programming projects\\test images\\MK50TEMP.BMP");
 	FreeImage_AppendPage(bitmap, clone);
 	FreeImage_Unload(clone);
 
@@ -133,13 +133,7 @@ struct Extensions {
 };
 
 static Extensions s_extensions[] = {
-	"bmp",
-	"jpg",
-	"png",
-	"tif",
-	"wbmp",
-	"ppm"
-	"tga"
+	"bmp"
 };
 
 int __cdecl
@@ -165,7 +159,7 @@ TestAPI(int argc, char *argv[]) {
 
 	long handle;
 
-	if ((handle = _findfirst("e:\\test images\\logo.bmp", &finddata)) != -1) {
+	if ((handle = _findfirst("H:\\Programming Projects\\Test Images\\button_disabled.bmp", &finddata)) != -1) {
 		do {
 			dib = NULL;
 
@@ -178,7 +172,7 @@ TestAPI(int argc, char *argv[]) {
 			// make a path to a directory
 
 			char directory[128];
-			strcpy(directory, "e:\\test images\\");
+			strcpy(directory, "H:\\Programming Projects\\Test Images\\");
 			strcat(directory, finddata.name);
 
 			// open the file
@@ -211,6 +205,12 @@ TestAPI(int argc, char *argv[]) {
 
 					if ((FreeImage_FIFSupportsWriting(fif)) && (FreeImage_FIFSupportsExportBPP(fif, FreeImage_GetBPP(dib)))) {
 						FIBITMAP *c = FreeImage_Clone(dib);
+
+						//DrawCircle(c, 120, 120, 80);
+						//DrawLine(c, 5, 5, 300, 300);
+						//DrawEllipse(c, 5, 5, 300, 300);
+						//DrawFilledEllipse(c, 5, 5, 300, 300);
+						//DrawRectangle(c, 0, 0, 320, 240);
 
 						itoa(id, unique, 10);
 						strcat(unique, ".");

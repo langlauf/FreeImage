@@ -145,7 +145,7 @@
 #endif
 
 #ifdef MNG_INCLUDE_ZLIB                /* zlib by Mark Adler & Jean-loup Gailly */
-#include "../zlib/zlib.h"
+#include "zlib.h"
 #endif
 
 #ifdef MNG_INCLUDE_LCMS                /* little cms by Marti Maria Saguer */
@@ -165,7 +165,7 @@
 #include <setjmp.h>                    /* needed for error-recovery (blergh) */
 #else
 #ifdef WIN32
-#define USE_WINDOWS_MESSAGEBOX         /* display a messagebox under Windoze */
+#define USE_WINDOWS_MESSAGEBOX         /* display a messagebox under Windows */
 #endif
 #endif /* MNG_USE_SETJMP */
 #ifdef FAR

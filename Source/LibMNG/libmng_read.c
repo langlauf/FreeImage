@@ -5,7 +5,7 @@
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
 /* * file      : libmng_read.c             copyright (c) 2000 G.Juyn        * */
-/* * version   : 1.0.0                                                      * */
+/* * version   : 1.0.4                                                      * */
 /* *                                                                        * */
 /* * purpose   : Read logic (implementation)                                * */
 /* *                                                                        * */
@@ -55,8 +55,11 @@
 /* *             0.9.3 - 10/16/2000 - G.Juyn                                * */
 /* *             - added support for JDAA                                   * */
 /* *                                                                        * */
-/* *             0.9.5 -  1/23/2001 - G.Juyn                                * */
+/* *             0.9.5 - 01/23/2001 - G.Juyn                                * */
 /* *             - fixed timing-problem with switching framing_modes        * */
+/* *                                                                        * */
+/* *             1.0.4 - 06/22/2002 - G.Juyn                                * */
+/* *             - B495443 - incorrect suspend check in read_databuffer     * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -237,7 +240,7 @@ mng_retcode read_databuffer (mng_datap    pData,
   {
     if (!pData->fReaddata (((mng_handle)pData), (mng_ptr)pBuf, iSize, iRead))
     {
-      if (iRead == 0)                  /* suspension required ? */
+      if (*iRead == 0)                 /* suspension required ? */
         pData->bSuspended = MNG_TRUE;
       else
         MNG_ERROR (pData, MNG_APPIOERROR);

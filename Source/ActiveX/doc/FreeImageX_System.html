@@ -1,0 +1,86 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="de">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>FreeImage ActiveX-Interface: Installation</title>
+</head>
+
+<body>
+
+<p align="center"><a target="_blank" href="http://www.6ixsoft.com/">
+<IMG alt="The FreeImage Project" 
+src="freeimage.png" border=0 width="600" height="100"></a> </p>
+<P class=title align="center"><FONT size=+2><EM>The Free, Quality Image library for 
+Windows</EM> </FONT></P> 
+<P class=title align="center"><font size="+2"><em>ActiveX-Library: Installation 
+and basic testing</em></font></P>
+
+<hr>
+<P class=title align="left"><b>Design and implementation by</b></P>
+<ul>
+  <li> 
+<P class=title align="left">Markus Loibl <a href="mailto:(markus.loibl@epost.de">
+(markus.loibl@epost.de</a>)<br>
+&nbsp;</P></li>
+</ul>
+<P class=title align="left"><b>This file is part of FreeImage 2.6.0</b></P>
+
+<p class="title" align="left"><a href="FreeImageX.html">.. back to the main page</a></p>
+
+<hr>
+<p class="title" align="left"><b>Installation</b></p>
+<p class="title" align="left">If you want to register the control, just enter at 
+the command-prompt:<br>
+<font face="Courier New">regsvr32 &lt;your_path&gt;\FreeImageX.dll</font></p>
+<p class="title" align="left">If you want to unregister the control:<br>
+<font face="Courier New">regsvr32 /u &lt;your_path&gt;\FreeImageX.dll</font></p>
+
+<hr>
+<p class="title" align="left"><b>Testing</b></p>
+<p class="title" align="left">You can test the control using VB-Script. If you 
+have Win2000 or higher, Windows Scripting is already built into your system. 
+Otherwise you have to download it for free from <br>
+<a target="_blank" href="http://msdn.microsoft.com/scripting">
+http://msdn.microsoft.com/scripting</a>. </p>
+<p class="title" align="left">A test-script could look like:</p>
+<blockquote>
+  <p class="title" align="left"><font face="Courier New"><br>
+  Option explicit<br>
+  <br>
+  dim ctrl<br>
+  dim title<br>
+  dim text<br>
+  <br>
+  set ctrl = createObject(&quot;FreeImage.Application&quot;)<br>
+  <br>
+  title = ctrl.Version<br>
+  text = ctrl.Copyright<br>
+  MsgBox text, 0, title<br>
+  set ctrl = Nothing<br>
+&nbsp;</font></p>
+</blockquote>
+<p class="title" align="left">Or:</p>
+<blockquote>
+  <p class="title" align="left"><font face="Courier New"><br>
+  Option explicit<br>
+  dim ctrl<br>
+  dim erg<br>
+  set ctrl = CreateObject(&quot;FreeImage.Image&quot;)<br>
+  ctrl.Test &quot;Opening earth.jpg and saving as a tiff .... &quot;, &quot;FreeImage.Image&quot;<br>
+  erg = ctrl.Open(&quot;earth.jpg&quot;)<br>
+  MsgBox &quot;Opening file result: &quot; + CStr(erg)<br>
+  erg = ctrl.Save(&quot;earth.tif&quot;)<br>
+  MsgBox &quot;Saving file result: &quot; + CStr(erg)<br>
+  set ctrl = Nothing<br>
+  <br>
+&nbsp;</font></p>
+</blockquote>
+
+<hr>
+
+</body>
+
+</html>

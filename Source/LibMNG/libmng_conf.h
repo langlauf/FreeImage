@@ -2,7 +2,7 @@
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
 /* * file      : libmng_conf.h             copyright (c) 2000 G.Juyn        * */
-/* * version   : 1.0.0                                                      * */
+/* * version   : 1.0.4                                                      * */
 /* *                                                                        * */
 /* * purpose   : main configuration file                                    * */
 /* *                                                                        * */
@@ -31,7 +31,12 @@
 /* *             0.9.3 - 09/16/2000 - G.Juyn                                * */
 /* *             - removed trace-options from default SO/DLL builds         * */
 /* *                                                                        * */
+/* *             1.0.4 - 06/22/2002 - G.Juyn                                * */
+/* *             - B526138 - returned IJGSRC6B calling convention to        * */
+/* *               default for MSVC                                         * */
+/* *                                                                        * */
 /* ************************************************************************** */
+
 
 #if defined(__BORLANDC__) && defined(MNG_STRICT_ANSI)
 #pragma option -A                      /* force ANSI-C */
@@ -83,6 +88,16 @@
 #if defined(MNG_SUPPORT_IJG6B) && !defined(MNG_SUPPORT_JPEG8) && !defined(MNG_SUPPORT_JPEG12)
 #define MNG_SUPPORT_JPEG8
 /* #define MNG_SUPPORT_JPEG12 */
+#endif
+
+/* The following is required to export the IJG routines from the DLL in
+   the Windows-standard calling convention;
+   currently this only works for Borland C++ !!! */
+
+#if defined(MNG_BUILD_DLL) || defined(MNG_USE_DLL)
+#if defined(MNG_SUPPORT_IJG6B) && defined(__BORLANDC__)
+#define MNG_DEFINE_JPEG_STDCALL
+#endif
 #endif
 
 /* ************************************************************************** */

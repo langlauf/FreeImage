@@ -1,0 +1,494 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="de">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>FreeImage ActiveX-Interface: Freeimage.Image</title>
+</head>
+
+<body>
+
+<p align="center"><a target="_blank" href="http://www.6ixsoft.com/">
+<IMG alt="The FreeImage Project" 
+src="freeimage.png" border=0 width="600" height="100"></a> </p>
+<P class=title align="center"><FONT size=+2><EM><span lang="en-us">The</span> Free, Quality Image library for 
+Windows</EM> </FONT></P> 
+<P class=title align="center"><font size="+2"><em>ActiveX-Library: 
+Freeimage.Image</em></font></P>
+
+<hr>
+<P class=title align="left"><b>Design and implementation by</b></P>
+<ul>
+  <li> 
+<P class=title align="left">Markus Loibl <a href="mailto:(markus.loibl@epost.de">
+(markus.loibl@epost.de</a>)<br>
+&nbsp;</P></li>
+</ul>
+<P class=title align="left"><b>This file is part of FreeImage 2.6.0</b></P>
+
+<p class="title" align="left"><a href="FreeImageX.html">.. back to the main page</a></p>
+
+<hr>
+<p class="title" align="left"><b>Samples</b></p>
+<p class="title" align="left"><i>Opening and saving</i></p>
+<blockquote>
+<p class="title" align="left"><font face="Courier New">Option explicit<br>
+  <br>
+  	dim ctrl<br>
+dim erg<br>
+<br>
+set ctrl = CreateObject(&quot;FreeImage.Image&quot;)<br>
+<br>
+ctrl.Test &quot;Opening earth.jpg and saving as a tiff .... &quot;, &quot;FreeImage.Image&quot;<br>
+<br>
+erg = ctrl.Open(&quot;earth.jpg&quot;)<br>
+MsgBox &quot;Opening file result: &quot; + CStr(erg)<br>
+<br>
+erg = ctrl.Save(&quot;earth.tif&quot;)<br>
+MsgBox &quot;Saving file result: &quot; + CStr(erg)<br>
+<br>
+set ctrl = Nothing<br>
+&nbsp;</font></p>
+
+</blockquote>
+<p class="title" align="left"><i>Cloning</i></p>
+<blockquote>
+  <p><font face="Courier New">Option explicit<br>
+  <br>
+  	dim ctrl<br>
+  	dim ctrl2<br>
+dim erg<br>
+<br>
+set ctrl = CreateObject(&quot;FreeImage.Image&quot;)<br>
+<br>
+erg = ctrl.Open(&quot;earth.jpg&quot;)</font></p>
+  <p><font face="Courier New">set ctrl2 = ctrl.Clone<br>
+<br>
+ctrl.Test &quot;first ok&quot;, &quot;FreeImage.Image&quot;<br>
+ctrl.Test &quot;second ok&quot;, &quot;FreeImage.Image&quot;<br>
+&nbsp;</font></p>
+  <p><font face="Courier New">set ctrl2 = Nothing<br>
+set ctrl = Nothing</font></p>
+</blockquote>
+<p class="title" align="left">&nbsp;</p>
+
+<hr>
+<p class="title" align="left"><b>Reference</b></p>
+
+<p class="title" align="left">&nbsp;</p>
+
+<hr size="1">
+
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Test"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Test</b></td>
+    <td width="62%" valign="top">Shows a Message-Box (for testing and debugging 
+    purposes)</td>
+  </tr>
+</table>
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">This string appears in the messagebox (message)</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">This string appears in the messagebox (title)</td>
+  </tr>
+</table>
+
+<table border="0" cellspacing="1" width="91%">
+</table>
+<hr size="1">
+<p>&nbsp;</p>
+<p><u><i>File handling</i></u></p>
+<hr size="1">
+
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Open"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Open</b></td>
+    <td width="62%" valign="top">Loads an image. If an image is already opened, 
+    it will be closed. The <a href="FreeImageX_Application.html#ImageFormats">
+    image-format</a> is calculated from the file's extension. If it is unknown, 
+    this function will fail.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">Filename of image to load</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">0: file couldn't be loaded<br>
+    1: file sucessfully loaded</td>
+  </tr>
+</table>
+<hr size="1">
+
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="OpenEx"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>OpenEx</b></td>
+    <td width="62%" valign="top">Loads an image. If an image is already opnened, 
+    it will be closed.<br>
+    If the filetype (extension) of the file is unknown, this function will fail.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">
+    <a href="FreeImageX_Application.html#ImageFormats">Image-format</a></td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">Filename of image to load</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">Additional parameter. They are specific to the 
+    file-format (e.g. decide which bitmap in the cabinet to load within PCD). 
+    See the freeimage-docu or sourcecode for more details!&nbsp; </td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">0: file couldn't be loaded<br>
+    1: file sucessfully loaded</td>
+  </tr>
+</table>
+<hr size="1">
+
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Close"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Close</b></td>
+    <td width="62%" valign="top">If an image is opened, it will be closed (without 
+    saving it).</td>
+  </tr>
+  </table>
+<hr size="1">
+
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Save"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Save</b></td>
+    <td width="62%" valign="top">Saves an opened image. The image will not be 
+    closed. The <a href="FreeImageX_Application.html#ImageFormats">image-format</a> 
+    is calculated from the file's extension. If it is unknown or no image is 
+    opened, this function will fail.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">Filename of image to save</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">0: file couldn't be saved<br>
+    1: file sucessfully saved</td>
+  </tr>
+</table>
+<hr size="1">
+
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="SaveEx"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>SaveEx</b></td>
+    <td width="62%" valign="top">Saves an opened image. The image will not be 
+    closed. If no image is opened, this function will fail.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">
+    <a href="FreeImageX_Application.html#ImageFormats">Image-format</a></td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">String</td>
+    <td width="62%" valign="top">Filename of image to save</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">Additional parameter. They are specific to the 
+    file-format (e.g. decide which compression-algorithm to save using TIFF or 
+    which compression-rate while saving JPEG). See the freeimage-docu or 
+    sourcecode for more details! </td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">0: file couldn't be saved<br>
+    1: file sucessfully saved</td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p><u><i>Image-Information</i></u></p>
+<p>If no image is opened, the following functions and properties will fail.</p>
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="ResolutionX"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>ResolutionX</b></td>
+    <td width="62%" valign="top">The horizontal image-resolution .</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get/set</td>
+    <td width="31%" valign="top">double</td>
+    <td width="62%" valign="top">Resolution in [dpi]</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="ResolutionY"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>ResolutionY</b></td>
+    <td width="62%" valign="top">The vertical image-resolution .</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get/set</td>
+    <td width="31%" valign="top">double</td>
+    <td width="62%" valign="top">Resolution in [dpi]</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Width"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Width</b></td>
+    <td width="62%" valign="top">The width of the image.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">long</td>
+    <td width="62%" valign="top">Width</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Height"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Height</b></td>
+    <td width="62%" valign="top">The height of the image.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">long</td>
+    <td width="62%" valign="top">Height</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="BPP"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>BPP</b></td>
+    <td width="62%" valign="top">Returns the size of one pixel in the bitmap in 
+    bits. For example when each pixel takes 32-bits of space in the bitmap, this 
+    function returns 32.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">long</td>
+    <td width="62%" valign="top">BPP<br>
+    1: b/w<br>
+    4, 8: palette<br>
+    16, 24, 32: full-coored image</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="DIBSize"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>DIBSize</b></td>
+    <td width="62%" valign="top">
+    <p class="MsoNormal" style="text-autospace: none">Returns the size of the 
+    DIB-element of a opened image in memory. E.g. the BITMAPINFOHEADER + palette 
+    + data bits.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">long</td>
+    <td width="62%" valign="top">&nbsp;</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="RedMask"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>RedMask</b></td>
+    <td width="62%" valign="top">
+    <p class="MsoNormal" style="text-autospace: none">Returns a bit pattern 
+    describing the red colour component of a pixel in an opened image.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">long</td>
+    <td width="62%" valign="top">&nbsp;</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="GreenMask"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>GreenMask</b></td>
+    <td width="62%" valign="top">
+    <p class="MsoNormal" style="text-autospace: none">dto.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">long</td>
+    <td width="62%" valign="top">&nbsp;</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="BlueMask"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>BlueMask</b></td>
+    <td width="62%" valign="top">
+    <p class="MsoNormal" style="text-autospace: none">dto.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">long</td>
+    <td width="62%" valign="top">&nbsp;</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="ColorsUsed"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>ColorsUsed</b></td>
+    <td width="62%" valign="top">
+    <p class="MsoNormal" style="text-autospace: none">Returns the number of 
+    colours used in a bitmap. This function returns the palette-size for 
+    palletised bitmaps, and 0 for high-colour bitmaps.<br>
+    Note: It doesn’t return the actual number of colors being used in a bitmap, 
+    but the size of the palette. </td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">long</td>
+    <td width="62%" valign="top">&nbsp;</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="IsTransparent"></a></b>
+    <img border="0" src="smallobj-green.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>IsTransparent</b></td>
+    <td width="62%" valign="top">Status of the transparency-table.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">get</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">1: transparency table is enabled<br>
+    0: else</td>
+  </tr>
+</table>
+
+<p>&nbsp;</p>
+<p><u><i>Image-Conversions</i></u></p>
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="ChangeColors"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>ChangeColors</b></td>
+    <td width="62%" valign="top">Changes the color-model (BPP). If no image is 
+    opened or the conversion fails, this function will fail.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">New BPP:<br>
+    1: convert ot b/w (not yet implemented!)<br>
+    8: Converts a bitmap to 8 bits. If the bitmap was a high-colour bitmap, the 
+    end result will be grayscale.<br>
+    256: Quantizes a high-color bitmap to an 8-bit palletised bitmap. See the 
+    additional parameter.<br>
+    16: Converts a bitmap to 16 bits. See the additional parameter.<br>
+    24: Converts a bitmap to 24 bits.<br>
+    32: Converts a bitmap to 32 bits.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">in</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">Additional parameter. Depends on the <i>New BPP</i>-paramter.<br>
+    <br>
+    For <i>256</i>:<br>
+    0: Xiaolin Wu color quantization algorithm<br>
+    1: NeuQuant neural-net quantization algorithm by Anthony Dekker<br>
+    <br>
+    For <i>16</i>:<br>
+    0 or 555: Each pixel has a colour pattern of 5 bits red, 5 bits green and 5 
+    bits blue. One bit in each pixel is unused.<br>
+    565: Each pixel has a colour pattern of 5 bits red, 6 bits green and 5 bits 
+    blue.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">short</td>
+    <td width="62%" valign="top">0: Failed<br>
+    1: Successfully changed BPP<br>
+    2: Color-model already had the specified characteristics.</td>
+  </tr>
+</table>
+
+<hr size="1">
+<table border="0" cellspacing="1" width="91%">
+  <tr>
+    <td width="7%" valign="top"><b><a name="Clone"></a></b>
+    <img border="0" src="smallobj-red.png" width="21" height="21"></td>
+    <td width="31%" valign="top"><b>Clone</b></td>
+    <td width="62%" valign="top">Duplicates. A new image is generated. If no 
+    image is opened or the cloning fails, this function will fail.</td>
+  </tr>
+  <tr>
+    <td width="7%" valign="top">out</td>
+    <td width="31%" valign="top">Reference to a new Freeimage.Image</td>
+    <td width="62%" valign="top">&nbsp;</td>
+  </tr>
+</table>
+
+</body>
+
+</html>

@@ -5,6 +5,20 @@ Whats New for FreeImage
 ! : changed
 + : added
 
+July 24th, 2002 - 2.5.5
+! FreeImage now uses libPNG 1.2.4
+! FreeImage now uses libMNG 1.0.4
++ [Markus Loibl] added ActiveX wrapper
+
+June 22th, 2002 - 2.5.4
+* [Timothy Roughton] fixed FreeImage not compiling on LCC WIN32
+* [Markus Loibl] fixed PluginTIFF sometimes saving with wrong X/Y resolution
+* fixed crashbug when loading some RLE4 BMPs
+! FreeImage now uses LibPNG 1.2.3
+! [Markus Loibl] improved startup plugin locate handling code
+! [Gerhard Gruber] made some changes so that FreeImage compiles on VC5
++ [Markus Loibl] added flags TIFF_PACKBITS, TIFF_DEFLATE, TIFF_ADOBE_DEFLATE and TIFF_NONE
+
 May 21th, 2002 - 2.5.3
 * fixed wrong colors when loading 16-bit grayscale TIFF
 * fixed crash-problem with FreeImageQt

@@ -1,5 +1,39 @@
 -----------------------------------------------------------
 
+1.0.4 (Jun 23rd 2002)
+---------------------
+
+in short:
+
+Just some small fixes
+Standard dll now compiled with zlib 1.1.4 and lcms 1.0.8
+
+-------------------
+
+bugfixes:
+- B495442 - invalid returnvalue in mng_get_suspensionmode
+- B495443 - incorrect suspend check in read_databuffer
+- B526138 - returned IJGSRC6B calling convention to default for MSVC
+- B558212 - off by one error
+- B557677 - can't find lcms.h
+
+core:
+- fixed possible compile-problem in cleanup_rowproc
+- MNG subimage alpha composite wrong for rgba8 images
+
+samples:
+
+contrib:
+
+doc:
+
+makefiles:
+- fixed check for lcms.h in configure.in
+
+autoconf:
+
+-----------------------------------------------------------
+
 1.0.3 (Sep 18th 2001)
 ---------------------
 

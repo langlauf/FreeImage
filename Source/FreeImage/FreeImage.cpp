@@ -30,7 +30,7 @@
 
 //----------------------------------------------------------------------
 
-static const char *s_version = "2.5.3";
+static const char *s_version = "2.5.4";
 static const char *s_copyright = "This program uses FreeImage, a free, open source image library supporting all common bitmap formats. Get your free copy from http://www.6ixsoft.com.";
 
 //----------------------------------------------------------------------

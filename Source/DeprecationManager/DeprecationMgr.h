@@ -48,7 +48,12 @@
 // ==========================================================
 
 class DeprecationMgr {
+#if (_MSC_VER == 1100) // VC 5.0 need to look into the docs for the compiler for the value of each version
+public:
+#else
 private:
+#endif
+
 	struct DeprecatedFunction {
 		const char *old_function_name;
 		const char *new_function_name;

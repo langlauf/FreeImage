@@ -182,7 +182,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		io->read_proc(&id_one, 1, 1, handle);
 		io->read_proc(&id_two, 1, 1, handle);
 
-		if (id_one != 'P' || id_two < '1' || id_two > '6') {
+		if ((id_one != 'P') || (id_two < '1') || (id_two > '6')) {
 			throw "Invalid magic number";
 		}
 
@@ -274,6 +274,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				if(id_two == '2') {		// ASCII greymap
 					for (y = 0; y < height; y++) {				
 						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
+
 						for (x = 0; x < width; x++) {
 							level = GetInt(io, handle);
 							bits[x] = (BYTE)((255 * level) / max);
