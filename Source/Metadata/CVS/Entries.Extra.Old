@@ -2,8 +2,8 @@
 /TagLib.cpp////
 /Exif.cpp////
 /FIRational.cpp////
-/FreeImageTag.cpp////
 /FreeImageTag.h////
 /IPTC.cpp////
 /TagConversion.cpp////
 /XTIFF.cpp////
+/FreeImageTag.cpp////

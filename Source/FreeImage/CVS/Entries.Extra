@@ -35,9 +35,9 @@
 /PluginICO.cpp////
 /PluginPNM.cpp////
 /PluginXPM.cpp////
-/BitmapAccess.cpp////
 /PixelAccess.cpp////
 /PluginJPEG.cpp////
 /PluginPNG.cpp////
 /PluginTIFF.cpp////
 /ZLibInterface.cpp////
+/BitmapAccess.cpp////
