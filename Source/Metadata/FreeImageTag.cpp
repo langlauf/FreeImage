@@ -19,7 +19,9 @@
 // Use at your own risk!
 // ==========================================================
 
+#ifdef _MSC_VER 
 #pragma warning (disable : 4786) // identifier was truncated to 'number' characters
+#endif
 
 #include "FreeImage.h"
 #include "Utilities.h"
@@ -88,6 +90,7 @@ FreeImage_DeleteTag(FITAG *tag) {
 		free(tag->value);
 		tag->value = NULL;
 		tag->length = 0;
+		free(tag);
 	}
 }
 

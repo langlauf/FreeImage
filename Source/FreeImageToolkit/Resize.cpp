@@ -3,6 +3,7 @@
 //
 // Design and implementation by
 // - Hervé Drolon (drolon@infonie.fr)
+// - Detlev Vendt (detlev.vendt@brillit.de)
 //
 // This file is part of FreeImage 3
 //
@@ -196,14 +197,19 @@ void CResizeEngine::horizontalFilter(FIBITMAP *src, unsigned src_width, unsigned
 		memcpy(dst_bits, src_bits, dst_height * FreeImage_GetPitch(dst));
 	}
 	else {
-		unsigned bpp = FreeImage_GetBPP(src);
+		unsigned index;	// pixel index
 
 		// allocate and calculate the contributions
 		CWeightsTable weightsTable(m_pFilter, dst_width, src_width); 
+		
+		// Calculate the number of bytes per pixel (1 for 8-bit, 3 for 24-bit or 4 for 32-bit)
+		unsigned bytespp = FreeImage_GetLine(src) / FreeImage_GetWidth(src);
 
 		// step through rows
-		switch(bpp) {
+		switch(FreeImage_GetBPP(src)) {
 			case 8:
+			case 24:
+			case 32:
 			{
 				for(unsigned y = 0; y < dst_height; y++) {
 					// scale each row 
@@ -212,7 +218,7 @@ void CResizeEngine::horizontalFilter(FIBITMAP *src, unsigned src_width, unsigned
 
 					for(unsigned x = 0; x < dst_width; x++) {
 						// loop through row
-						double value = 0;
+						double value[4] = {0, 0, 0, 0};                 // 4 = 32bpp max
 						int iLeft = weightsTable.getLeftBoundary(x);    // retrieve left boundary
 						int iRight = weightsTable.getRightBoundary(x);  // retrieve right boundary
 
@@ -220,78 +226,18 @@ void CResizeEngine::horizontalFilter(FIBITMAP *src, unsigned src_width, unsigned
 							// scan between boundaries
 							// accumulate weighted effect of each neighboring pixel
 							double weight = weightsTable.getWeight(x, i-iLeft);
-							value += (weight * (double)src_bits[i]); 
+							
+							index = i * bytespp;
+							for (int j = 0; j < bytespp; j++) {
+								value[j] += (weight * (double)src_bits[index + j]); 
+							}
 						} 
 
-						// place result in destination pixel
-						dst_bits[x] = (BYTE)MIN(MAX((int)0, (int)(value + 0.5)), (int)255);
-					} 
-				}
-			}
-			break;
-			case 24:
-			{
-				for(unsigned y = 0; y < dst_height; y++) {
-					// scale each row 
-					RGBTRIPLE *src_bits = (RGBTRIPLE*)FreeImage_GetScanLine(src, y);
-					RGBTRIPLE *dst_bits = (RGBTRIPLE*)FreeImage_GetScanLine(dst, y);
-
-					for(unsigned x = 0; x < dst_width; x++) {
-						// loop through row
-						double r = 0;
-						double g = 0;
-						double b = 0;
-						int iLeft = weightsTable.getLeftBoundary(x);    // retrieve left boundary
-						int iRight = weightsTable.getRightBoundary(x);  // retrieve right boundary
-
-						for(int i = iLeft; i <= iRight; i++) {
-							// scan between boundaries
-							// accumulate weighted effect of each neighboring pixel
-							double weight = weightsTable.getWeight(x, i-iLeft);
-							r += (weight * (double)(src_bits[i].rgbtRed)); 
-							g += (weight * (double)(src_bits[i].rgbtGreen)); 
-							b += (weight * (double)(src_bits[i].rgbtBlue)); 
-						} 
-
-						// place result in destination pixel
-						dst_bits[x].rgbtRed	 = (BYTE)MIN(MAX((int)0, (int)(r + 0.5)), (int)255);
-						dst_bits[x].rgbtGreen = (BYTE)MIN(MAX((int)0, (int)(g + 0.5)), (int)255);
-						dst_bits[x].rgbtBlue	 = (BYTE)MIN(MAX((int)0, (int)(b + 0.5)), (int)255);
-					} 
-				}
-			}
-			break;
-			case 32:
-			{
-				for(unsigned y = 0; y < dst_height; y++) {
-					// scale each row 
-					RGBQUAD *src_bits = (RGBQUAD*)FreeImage_GetScanLine(src, y);
-					RGBQUAD *dst_bits = (RGBQUAD*)FreeImage_GetScanLine(dst, y);
-
-					for(unsigned x = 0; x < dst_width; x++) {
-						// loop through row
-						double r = 0;
-						double g = 0;
-						double b = 0;
-						double a = 0;
-						int iLeft = weightsTable.getLeftBoundary(x);    // retrieve left boundary
-						int iRight = weightsTable.getRightBoundary(x);  // retrieve right boundary
-
-						for(int i = iLeft; i <= iRight; i++) {
-							// scan between boundaries
-							// accumulate weighted effect of each neighboring pixel
-							double weight = weightsTable.getWeight(x, i-iLeft);
-							r += (weight * (double)(src_bits[i].rgbRed)); 
-							g += (weight * (double)(src_bits[i].rgbGreen)); 
-							b += (weight * (double)(src_bits[i].rgbBlue)); 
-							a += (weight * (double)(src_bits[i].rgbReserved)); 
-						} 
-
-						// place result in destination pixel
-						dst_bits[x].rgbRed      = (BYTE)MIN(MAX((int)0, (int)(r + 0.5)), (int)255);
-						dst_bits[x].rgbGreen    = (BYTE)MIN(MAX((int)0, (int)(g + 0.5)), (int)255);
-						dst_bits[x].rgbBlue     = (BYTE)MIN(MAX((int)0, (int)(b + 0.5)), (int)255);
-						dst_bits[x].rgbReserved = (BYTE)MIN(MAX((int)0, (int)(a + 0.5)), (int)255);
+						// clamp and place result in destination pixel
+						index = x * bytespp;
+						for (int j = 0; j < bytespp; j++) {
+							dst_bits[index + j] = (BYTE)MIN(MAX((int)0, (int)(value[j] + 0.5)), (int)255);
+						}
 					} 
 				}
 			}
@@ -309,102 +255,46 @@ void CResizeEngine::verticalFilter(FIBITMAP *src, unsigned src_width, unsigned s
 		memcpy(dst_bits, src_bits, dst_height * FreeImage_GetPitch(dst));	
 	}
 	else {
-		unsigned bpp = FreeImage_GetBPP(src);
+		unsigned index;	// pixel index
 
 		// allocate and calculate the contributions
 		CWeightsTable weightsTable(m_pFilter, dst_height, src_height); 
 
+		// Calculate the number of bytes per pixel (1 for 8-bit, 3 for 24-bit or 4 for 32-bit)
+		unsigned bytespp = FreeImage_GetLine(src) / FreeImage_GetWidth(src);
+
 		// step through columns
-		switch(bpp) {
+		switch(FreeImage_GetBPP(src)) {
 			case 8:
+			case 24:
+			case 32:
 			{
 				for(unsigned x = 0; x < dst_width; x++) {
+					index = x * bytespp;
+
 					// scale each column
 					for(unsigned y = 0; y < dst_height; y++) {
 						// loop through column
-						double value = 0;
+						double value[4] = {0, 0, 0, 0};                 // 4 = 32bpp max
 						int iLeft = weightsTable.getLeftBoundary(y);    // retrieve left boundary
 						int iRight = weightsTable.getRightBoundary(y);  // retrieve right boundary
 
-						BYTE *dst_bits = FreeImage_GetScanLine(dst, y);
+						BYTE *dst_bits = FreeImage_GetScanLine(dst, y);		
 
 						for(int i = iLeft; i <= iRight; i++) {
 							// scan between boundaries
 							// accumulate weighted effect of each neighboring pixel
 							BYTE *src_bits = FreeImage_GetScanLine(src, i);
-							double weight = weightsTable.getWeight(y, i-iLeft);
-							value += (weight * (double)src_bits[x]);
+							double weight = weightsTable.getWeight(y, i-iLeft);					
+							for (int j = 0; j < bytespp; j++) {
+								value[j] += (weight * (double)src_bits[index + j]);
+							}
 						}
 
 						// clamp and place result in destination pixel
-						dst_bits[x] = (BYTE)MIN(MAX((int)0, (int)(value + 0.5)), (int)255);
-					}
-				}
-			}
-			break;
-			case 24:
-			{
-				for(unsigned x = 0; x < dst_width; x++) {
-					// scale each column
-					for(unsigned y = 0; y < dst_height; y++) {
-						// loop through column
-						double r = 0;
-						double g = 0;
-						double b = 0;
-						int iLeft = weightsTable.getLeftBoundary(y);    // retrieve left boundary
-						int iRight = weightsTable.getRightBoundary(y);  // retrieve right boundary
-
-						RGBTRIPLE *dst_bits = (RGBTRIPLE*)FreeImage_GetScanLine(dst, y);
-
-						for(int i = iLeft; i <= iRight; i++) {
-							// scan between boundaries
-							// accumulate weighted effect of each neighboring pixel
-							RGBTRIPLE *src_bits = (RGBTRIPLE*)FreeImage_GetScanLine(src, i);
-							double weight = weightsTable.getWeight(y, i-iLeft);
-							r += (weight * (double)src_bits[x].rgbtRed);
-							g += (weight * (double)src_bits[x].rgbtGreen);
-							b += (weight * (double)src_bits[x].rgbtBlue);
+						for (int j = 0; j < bytespp; j++) {
+							dst_bits[index + j] = (BYTE)MIN(MAX((int)0, (int)(value[j] + 0.5)), (int)255);
 						}
-
-						// clamp and place result in destination pixel
-						dst_bits[x].rgbtRed   = (BYTE)MIN(MAX((int)0, (int)(r + 0.5)), (int)255);
-						dst_bits[x].rgbtGreen = (BYTE)MIN(MAX((int)0, (int)(g + 0.5)), (int)255);
-						dst_bits[x].rgbtBlue  = (BYTE)MIN(MAX((int)0, (int)(b + 0.5)), (int)255);
-					}
-				}
-			}
-			break;
-			case 32:
-			{
-				for(unsigned x = 0; x < dst_width; x++) {
-					// scale each column
-					for(unsigned y = 0; y < dst_height; y++) {
-						// loop through column
-						double r = 0;
-						double g = 0;
-						double b = 0;
-						double a = 0;
-						int iLeft = weightsTable.getLeftBoundary(y);    // retrieve left boundary
-						int iRight = weightsTable.getRightBoundary(y);  // retrieve right boundary
-
-						RGBQUAD *dst_bits = (RGBQUAD*)FreeImage_GetScanLine(dst, y);
-
-						for(int i = iLeft; i <= iRight; i++) {
-							// scan between boundaries
-							// accumulate weighted effect of each neighboring pixel
-							RGBQUAD *src_bits = (RGBQUAD*)FreeImage_GetScanLine(src, i);
-							double weight = weightsTable.getWeight(y, i-iLeft);
-							r += (weight * (double)src_bits[x].rgbRed);
-							g += (weight * (double)src_bits[x].rgbGreen);
-							b += (weight * (double)src_bits[x].rgbBlue);
-							a += (weight * (double)src_bits[x].rgbReserved);
-						}
-
-						// clamp and place result in destination pixel
-						dst_bits[x].rgbRed       = (BYTE)MIN(MAX((int)0, (int)(r + 0.5)), (int)255);
-						dst_bits[x].rgbGreen     = (BYTE)MIN(MAX((int)0, (int)(g + 0.5)), (int)255);
-						dst_bits[x].rgbBlue      = (BYTE)MIN(MAX((int)0, (int)(b + 0.5)), (int)255);
-						dst_bits[x].rgbReserved  = (BYTE)MIN(MAX((int)0, (int)(a + 0.5)), (int)255);
 					}
 				}
 			}

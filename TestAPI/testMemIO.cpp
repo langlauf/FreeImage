@@ -93,6 +93,7 @@ void testLoadMemIO(const char *lpszPathName) {
 
 				// save as a regular file
 				FreeImage_Save(FIF_PNG, check, "blob.png", PNG_DEFAULT);
+				FreeImage_Unload(check);
 				
 				// close the stream
 				FreeImage_CloseMemory(hmem);
@@ -116,6 +117,8 @@ void testAcquireMemIO(const char *lpszPathName) {
 
 	// save the file to memory
 	FreeImage_SaveToMemory(FIF_PNG, dib, hmem, PNG_DEFAULT);
+
+	FreeImage_Unload(dib);
 
 	// get the buffer from the memory stream
 	BYTE *mem_buffer = NULL;

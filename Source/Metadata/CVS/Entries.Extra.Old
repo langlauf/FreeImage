@@ -1,9 +1,9 @@
 /FIRational.cpp////
 /FIRational.h////
-/FreeImageTag.cpp////
 /FreeImageTag.h////
-/TagConversion.cpp////
 /Exif.cpp////
+/FreeImageTag.cpp////
 /IPTC.cpp////
+/TagConversion.cpp////
 /TagLib.cpp////
 /XTIFF.cpp////

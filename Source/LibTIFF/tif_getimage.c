@@ -1,4 +1,4 @@
-/* $Id: tif_getimage.c,v 1.5 2004/10/16 15:34:33 drolon Exp $ */
+/* $Id: tif_getimage.c,v 1.7 2004/12/24 12:19:54 drolon Exp $ */
 
 /*
  * Copyright (c) 1991-1997 Sam Leffler
@@ -1004,7 +1004,7 @@ gtStripSeparate(TIFFRGBAImage* img, uint32* raster, uint32 w, uint32 h)
 #define	SKEW(r,g,b,skew)	{ r += skew; g += skew; b += skew; }
 #define	SKEW4(r,g,b,a,skew)	{ r += skew; g += skew; b += skew; a+= skew; }
 
-#define A1 ((uint32)(0xffL<<24))
+#define A1 (((uint32)0xffL)<<24)
 #define	PACK(r,g,b)	\
 	((uint32)(r)|((uint32)(g)<<8)|((uint32)(b)<<16)|A1)
 #define	PACK4(r,g,b,a)	\

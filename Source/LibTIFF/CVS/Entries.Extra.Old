@@ -1,5 +1,6 @@
 /LibTIFF.dsp////
 /Makefile.in////
+/files.lst////
 /libtiff.def////
 /makefile.vc////
 /mkg3states.c////
@@ -12,6 +13,9 @@
 /tif_codec.c////
 /tif_color.c////
 /tif_compress.c////
+/tif_config.h////
+/tif_config.h.in////
+/tif_config.h.vc////
 /tif_dir.c////
 /tif_dir.h////
 /tif_dirinfo.c////
@@ -52,12 +56,7 @@
 /tiffio.h////
 /tiffiop.h////
 /tiffvers.h////
-/Makefile////
 /Makefile.am////
-/files.lst////
-/tif_config.h////
-/tif_config.h.in////
-/tif_config.h.vc////
 /tif_fax3sm.c////
 /tiffconf.h.in////
 /tiffconf.h.vc////

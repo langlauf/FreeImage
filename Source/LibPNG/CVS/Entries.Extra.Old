@@ -1,5 +1,4 @@
 /LibPNG.dsp////
-/TODO////
 /ANNOUNCE////
 /CHANGES////
 /INSTALL////
@@ -32,3 +31,4 @@
 /pngwrite.c////
 /pngwtran.c////
 /pngwutil.c////
+/TODO////

@@ -170,13 +170,11 @@ WORD fipImage::getVerticalResolution() {
 }
 
 void fipImage::setHorizontalResolution(LONG value) {
-	BITMAPINFOHEADER *bmih = FreeImage_GetInfoHeader(_dib);
-	bmih->biXPelsPerMeter = value * 100;
+	FreeImage_SetDotsPerMeterX(_dib, value * 100);
 }
 
 void fipImage::setVerticalResolution(LONG value) {
-	BITMAPINFOHEADER *bmih = FreeImage_GetInfoHeader(_dib);
-	bmih->biYPelsPerMeter = value * 100;
+	FreeImage_SetDotsPerMeterY(_dib, value * 100);
 }
 
 
@@ -580,9 +578,14 @@ BOOL fipImage::rotateEx(double angle, double x_shift, double y_shift, double x_o
 
 BOOL fipImage::rotate(double angle) {
 	if(_dib) {
-		if(FreeImage_GetBPP(_dib) >= 8) {
-			FIBITMAP *rotated = FreeImage_RotateClassic(_dib, angle);
-			return replace(rotated);
+		switch(FreeImage_GetBPP(_dib)) {
+			case 1:
+			case 8:
+			case 24:
+			case 32:
+				FIBITMAP *rotated = FreeImage_RotateClassic(_dib, angle);
+				return replace(rotated);
+				break;
 		}
 	}
 	return FALSE;

@@ -1,12 +1,12 @@
 /Channels.cpp////
-/ClassicRotate.cpp////
 /Colors.cpp////
 /Display.cpp////
 /Filters.h////
 /Flip.cpp////
 /CopyPaste.cpp////
+/BSplineRotate.cpp////
+/ClassicRotate.cpp////
 /Rescale.cpp////
 /Resize.cpp////
 /Resize.h////
-/BSplineRotate.cpp////
 D/Debug////

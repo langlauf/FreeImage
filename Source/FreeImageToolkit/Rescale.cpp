@@ -23,6 +23,7 @@
 
 FIBITMAP * DLL_CALLCONV 
 FreeImage_Rescale(FIBITMAP *src, int dst_width, int dst_height, FREE_IMAGE_FILTER filter) {
+	FIBITMAP *dst = NULL;
 
 	if (!src || (dst_width <= 0) || (dst_height <= 0)) {
 		return NULL;
@@ -54,7 +55,33 @@ FreeImage_Rescale(FIBITMAP *src, int dst_width, int dst_height, FREE_IMAGE_FILTE
 	CResizeEngine Engine(pFilter);
 
 	// perform upsampling or downsampling
-	FIBITMAP *dst = Engine.scale(src, dst_width, dst_height);
+
+	if((FreeImage_GetBPP(src) == 8) && (FreeImage_GetColorType(src) == FIC_PALETTE)) {
+		// special case for color map indexed images ...
+		FIBITMAP *src24 = NULL;
+		FIBITMAP *dst24 = NULL;
+		try {
+			// transparent conversion to 24-bit (any transparency table will be destroyed)
+			src24 = FreeImage_ConvertTo24Bits(src);
+			if(!src24) throw(1);
+			// perform upsampling or downsampling
+			dst24 = Engine.scale(src24, dst_width, dst_height);
+			if(!dst24) throw(1);
+			// color quantize to 8-bit
+			dst = FreeImage_ColorQuantize(dst24, FIQ_WUQUANT);
+			// free and return
+			FreeImage_Unload(src24);
+			FreeImage_Unload(dst24);
+		} catch(int) {
+			if(src24) FreeImage_Unload(src24);
+			if(dst24) FreeImage_Unload(dst24);
+		}
+	}
+	else {
+		// normal case (8-bit greyscale, 24- or 32-bit images)
+		dst = Engine.scale(src, dst_width, dst_height);
+	}
+
 
 	delete pFilter;
 

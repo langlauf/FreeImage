@@ -62,7 +62,6 @@
 /jmemname.c////
 /jmemnobs.c////
 /jmemsys.h////
-/jmorecfg.h////
 /jpegint.h////
 /jpeglib.h////
 /jpegtran.c////
@@ -87,3 +86,4 @@
 /wrrle.c////
 /wrtarga.c////
 /jconfig.h////
+/jmorecfg.h////

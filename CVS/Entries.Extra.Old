@@ -16,9 +16,9 @@ D/Dist////
 /Makefile.osx////
 /Makefile.solaris////
 /README.solaris////
-/genfipsrclist.sh////
-/gensrclist.sh////
 /FreeImage.dsp////
 /Makefile.srcs////
 /fipMakefile.srcs////
+/genfipsrclist.sh////
+/gensrclist.sh////
 /Whatsnew.txt////
