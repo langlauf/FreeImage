@@ -5,6 +5,7 @@
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Hervé Drolon (drolon@infonie.fr)
 // - Detlev Vendt (detlev.vendt@brillit.de)
+// - Petr Supina (psup@centrum.cz)
 //
 // This file is part of FreeImage 3
 //
@@ -74,12 +75,18 @@ FI_STRUCT (FREEIMAGEHEADER) {
 };
 
 // ----------------------------------------------------------
-//  Internal
+//  Memory allocation on a specified alignment boundary
 // ----------------------------------------------------------
 
-int
-FreeImage_GetFreeImageHeaderSize() {
-	return sizeof(FREEIMAGEHEADER);
+void* FreeImage_Aligned_Malloc(size_t amount, size_t alignment) {
+	void* mem_real = malloc(amount + alignment);
+	char* mem_align = (char*)((unsigned int)(alignment - (unsigned int)mem_real % (unsigned int)alignment) + (unsigned int)mem_real);
+	*((int*)mem_align - 1) = (int)mem_real;
+	return mem_align;
+}
+
+void FreeImage_Aligned_Free(void* mem) {
+	free((void*)*((int*)mem - 1));
 }
 
 // ----------------------------------------------------------
@@ -141,12 +148,16 @@ FreeImage_AllocateT(FREE_IMAGE_TYPE type, int width, int height, int bpp, unsign
 		}
 
 		// calculate the size of a FreeImage image
-		unsigned dib_size = sizeof(FREEIMAGEHEADER);
-		dib_size += sizeof(BITMAPINFOHEADER);
-		dib_size += sizeof(RGBQUAD) * CalculateUsedPaletteEntries(bpp);
-		dib_size += CalculatePitch(CalculateLine(width, bpp)) * height;
+		// align the palette and the pixels on a FIBITMAP_ALIGNMENT bytes alignment boundary
+		unsigned dib_size = sizeof(FREEIMAGEHEADER); 
+		dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
+		dib_size += FIBITMAP_ALIGNMENT - sizeof(BITMAPINFOHEADER) % FIBITMAP_ALIGNMENT; 
+		dib_size += sizeof(BITMAPINFOHEADER);  
+		dib_size += sizeof(RGBQUAD) * CalculateUsedPaletteEntries(bpp);  
+		dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
+		dib_size += CalculatePitch(CalculateLine(width, bpp)) * height; 
 
-		bitmap->data = (BYTE *)malloc(dib_size * sizeof(BYTE));
+		bitmap->data = (BYTE *)FreeImage_Aligned_Malloc(dib_size * sizeof(BYTE), FIBITMAP_ALIGNMENT);
 
 		if (bitmap->data != NULL) {
 			memset(bitmap->data, 0, dib_size);
@@ -225,7 +236,7 @@ FreeImage_Unload(FIBITMAP *dib) {
 			delete metadata;
 
 			// delete bitmap ...
-			free(dib->data);
+			FreeImage_Aligned_Free(dib->data);
 		}
 		free(dib);		// ... and the wrapper
 	}
@@ -236,10 +247,13 @@ FreeImage_Unload(FIBITMAP *dib) {
 FIBITMAP * DLL_CALLCONV
 FreeImage_Clone(FIBITMAP *dib) {
 	if(!dib) return NULL;
+
+	unsigned width  = FreeImage_GetWidth(dib);
+	unsigned height = FreeImage_GetHeight(dib);
+	unsigned bpp    = FreeImage_GetBPP(dib);
 	
 	// allocate a new dib
-	FIBITMAP *new_dib = FreeImage_AllocateT(FreeImage_GetImageType(dib), 
-		FreeImage_GetWidth(dib), FreeImage_GetHeight(dib), FreeImage_GetBPP(dib), 
+	FIBITMAP *new_dib = FreeImage_AllocateT(FreeImage_GetImageType(dib), width, height, bpp, 
 			FreeImage_GetRedMask(dib), FreeImage_GetGreenMask(dib), FreeImage_GetBlueMask(dib));
 
 	if (new_dib) {
@@ -251,8 +265,18 @@ FreeImage_Clone(FIBITMAP *dib) {
 		METADATAMAP *src_metadata = ((FREEIMAGEHEADER *)dib->data)->metadata;
 		METADATAMAP *dst_metadata = ((FREEIMAGEHEADER *)new_dib->data)->metadata;
 
+		// calculate the size of a FreeImage image
+		// align the palette and the pixels on a FIBITMAP_ALIGNMENT bytes alignment boundary
+		unsigned dib_size = sizeof(FREEIMAGEHEADER); 
+		dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
+		dib_size += FIBITMAP_ALIGNMENT - sizeof(BITMAPINFOHEADER) % FIBITMAP_ALIGNMENT; 
+		dib_size += sizeof(BITMAPINFOHEADER);  
+		dib_size += sizeof(RGBQUAD) * CalculateUsedPaletteEntries(bpp);  
+		dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
+		dib_size += CalculatePitch(CalculateLine(width, bpp)) * height; 
+
 		// copy the bitmap + internal pointers (remember to restore new_dib internal pointers later)
-		memcpy(new_dib->data, dib->data, sizeof(FREEIMAGEHEADER) + FreeImage_GetDIBSize(dib));
+		memcpy(new_dib->data, dib->data, dib_size);
 
 		// reset ICC profile link for new_dib
 		memset(dst_iccProfile, 0, sizeof(FIICCPROFILE));
@@ -614,7 +638,11 @@ FreeImage_SetDotsPerMeterY(FIBITMAP *dib, unsigned res) {
 
 BITMAPINFOHEADER * DLL_CALLCONV
 FreeImage_GetInfoHeader(FIBITMAP *dib) {
-	return (dib) ? (BITMAPINFOHEADER *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER)) : NULL;
+	if(!dib) return NULL;
+	size_t lp = (size_t)dib->data + sizeof(FREEIMAGEHEADER);
+	lp += (lp % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - lp % FIBITMAP_ALIGNMENT : 0);
+	lp += FIBITMAP_ALIGNMENT - sizeof(BITMAPINFOHEADER) % FIBITMAP_ALIGNMENT;
+	return (BITMAPINFOHEADER *)lp;
 }
 
 BITMAPINFO * DLL_CALLCONV
@@ -729,13 +757,13 @@ FreeImage_SetMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, const char *key, 
 
 		// first check the tag
 		if(tag) {
-			if(tag->key == NULL) {
-				tag->key = (char*)key;
-			} else if(strcmp(key, tag->key) != 0) {
+			if(FreeImage_GetTagKey(tag) == NULL) {
+				FreeImage_SetTagKey(tag, key);
+			} else if(strcmp(key, FreeImage_GetTagKey(tag)) != 0) {
 				// set the tag key
-				tag->key = (char*)key;
+				FreeImage_SetTagKey(tag, key);
 			}
-			if(tag->count * FreeImage_TagDataWidth(tag->type) != tag->length) {
+			if(FreeImage_GetTagCount(tag) * FreeImage_TagDataWidth(FreeImage_GetTagType(tag)) != FreeImage_GetTagLength(tag)) {
 				// invalid data count ?
 				return FALSE;
 			}

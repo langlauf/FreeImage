@@ -1,16 +1,10 @@
 /ZLib.dsp////
-/ChangeLog////
 /FAQ////
 /INDEX////
 /Makefile////
 /Makefile.in////
 /README////
-/adler32.c////
-/compress.c////
 /configure////
-/crc32.c////
-/deflate.c////
-/deflate.h////
 /example.c////
 /gzio.c////
 /infback.c////
@@ -33,3 +27,10 @@
 /inflate.h////
 /inftrees.h////
 /trees.h////
+/ChangeLog////
+/adler32.c////
+/compress.c////
+/crc32.c////
+/deflate.c////
+/deflate.h////
+/ZLib.vcproj////

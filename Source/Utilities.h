@@ -45,6 +45,18 @@
 #include <sstream>
 
 // ==========================================================
+//   Bitmap palette and pixels alignment
+// ==========================================================
+
+#define FIBITMAP_ALIGNMENT	16	// We will use a 16 bytes alignment boundary
+
+// Memory allocation on a specified alignment boundary
+// defined in BitmapAccess.cpp
+
+void* FreeImage_Aligned_Malloc(size_t amount, size_t alignment);
+void FreeImage_Aligned_Free(void* mem);
+
+// ==========================================================
 //   File I/O structs
 // ==========================================================
 

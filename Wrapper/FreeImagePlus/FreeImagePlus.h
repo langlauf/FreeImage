@@ -125,7 +125,7 @@ public:
 	/**
 	<b>Assignement operator</b><br>
 	Copy the input pointer and manage its destruction
-	@see operator FIBITMAP*
+	@see operator FIBITMAP*()
 	*/
 	fipImage& operator=(FIBITMAP *dib);
 
@@ -260,7 +260,7 @@ public:
 	<pre>
 	fipImage src, dst;
 	src.load("test.png");
-	dst = FreeImage_Invert(src);
+	dst = FreeImage_ConvertTo8Bits(src);
 	</pre>
 	@see operator=(FIBITMAP *dib)
 	*/
@@ -308,25 +308,25 @@ public:
 	Returns the bitmap resolution along the X axis, in pixels / cm
 	@see FreeImage_GetDotsPerMeterX
 	*/
-	WORD getHorizontalResolution();
+	double getHorizontalResolution();
 	
 	/**
 	Returns the bitmap resolution along the Y axis, in pixels / cm
 	@see FreeImage_GetDotsPerMeterY
 	*/
-	WORD getVerticalResolution();
+	double getVerticalResolution();
 
 	/**
 	set the bitmap resolution along the X axis, in pixels / cm
 	@see FreeImage_GetInfoHeader
 	*/
-	void setHorizontalResolution(LONG value);
+	void setHorizontalResolution(double value);
 	
 	/**
 	set the bitmap resolution along the Y axis, in pixels / cm
 	@see FreeImage_GetInfoHeader
 	*/
-	void setVerticalResolution(LONG value);
+	void setVerticalResolution(double value);
 	//@}
 
 	/**@name Palette operations */

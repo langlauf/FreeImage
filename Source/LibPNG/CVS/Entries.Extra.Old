@@ -13,7 +13,6 @@
 /png.5////
 /png.c////
 /png.h////
-/pngconf.h////
 /pngerror.c////
 /pnggccrd.c////
 /pngget.c////
@@ -32,3 +31,5 @@
 /pngwtran.c////
 /pngwutil.c////
 /TODO////
+/pngconf.h////
+/LibPNG.vcproj////

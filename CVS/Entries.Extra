@@ -7,7 +7,6 @@ D/Dist////
 /FreeImage.dsw////
 /README.minGW////
 /README.osx////
-/clean.bat////
 /license-fi.txt////
 /license-gpl.txt////
 /README.linux////
@@ -17,8 +16,12 @@ D/Dist////
 /Makefile.solaris////
 /README.solaris////
 /FreeImage.dsp////
+/FreeImage.sln////
+/FreeImage.vcproj////
+/clean.bat////
+/FreeImage.rc////
 /Makefile.srcs////
+/Whatsnew.txt////
 /fipMakefile.srcs////
 /genfipsrclist.sh////
 /gensrclist.sh////
-/Whatsnew.txt////

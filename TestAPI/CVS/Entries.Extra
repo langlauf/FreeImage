@@ -1,11 +1,13 @@
 /Makefile////
 /Test.dsw////
 /testPlugins.cpp////
-/Test.dsp////
 /sample.png////
 /MainTestSuite.cpp////
 /TestSuite.h////
-/testImageType.cpp////
 /testTools.cpp////
 /exif.jpg////
 /testMemIO.cpp////
+/Test.dsp////
+/Test.sln////
+/Test.vcproj////
+/testImageType.cpp////

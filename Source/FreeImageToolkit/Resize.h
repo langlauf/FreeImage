@@ -49,7 +49,7 @@ private:
 	Contribution *m_WeightTable;
 	/// Filter window size (of affecting source pixels) 
 	DWORD m_WindowSize;
-	/// Length of line (no. or rows / cols) 
+	/// Length of line (no. of rows / cols) 
 	DWORD m_LineLength;
 
 public:

@@ -10,7 +10,6 @@
 /GetType.cpp////
 /Halftoning.cpp////
 /NNQuantizer.cpp////
-/PluginBMP.cpp////
 /PluginCUT.cpp////
 /PluginGIF.cpp////
 /PluginKOALA.cpp////
@@ -22,8 +21,6 @@
 /PluginWBMP.cpp////
 /PluginXBM.cpp////
 /WuQuantizer.cpp////
-/ZLibInterface.cpp////
-/PixelAccess.cpp////
 /FreeImageIO.cpp////
 /Conversion32.cpp////
 /MemoryIO.cpp////
@@ -32,12 +29,15 @@
 /PluginIFF.cpp////
 /Conversion4.cpp////
 /CacheFile.cpp////
-/MultiPage.cpp////
 /Plugin.cpp////
+/MultiPage.cpp////
+/PluginBMP.cpp////
 /PluginICO.cpp////
+/PluginPNM.cpp////
+/PluginXPM.cpp////
+/BitmapAccess.cpp////
+/PixelAccess.cpp////
 /PluginJPEG.cpp////
 /PluginPNG.cpp////
 /PluginTIFF.cpp////
-/PluginXPM.cpp////
-/BitmapAccess.cpp////
-/PluginPNM.cpp////
+/ZLibInterface.cpp////

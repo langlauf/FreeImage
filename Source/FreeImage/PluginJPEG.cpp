@@ -377,7 +377,8 @@ jpeg_freeimage_dst (j_compress_ptr cinfo, fi_handle outfile, FreeImageIO *io) {
 */
 static BOOL 
 jpeg_read_comment(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen) {
-	int i, count;
+	int count;
+	size_t i;
 	size_t length = datalen;
 	BYTE *profile = (BYTE*)dataptr;
 
@@ -392,18 +393,21 @@ jpeg_read_comment(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen) {
 	value[count] = '\0';
 
 	// create a tag
-	FITAG tag;
-	memset(&tag, 0, sizeof(FITAG));
+	FITAG *tag = FreeImage_CreateTag();
+	if(tag) {
+		FreeImage_SetTagID(tag, JPEG_COM);
+		FreeImage_SetTagKey(tag, "Comment");
+		FreeImage_SetTagLength(tag, count);
+		FreeImage_SetTagCount(tag, count);
+		FreeImage_SetTagType(tag, FIDT_ASCII);
+		FreeImage_SetTagValue(tag, value);
+		
+		// store the tag
+		FreeImage_SetMetadata(FIMD_COMMENTS, dib, FreeImage_GetTagKey(tag), tag);
 
-	tag.id = JPEG_COM;
-	tag.key = "Comment";
-	tag.length = count;
-	tag.count = count;
-	tag.type = FIDT_ASCII;
-	tag.value = value;
-
-	// store the tag
-	FreeImage_SetMetadata(FIMD_COMMENTS, dib, tag.key, &tag);
+		// destroy the tag
+		FreeImage_DeleteTag(tag);
+	}
 
 	free(value);
 
@@ -482,25 +486,21 @@ jpeg_read_xmp_profile(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen) 
 		length  -= offset;
 
 		// create a tag
-		FITAG tag;
-		memset(&tag, 0, sizeof(FITAG));
+		FITAG *tag = FreeImage_CreateTag();
+		if(tag) {
+			FreeImage_SetTagID(tag, JPEG_APP0+1);	// 0xFFE1
+			FreeImage_SetTagKey(tag, g_TagLib_XMPFieldName);
+			FreeImage_SetTagLength(tag, length);
+			FreeImage_SetTagCount(tag, length);
+			FreeImage_SetTagType(tag, FIDT_ASCII);
+			FreeImage_SetTagValue(tag, profile);
+			
+			// store the tag
+			FreeImage_SetMetadata(FIMD_XMP, dib, FreeImage_GetTagKey(tag), tag);
 
-		tag.id = (JPEG_APP0+1);	// 0xFFE1
-		tag.key = g_TagLib_XMPFieldName;
-		tag.length = length;
-		tag.count =  length;
-		tag.type = FIDT_ASCII;
-		char *value = (char*)malloc((length + 1) * sizeof(char));
-		for(int i = 0; i < length; i++) {
-			value[i] = (char)profile[i];
+			// destroy the tag
+			FreeImage_DeleteTag(tag);
 		}
-		value[length] = '\0';
-		tag.value = value;
-
-		// store the tag
-		FreeImage_SetMetadata(FIMD_XMP, dib, tag.key, &tag);
-
-		free(value);
 
 		return TRUE;
 	}
@@ -553,11 +553,15 @@ jpeg_write_comment(j_compress_ptr cinfo, FIBITMAP *dib) {
 
 	// write user comment as a JPEG_COM marker
 	FreeImage_GetMetadata(FIMD_COMMENTS, dib, "Comment", &tag);
-	if(tag && (NULL != tag->value)) {
-		for(long i = 0; i < (long)strlen((char*)tag->value); i+= 65533L) {
-			jpeg_write_marker(cinfo, JPEG_COM, (BYTE*)tag->value + i, MIN((long)strlen((char*)tag->value + i), 65533L));
+	if(tag) {
+		const char *tag_value = (char*)FreeImage_GetTagValue(tag);
+
+		if(NULL != tag_value) {
+			for(long i = 0; i < (long)strlen(tag_value); i+= 65533L) {
+				jpeg_write_marker(cinfo, JPEG_COM, (BYTE*)tag_value + i, MIN((long)strlen(tag_value + i), 65533L));
+			}
+			return TRUE;
 		}
-		return TRUE;
 	}
 	return FALSE;
 }
@@ -610,23 +614,29 @@ jpeg_write_xmp_profile(j_compress_ptr cinfo, FIBITMAP *dib) {
 	FITAG *tag_xmp = NULL;
 	FreeImage_GetMetadata(FIMD_XMP, dib, g_TagLib_XMPFieldName, &tag_xmp);
 
-	if(tag_xmp && (NULL != tag_xmp->value)) {
-		// XMP signature is 29 bytes long
-		unsigned xmp_header_size = strlen(xmp_signature) + 1;
+	if(tag_xmp) {
+		const BYTE *tag_value = (BYTE*)FreeImage_GetTagValue(tag_xmp);
 
-		BYTE *profile = (BYTE*)malloc((tag_xmp->length + xmp_header_size) * sizeof(BYTE));
-		memcpy(profile, xmp_signature, xmp_header_size);
+		if(NULL != tag_value) {
+			// XMP signature is 29 bytes long
+			unsigned xmp_header_size = strlen(xmp_signature) + 1;
 
-		for(long i = 0; i < tag_xmp->length; i += 65504L) {
-			unsigned length = MIN((long)(tag_xmp->length - i), 65504L);
-			
-			memcpy(profile + xmp_header_size, (BYTE*)tag_xmp->value + i, length);
-			jpeg_write_marker(cinfo, (JPEG_APP0+1), profile, (length + xmp_header_size));
+			DWORD tag_length = FreeImage_GetTagLength(tag_xmp);
+
+			BYTE *profile = (BYTE*)malloc((tag_length + xmp_header_size) * sizeof(BYTE));
+			memcpy(profile, xmp_signature, xmp_header_size);
+
+			for(DWORD i = 0; i < tag_length; i += 65504L) {
+				unsigned length = MIN((long)(tag_length - i), 65504L);
+				
+				memcpy(profile + xmp_header_size, tag_value + i, length);
+				jpeg_write_marker(cinfo, (JPEG_APP0+1), profile, (length + xmp_header_size));
+			}
+
+			free(profile);
+
+			return TRUE;	
 		}
-
-		free(profile);
-
-		return TRUE;		
 	}
 
 	return FALSE;
@@ -753,15 +763,29 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			// step 4b: allocate dib and init header
 
-			dib = FreeImage_Allocate(cinfo.image_width, cinfo.image_height, 8 * cinfo.num_components, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+			if((cinfo.num_components == 4) && (cinfo.out_color_space == JCS_CMYK)) {
+				// CMYK image
+				if((flags & JPEG_CMYK) == JPEG_CMYK) {
+					// load as CMYK
+					dib = FreeImage_Allocate(cinfo.image_width, cinfo.image_height, 32, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+					FreeImage_GetICCProfile(dib)->flags |= FIICC_COLOR_IS_CMYK;
+				} else {
+					// load as CMYK and convert to RGB
+					dib = FreeImage_Allocate(cinfo.image_width, cinfo.image_height, 24, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+				}
+			} else {
+				// RGB or greyscale image
+				dib = FreeImage_Allocate(cinfo.image_width, cinfo.image_height, 8 * cinfo.num_components, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 
-			if (cinfo.num_components == 1) {
-				RGBQUAD *colors = FreeImage_GetPalette(dib);
+				if (cinfo.num_components == 1) {
+					// build a greyscale palette
+					RGBQUAD *colors = FreeImage_GetPalette(dib);
 
-				for (int i = 0; i < 256; i++) {
-					colors[i].rgbRed   = i;
-					colors[i].rgbGreen = i;
-					colors[i].rgbBlue  = i;
+					for (int i = 0; i < 256; i++) {
+						colors[i].rgbRed   = i;
+						colors[i].rgbGreen = i;
+						colors[i].rgbBlue  = i;
+					}
 				}
 			}
 
@@ -787,28 +811,57 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			// step 6a: while (scan lines remain to be read) jpeg_read_scanlines(...);
 
-			while (cinfo.output_scanline < cinfo.output_height) {
-				JSAMPROW b = FreeImage_GetScanLine(dib, cinfo.output_height - cinfo.output_scanline - 1);
+			if((cinfo.out_color_space == JCS_CMYK) && ((flags & JPEG_CMYK) != JPEG_CMYK)) {
+				// convert from CMYK to RGB
 
-				jpeg_read_scanlines(&cinfo, &b, 1);
-			}
+				JSAMPARRAY buffer;		// output row buffer
+				unsigned row_stride;	// physical row width in output buffer
 
-			// step 6b: swap red and blue components (see LibJPEG/jmorecfg.h: #define RGB_RED, ...)
-			// The default behavior of the JPEG library is kept "as is" because LibTIFF uses 
-			// LibJPEG "as is".
+				// JSAMPLEs per row in output buffer
+				row_stride = cinfo.output_width * cinfo.output_components;
+				// make a one-row-high sample array that will go away when done with image
+				buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
 
-#ifndef FREEIMAGE_BIGENDIAN
-			if(cinfo.num_components == 3) {
-				for(unsigned y = 0; y < FreeImage_GetHeight(dib); y++) {
-					BYTE *target = FreeImage_GetScanLine(dib, y);
-					BYTE *target_p = target;
+				while (cinfo.output_scanline < cinfo.output_height) {
+					JSAMPROW src = buffer[0];
+					JSAMPROW dst = FreeImage_GetScanLine(dib, cinfo.output_height - cinfo.output_scanline - 1);
+
+					jpeg_read_scanlines(&cinfo, buffer, 1);
+
 					for(unsigned x = 0; x < FreeImage_GetWidth(dib); x++) {
-						INPLACESWAP(target_p[0], target_p[2]);
-						target_p += 3;
+						WORD K = (WORD)src[3];
+						dst[FI_RGBA_RED]   = (BYTE)((K * src[0]) / 255);
+						dst[FI_RGBA_GREEN] = (BYTE)((K * src[1]) / 255);
+						dst[FI_RGBA_BLUE]  = (BYTE)((K * src[2]) / 255);
+						src += 4;
+						dst += 3;
 					}
 				}
-			}
+			} else {
+				// normal case (RGB or greyscale image)
+
+				while (cinfo.output_scanline < cinfo.output_height) {
+					JSAMPROW dst = FreeImage_GetScanLine(dib, cinfo.output_height - cinfo.output_scanline - 1);
+
+					jpeg_read_scanlines(&cinfo, &dst, 1);
+				}
+
+				// step 6b: swap red and blue components (see LibJPEG/jmorecfg.h: #define RGB_RED, ...)
+				// The default behavior of the JPEG library is kept "as is" because LibTIFF uses 
+				// LibJPEG "as is".
+
+#ifndef FREEIMAGE_BIGENDIAN
+				if(cinfo.num_components == 3) {
+					for(unsigned y = 0; y < FreeImage_GetHeight(dib); y++) {
+						BYTE *target = FreeImage_GetScanLine(dib, y);
+						for(unsigned x = 0; x < FreeImage_GetWidth(dib); x++) {
+							INPLACESWAP(target[0], target[2]);
+							target += 3;
+						}
+					}
+				}
 #endif
+			}
 
 			// step 7: read special markers
 

@@ -2,8 +2,10 @@ D/doc////
 D/src////
 D/test////
 /FreeImagePlus.dsw////
-/clean.bat////
 /FreeImagePlus.dsp////
 D/dist////
-/FreeImagePlus.h////
+/FreeImagePlus.sln////
+/FreeImagePlus.vcproj////
 /WhatsNew_FIP.txt////
+/clean.bat////
+/FreeImagePlus.h////

@@ -1,12 +1,14 @@
 /Makefile/1.3/Thu Jul  8 19:41:34 2004//
 /Test.dsw/1.2/Thu Jul  8 19:41:34 2004/-kb/
 /testPlugins.cpp/1.1/Thu Jul  8 19:41:34 2004//
-/Test.dsp/1.3/Mon Jul 19 22:41:02 2004/-kb/
 /sample.png/1.1/Tue May 13 20:16:54 2003/-kb/
-/testMemIO.cpp/1.3/Thu Dec  2 19:00:56 2004//
 /MainTestSuite.cpp/1.7/Wed Dec 22 20:05:52 2004//
 /TestSuite.h/1.5/Wed Dec 22 20:04:14 2004//
-/testImageType.cpp/1.2/Wed Dec 22 20:04:00 2004//
 /testTools.cpp/1.2/Sun Dec 19 19:55:52 2004//
 /exif.jpg/1.1/Fri Jul  2 17:20:40 2004/-kb/
+/testMemIO.cpp/1.3/Thu Dec  2 19:00:58 2004//
+/Test.dsp/1.4/Sun Feb  6 16:46:36 2005/-kb/
+/testImageType.cpp/1.3/Sun Feb  6 16:23:12 2005//
+/Test.sln/1.1/Sun Feb  6 16:02:53 2005//
+/Test.vcproj/1.1/Sun Feb  6 16:06:47 2005//
 D
