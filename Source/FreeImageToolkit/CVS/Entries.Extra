@@ -1,4 +1,3 @@
-/BSplineRotate.cpp////
 /Channels.cpp////
 /ClassicRotate.cpp////
 /Colors.cpp////
@@ -9,3 +8,4 @@
 /Rescale.cpp////
 /Resize.cpp////
 /Resize.h////
+/BSplineRotate.cpp////

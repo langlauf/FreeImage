@@ -14,7 +14,6 @@
 /PluginBMP.cpp////
 /PluginCUT.cpp////
 /PluginGIF.cpp////
-/PluginICO.cpp////
 /PluginKOALA.cpp////
 /PluginMNG.cpp////
 /PluginPCD.cpp////
@@ -34,9 +33,11 @@
 /Plugin.cpp////
 /PluginTARGA.cpp////
 /PluginPNG.cpp////
-/BitmapAccess.cpp////
+/PluginJPEG.cpp////
 /MultiPage.cpp////
 /PluginDDS.cpp////
+/PluginICO.cpp////
 /PluginIFF.cpp////
+/Conversion4.cpp////
 /PluginTIFF.cpp////
-/PluginJPEG.cpp////
+/BitmapAccess.cpp////
