@@ -1,0 +1,70 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: LibPNG - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\WINDOWS\Profiles\ADMINI~1\LOCALS~1\Temp\RSP1FB.tmp" with contents
+[
+/nologo /MT /W3 /GX /O2 /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibPNG.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"E:\Projects\FreeImage\LibPNG\png.c"
+"E:\Projects\FreeImage\LibPNG\pngerror.c"
+"E:\Projects\FreeImage\LibPNG\pnggccrd.c"
+"E:\Projects\FreeImage\LibPNG\pngget.c"
+"E:\Projects\FreeImage\LibPNG\pngmem.c"
+"E:\Projects\FreeImage\LibPNG\pngpread.c"
+"E:\Projects\FreeImage\LibPNG\pngread.c"
+"E:\Projects\FreeImage\LibPNG\pngrio.c"
+"E:\Projects\FreeImage\LibPNG\pngrtran.c"
+"E:\Projects\FreeImage\LibPNG\pngrutil.c"
+"E:\Projects\FreeImage\LibPNG\pngset.c"
+"E:\Projects\FreeImage\LibPNG\pngtest.c"
+"E:\Projects\FreeImage\LibPNG\pngtrans.c"
+"E:\Projects\FreeImage\LibPNG\pngvcrd.c"
+"E:\Projects\FreeImage\LibPNG\pngwio.c"
+"E:\Projects\FreeImage\LibPNG\pngwrite.c"
+"E:\Projects\FreeImage\LibPNG\pngwtran.c"
+"E:\Projects\FreeImage\LibPNG\pngwutil.c"
+]
+Creating command line "cl.exe @C:\WINDOWS\Profiles\ADMINI~1\LOCALS~1\Temp\RSP1FB.tmp" 
+Creating temporary file "C:\WINDOWS\Profiles\ADMINI~1\LOCALS~1\Temp\RSP1FC.tmp" with contents
+[
+/nologo /out:"Release\LibPNG.lib" 
+.\Release\png.obj
+.\Release\pngerror.obj
+.\Release\pnggccrd.obj
+.\Release\pngget.obj
+.\Release\pngmem.obj
+.\Release\pngpread.obj
+.\Release\pngread.obj
+.\Release\pngrio.obj
+.\Release\pngrtran.obj
+.\Release\pngrutil.obj
+.\Release\pngset.obj
+.\Release\pngtest.obj
+.\Release\pngtrans.obj
+.\Release\pngvcrd.obj
+.\Release\pngwio.obj
+.\Release\pngwrite.obj
+.\Release\pngwtran.obj
+.\Release\pngwutil.obj
+]
+Creating command line "link.exe -lib @C:\WINDOWS\Profiles\ADMINI~1\LOCALS~1\Temp\RSP1FC.tmp"
+<h3>Output Window</h3>
+Compiling...
+png.c
+pngerror.c
+pnggccrd.c
+pngget.c
+pngmem.c
+pngpread.c
+pngread.c
+pngrio.c
+pngrtran.c
+cl.exe terminated at user request.
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: FreeImage - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP14F.tmp" with contents
+[
+/nologo /MT /W3 /GX /O1 /I "Source" /I "Source\ZLib" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\Projects\FreeImage\SOURCE\FreeImage\Plugin.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginBMP.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginICO.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginIFF.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginJPEG.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginKOALA.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginMNG.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginPCD.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginPCX.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginPNG.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginPNM.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginPSD.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginRAS.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginTARGA.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginTIFF.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginWBMP.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\Conversion.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\Conversion16_555.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\Conversion16_565.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\Conversion24.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\Conversion32.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\Conversion8.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\NNQuantizer.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\WuQuantizer.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\BitmapAccess.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\FreeImage.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\FreeImageIO.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\GetType.cpp"
+"C:\Projects\FreeImage\SOURCE\FreeImage\LoadFunctions.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP14F.tmp" 
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP150.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"Release/FreeImage.pdb" /machine:I386 /out:"Release/FreeImage.dll" /implib:"Release/FreeImage.lib" 
+.\Release\Plugin.obj
+.\Release\PluginBMP.obj
+.\Release\PluginICO.obj
+.\Release\PluginIFF.obj
+.\Release\PluginJPEG.obj
+.\Release\PluginKOALA.obj
+.\Release\PluginMNG.obj
+.\Release\PluginPCD.obj
+.\Release\PluginPCX.obj
+.\Release\PluginPNG.obj
+.\Release\PluginPNM.obj
+.\Release\PluginPSD.obj
+.\Release\PluginRAS.obj
+.\Release\PluginTARGA.obj
+.\Release\PluginTIFF.obj
+.\Release\PluginWBMP.obj
+.\Release\Conversion.obj
+.\Release\Conversion16_555.obj
+.\Release\Conversion16_565.obj
+.\Release\Conversion24.obj
+.\Release\Conversion32.obj
+.\Release\Conversion8.obj
+.\Release\NNQuantizer.obj
+.\Release\WuQuantizer.obj
+.\Release\BitmapAccess.obj
+.\Release\FreeImage.obj
+.\Release\FreeImageIO.obj
+.\Release\GetType.obj
+.\Release\LoadFunctions.obj
+.\Source\LibJPEG\Release\LibJPEG.lib
+.\Source\LibPNG\Release\LibPNG.lib
+.\Source\LibTIFF\Release\LibTIFF.lib
+.\Source\ZLib\Release\ZLib.lib
+.\Source\LibMNG\Release\LibMNG.lib
+]
+Creating command line "link.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP150.tmp"
+<h3>Output Window</h3>
+Compiling...
+Plugin.cpp
+PluginBMP.cpp
+PluginICO.cpp
+PluginIFF.cpp
+PluginJPEG.cpp
+PluginKOALA.cpp
+PluginMNG.cpp
+PluginPCD.cpp
+PluginPCX.cpp
+PluginPNG.cpp
+PluginPNM.cpp
+PluginPSD.cpp
+PluginRAS.cpp
+PluginTARGA.cpp
+PluginTIFF.cpp
+PluginWBMP.cpp
+Conversion.cpp
+Conversion16_555.cpp
+Conversion16_565.cpp
+Conversion24.cpp
+Generating Code...
+Compiling...
+Conversion32.cpp
+Conversion8.cpp
+NNQuantizer.cpp
+WuQuantizer.cpp
+BitmapAccess.cpp
+FreeImage.cpp
+FreeImageIO.cpp
+GetType.cpp
+LoadFunctions.cpp
+Generating Code...
+Linking...
+   Creating library Release/FreeImage.lib and object Release/FreeImage.exp
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP154.bat" with contents
+[
+@echo off
+copy Release\FreeImage.dll Dist
+copy Release\FreeImage.lib Dist
+copy Source\FreeImage.h Dist
+]
+Creating command line "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP154.bat"
+
+        1 bestand(en) gekopieerd.
+        1 bestand(en) gekopieerd.
+        1 bestand(en) gekopieerd.
+
+
+
+<h3>Results</h3>
+FreeImage.dll - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

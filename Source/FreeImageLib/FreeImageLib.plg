@@ -1,0 +1,56 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: FreeImageLib - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP116.tmp" with contents
+[
+/nologo /out:"Release\FreeImage.lib" 
+.\Release\NNQuantizer.obj
+.\Release\WuQuantizer.obj
+.\Release\Conversion.obj
+.\Release\Conversion16_555.obj
+.\Release\Conversion16_565.obj
+.\Release\Conversion24.obj
+.\Release\Conversion32.obj
+.\Release\Conversion8.obj
+.\Release\Plugin.obj
+.\Release\PluginBMP.obj
+.\Release\PluginICO.obj
+.\Release\PluginIFF.obj
+.\Release\PluginJPEG.obj
+.\Release\PluginKOALA.obj
+.\Release\PluginMNG.obj
+.\Release\PluginPCD.obj
+.\Release\PluginPCX.obj
+.\Release\PluginPNG.obj
+.\Release\PluginPNM.obj
+.\Release\PluginPSD.obj
+.\Release\PluginRAS.obj
+.\Release\PluginTARGA.obj
+.\Release\PluginTIFF.obj
+.\Release\PluginWBMP.obj
+.\Release\BitmapAccess.obj
+.\Release\FreeImage.obj
+.\Release\FreeImageIO.obj
+.\Release\GetType.obj
+.\Release\LoadFunctions.obj
+\Projects\FreeImage\Source\LibJPEG\Release\LibJPEG.lib
+\Projects\FreeImage\Source\LibMNG\Release\LibMNG.lib
+\Projects\FreeImage\Source\LibPNG\Release\LibPNG.lib
+\Projects\FreeImage\Source\LibTIFF\Release\LibTIFF.lib
+]
+Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP116.tmp"
+<h3>Output Window</h3>
+Creating library...
+
+
+
+<h3>Results</h3>
+FreeImage.lib - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

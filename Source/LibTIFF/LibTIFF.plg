@@ -1,0 +1,104 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: LibTIFF - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\WINDOWS\Profiles\ADMINI~1\LOCALS~1\Temp\RSP7A.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\libtiff\libtiff" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"Debug/LibTIFF.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\Projects\FreeImage\Source\LibTIFF\fax3sm_winnt.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_aux.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_close.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_codec.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_compress.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_dir.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_dirinfo.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_dirread.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_dirwrite.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_dumpmode.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_error.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_fax3.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_flush.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_getimage.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_jpeg.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_luv.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_lzw.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_next.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_open.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_packbits.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_pixarlog.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_predict.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_print.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_read.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_strip.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_swab.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_thunder.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_tile.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_version.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_warning.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_write.c"
+"E:\Projects\FreeImage\Source\LibTIFF\tif_zip.c"
+]
+Creating command line "cl.exe @C:\WINDOWS\Profiles\ADMINI~1\LOCALS~1\Temp\RSP7A.tmp" 
+Creating temporary file "C:\WINDOWS\Profiles\ADMINI~1\LOCALS~1\Temp\RSP7B.tmp" with contents
+[
+/nologo /out:"Debug\LibTIFF.lib" 
+.\Debug\fax3sm_winnt.obj
+.\Debug\tif_aux.obj
+.\Debug\tif_close.obj
+.\Debug\tif_codec.obj
+.\Debug\tif_compress.obj
+.\Debug\tif_dir.obj
+.\Debug\tif_dirinfo.obj
+.\Debug\tif_dirread.obj
+.\Debug\tif_dirwrite.obj
+.\Debug\tif_dumpmode.obj
+.\Debug\tif_error.obj
+.\Debug\tif_fax3.obj
+.\Debug\tif_flush.obj
+.\Debug\tif_getimage.obj
+.\Debug\tif_jpeg.obj
+.\Debug\tif_luv.obj
+.\Debug\tif_lzw.obj
+.\Debug\tif_next.obj
+.\Debug\tif_open.obj
+.\Debug\tif_packbits.obj
+.\Debug\tif_pixarlog.obj
+.\Debug\tif_predict.obj
+.\Debug\tif_print.obj
+.\Debug\tif_read.obj
+.\Debug\tif_strip.obj
+.\Debug\tif_swab.obj
+.\Debug\tif_thunder.obj
+.\Debug\tif_tile.obj
+.\Debug\tif_version.obj
+.\Debug\tif_warning.obj
+.\Debug\tif_write.obj
+.\Debug\tif_zip.obj
+]
+Creating command line "link.exe -lib @C:\WINDOWS\Profiles\ADMINI~1\LOCALS~1\Temp\RSP7B.tmp"
+<h3>Output Window</h3>
+Compiling...
+fax3sm_winnt.c
+tif_aux.c
+tif_close.c
+tif_codec.c
+tif_compress.c
+tif_dir.c
+tif_dirinfo.c
+tif_dirread.c
+tif_dirwrite.c
+tif_dumpmode.c
+tif_error.c
+tif_fax3.c
+tif_flush.c
+tif_getimage.c
+tif_jpeg.c
+cl.exe terminated at user request.
+
+</pre>
+</body>
+</html>
