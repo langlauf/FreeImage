@@ -6,7 +6,7 @@
 // - Hervé Drolon (drolon@infonie.fr)
 // - Jani Kajala (janik@remedy.fi)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -125,11 +125,15 @@ MapTransparentTableToAlpha(RGBQUAD *target, BYTE *source, BYTE *table, int trans
 
 FIBITMAP * DLL_CALLCONV
 FreeImage_ConvertTo32Bits(FIBITMAP *dib) {
-	if (dib != NULL) {
+	if(!dib) return NULL;
+
+	int bpp = FreeImage_GetBPP(dib);
+
+	if(bpp != 32) {
 		int width = FreeImage_GetWidth(dib);
 		int height = FreeImage_GetHeight(dib);
 
-		switch (FreeImage_GetBPP(dib)) {
+		switch(bpp) {
 			case 1 :
 			{
 				FIBITMAP *new_dib = FreeImage_Allocate(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
@@ -181,10 +185,11 @@ FreeImage_ConvertTo32Bits(FIBITMAP *dib) {
 
 				if (new_dib != NULL) {
 					for (int rows = 0; rows < height; rows++) {
-						if ((FreeImage_GetRedMask(dib) == 0x1F) && (FreeImage_GetGreenMask(dib) == 0x3E0) && (FreeImage_GetBlueMask(dib) == 0x7C00)) {
-							FreeImage_ConvertLine16To32_555(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
-						} else {
+						if ((FreeImage_GetRedMask(dib) == 0x1F) && (FreeImage_GetGreenMask(dib) == 0x7E0) && (FreeImage_GetBlueMask(dib) == 0xF800)) {
 							FreeImage_ConvertLine16To32_565(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
+						} else {
+							// includes case where all the masks are 0
+							FreeImage_ConvertLine16To32_555(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
 						}
 					}
 				}
@@ -205,5 +210,5 @@ FreeImage_ConvertTo32Bits(FIBITMAP *dib) {
 		}
 	}
 
-	return NULL;
+	return FreeImage_Clone(dib);
 }

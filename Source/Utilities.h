@@ -3,8 +3,9 @@
 //
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
+// - Hervé Drolon <drolon@infonie.fr>
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -41,9 +42,6 @@
 #ifndef _INC_STRING
 #include <string.h>
 #endif
-
-// INPLACESWAP adopted from codeguru.com 
-#define  INPLACESWAP(a,b)	{a^=b; b^=a; a^=b;}
 
 // ==========================================================
 //   Utility functions
@@ -118,5 +116,34 @@ ReplaceExtension(char *result, const char *filename, const char *extension) {
 	result[strlen(filename)] = '.';
 	memcpy(result + strlen(filename) + 1, extension, strlen(extension) + 1);
 }
+
+// ==========================================================
+//   Greyscale conversion
+// ==========================================================
+
+#define GREY(r, g, b) (BYTE)(((WORD)r * 77 + (WORD)g * 150 + (WORD)b * 29) >> 8)	// .299R + .587G + .114B
+/*
+#define GREY(r, g, b) (BYTE)(((WORD)r * 169 + (WORD)g * 256 + (WORD)b * 87) >> 9)	// .33R + 0.5G + .17B
+*/
+
+// ==========================================================
+//   Template utility functions
+// ==========================================================
+
+/// Max function
+template <class T> T MAX(T a, T b) {
+	return (a > b) ? a: b;
+}
+
+/// Min function
+template <class T> T MIN(T a, T b) {
+	return (a < b) ? a: b;
+}
+
+/// INPLACESWAP adopted from codeguru.com 
+template <class T> void INPLACESWAP(T& a, T& b) {
+	a ^= b; b ^= a; a ^= b;
+}
+
 
 #endif

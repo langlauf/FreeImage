@@ -5,7 +5,7 @@
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Mark Sibly (marksibly@blitzbasic.com)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -95,6 +95,11 @@ RegExpr() {
 	return NULL;
 }
 
+static const char * DLL_CALLCONV
+MimeType() {
+	return "image/freeimage-iff";
+}
+
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO *io, fi_handle handle) {
 	unsigned type = 0;
@@ -118,7 +123,7 @@ SupportsExportDepth(int depth) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle != NULL) {
 		FIBITMAP *dib = 0;
 
@@ -173,12 +178,12 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 				unsigned mask = planes > 8 ? 0xff : 0;
 
-				dib = freeimage->allocate_proc(width, height, depth, mask << 16, mask << 8, mask);
+				dib = FreeImage_Allocate(width, height, depth, mask << 16, mask << 8, mask);
 			} else if (ch_type == 'CMAP') {
 				if (!dib)
 					return NULL;
 
-				RGBQUAD *pal = freeimage->get_palette_proc(dib);
+				RGBQUAD *pal = FreeImage_GetPalette(dib);
 
 				for (unsigned k = 0; k < ch_size / 3;++k ){
 					io->read_proc(&pal[k].rgbRed, 1, 1, handle );
@@ -192,10 +197,10 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				if (swapDWORD(type) == 'PBM ') {
 					// NON INTERLACED (LBM)
 
-					unsigned line = freeimage->get_line_proc(dib) + 1 & ~1;
+					unsigned line = FreeImage_GetLine(dib) + 1 & ~1;
 					
-					for (unsigned i = 0; i < freeimage->get_height_proc(dib); ++i) {
-						BYTE *bits = freeimage->get_scanline_proc(dib, freeimage->get_height_proc(dib) - i - 1);
+					for (unsigned i = 0; i < FreeImage_GetHeight(dib); ++i) {
+						BYTE *bits = FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - i - 1);
 
 						if (comp == 1) {
 							// use RLE compression
@@ -237,12 +242,12 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					unsigned plane_size = n_width/8;
 					unsigned src_size = plane_size * planes;
 					unsigned char *src = (unsigned char*)malloc(src_size);
-					unsigned char *dest = freeimage->get_bits_proc(dib);
+					unsigned char *dest = FreeImage_GetBits(dib);
 
-					dest += freeimage->get_pitch_proc(dib) * height;
+					dest += FreeImage_GetPitch(dib) * height;
 
 					for (unsigned y = 0; y < height; ++y) {
-						dest -= freeimage->get_pitch_proc(dib);
+						dest -= FreeImage_GetPitch(dib);
 
 						// read all planes in one hit,
 						// 'coz PSP compresses across planes...
@@ -306,7 +311,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		}
 
 		if (dib)
-			freeimage->unload_proc(dib);
+			FreeImage_Unload(dib);
 	}
 
 	return 0;
@@ -324,7 +329,14 @@ InitIFF(Plugin *plugin, int format_id) {
 	plugin->description_proc = Description;
 	plugin->extension_proc = Extension;
 	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
+	plugin->save_proc = NULL;
 	plugin->validate_proc = Validate;
+	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;
 }

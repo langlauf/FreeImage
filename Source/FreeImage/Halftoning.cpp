@@ -5,7 +5,7 @@
 // - Hervé Drolon (drolon@infonie.fr)
 // Main reference : Ulichney, R., Digital Halftoning, The MIT Press, Cambridge, MA, 1987
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES

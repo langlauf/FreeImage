@@ -1,10 +1,10 @@
 // ==========================================================
-// FreeImage 2 Test Script
+// FreeImage 3 Test Script
 //
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES

@@ -3,7 +3,7 @@
 //
 // Design and implementation by Floris van den Berg
 //
-// This file is part of FreeImage
+// This file is part of FreeImage 3
 //
 // Use at own risk!
 // ==========================================================

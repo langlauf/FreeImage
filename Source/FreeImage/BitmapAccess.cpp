@@ -6,7 +6,7 @@
 // - Hervé Drolon (drolon@infonie.fr)
 // - Detlev Vendt (detlev.vendt@brillit.de)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -115,13 +115,15 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 
 void DLL_CALLCONV
 FreeImage_Unload(FIBITMAP *dib) {
-	if (dib != NULL) {	// delete bitmap and possible icc profile ...
-		if (dib->data != NULL) {
+	if (NULL != dib) {	// delete bitmap and possible icc profile ...
+		if (NULL != dib->data) {
 			if (FreeImage_GetICCProfile(dib)->data)
 				free(FreeImage_GetICCProfile(dib)->data);
 			free(dib->data);
+			dib->data = NULL;
 		}
 		free(dib);		// ... and the wrapper
+		dib = NULL;
 	}
 }
 
@@ -206,10 +208,10 @@ FreeImage_GetColorType(FIBITMAP *dib) {
 			if (FreeImage_GetICCProfile(dib)->flags & FIICC_COLOR_IS_CMYK)
 				return FIC_CMYK;
 
-			for (unsigned y = 0; y < FreeImage_GetHeight(dib); ++y) {
+			for (unsigned y = 0; y < FreeImage_GetHeight(dib); y++) {
 				rgb = (RGBQUAD *)FreeImage_GetScanLine(dib, y);
 
-				for (unsigned x = 0; x < FreeImage_GetWidth(dib); ++x)
+				for (unsigned x = 0; x < FreeImage_GetWidth(dib); x++)
 					if (rgb[x].rgbReserved != 0)
 						return FIC_RGBALPHA;			
 			}

@@ -20,9 +20,9 @@ rd Source\Test\Debug /s /q
 rd Source\Test\Release /s /q
 del Source\Test\FreeImage*.*
 del Source\Test\*.txt
-del Dist\*.*
 del *.pch /s /q
 del *.ncb /s /q
+del *.opt /s /q
 del *.plg /s /q
 del *.obj /s /q
 del *.dll /s /q
@@ -35,15 +35,3 @@ del *.mdb /s /q
 del *.lib /s /q
 del *.exp /s /q
 del *.ilk /s /q
-del *.bmp /s /q
-del *.tga /s /q
-del *.tif /s /q
-del *.tiff /s /q
-del *.ras /s /q
-del *.jpg /s /q
-del *.koa /s /q
-del *.fip /s /q
-del *.pyd /s /q
-del *.png /s /q
-del *.wbmp /s /q
-del .inslog2 /s /q

@@ -4,7 +4,7 @@
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -50,18 +50,39 @@ static int s_format_id;
 // Plugin Implementation
 // ==========================================================
 
+/**
+    Returns the format string for the plugin. Each plugin,
+	both internal in the DLL and external in a .fip file, must have
+	a unique format string to be addressable.
+*/
+
 static const char * DLL_CALLCONV
 Format() {
 	return "CRADLE";
 }
+
+/**
+    Returns a description string for the plugin. Though a
+	description is not necessary per-se,
+	it is advised to return an unique string in order to tell the
+	user what type of bitmaps this plugin will read and/or write.
+*/
 
 static const char * DLL_CALLCONV
 Description() {
 	return "Here comes the description for your image loader/saver";
 }
 
-// the extension list is always a chain of extensions
-// seperated by commas. no spaces or whatsoever are allowed.
+/**
+    Returns a comma separated list of file extensions indicating 
+	what files this plugin can open. no spaces or whatsoever are allowed. 
+	The list, being used by FreeImage_GetFIFFromFilename, is usually
+	used as a last resort in finding the type of the bitmap we
+	are dealing with. Best is to check the first few bytes on
+	the low-level bits level first and compare them with a known
+	signature . If this fails, FreeImage_GetFIFFromFilename can be
+	used.
+*/
 
 static const char * DLL_CALLCONV
 Extension() {
@@ -148,5 +169,5 @@ Init(Plugin *plugin, int format_id) {
 	plugin.save_proc = Save;
 	plugin.validate_proc = Validate;
 	plugin.supports_export_bpp_proc = SupportsExportDepth;
-	plugin->supports_icc_profiles_proc = SupportsICCProfiles;
+	plugin.supports_icc_profiles_proc = SupportsICCProfiles;
 }

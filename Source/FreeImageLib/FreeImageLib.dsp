@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\\" /I "..\ZLib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\\" /I "..\ZLib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "FREEIMAGE_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\\" /I "..\ZLib" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\\" /I "..\ZLib" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "FREEIMAGE_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
 # ADD RSC /l 0x413 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -202,6 +202,10 @@ SOURCE=..\FreeImage\PluginWBMP.cpp
 
 SOURCE=..\FreeImage\PluginXBM.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\PluginXPM.cpp
+# End Source File
 # End Group
 # Begin Group "DeprecationMgr"
 
@@ -222,14 +226,14 @@ SOURCE=..\FreeImage\CacheFile.cpp
 
 SOURCE=..\FreeImage\MultiPage.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\ZLibInterface.cpp
+# End Source File
 # End Group
 # Begin Source File
 
 SOURCE=..\FreeImage\BitmapAccess.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\FreeImage\Deprecated.cpp
 # End Source File
 # Begin Source File
 
@@ -276,5 +280,45 @@ SOURCE=..\Quantizers.h
 SOURCE=..\Utilities.h
 # End Source File
 # End Group
+# Begin Group "Toolkit Files"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\FreeImageToolkit\BSplineRotate.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImageToolkit\ClassicRotate.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImageToolkit\Colors.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImageToolkit\CopyPaste.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImageToolkit\Flip.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImageToolkit\Rescale.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImageToolkit\Resize.h
+# End Source File
+# End Group
+# Begin Source File
+
+SOURCE=..\..\KnownBugs.txt
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\Whatsnew.txt
+# End Source File
 # End Target
 # End Project

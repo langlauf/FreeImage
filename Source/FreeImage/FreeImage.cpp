@@ -4,7 +4,7 @@
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -30,13 +30,13 @@
 
 //----------------------------------------------------------------------
 
-static const char *s_version = "2.6.1";
-static const char *s_copyright = "This program uses FreeImage, a free, open source image library supporting all common bitmap formats. Get your free copy from http://sourceforge.net/projects/freeimage/.";
+static const char *s_version = "3.0.0";
+static const char *s_copyright = "This program uses FreeImage, a free, open source image library supporting all common bitmap formats. See http://freeimage.sourceforge.net for details";
 
 //----------------------------------------------------------------------
 
 #ifdef WIN32
-#ifndef _LIB
+#ifndef FREEIMAGE_LIB
 BOOL APIENTRY
 DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
 	switch (ul_reason_for_call) {
@@ -55,8 +55,8 @@ DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
 
     return TRUE;
 }
-#endif
-#endif
+#endif // FREEIMAGE_LIB
+#endif // WIN32
 
 //----------------------------------------------------------------------
 
@@ -72,16 +72,16 @@ FreeImage_GetCopyrightMessage() {
 
 //----------------------------------------------------------------------
 
-FreeImage_OutputMessageFunction FreeImage_OutputMessageProc = NULL;
+FreeImage_OutputMessageFunction FreeImage_OutputMessageProcProc = NULL;
 
 void DLL_CALLCONV
 FreeImage_SetOutputMessage(FreeImage_OutputMessageFunction omf) {
-	FreeImage_OutputMessageProc = omf;
+	FreeImage_OutputMessageProcProc = omf;
 }
 
 void DLL_CALLCONV
-FreeImage_OutputMessage(int fif, const char *fmt, ...) {
-	if ((fmt != NULL) && (FreeImage_OutputMessageProc != NULL)) {
+FreeImage_OutputMessageProc(int fif, const char *fmt, ...) {
+	if ((fmt != NULL) && (FreeImage_OutputMessageProcProc != NULL)) {
 		// 512 bytes should be more than enough for a short message
 
 		char message[512];
@@ -175,6 +175,6 @@ FreeImage_OutputMessage(int fif, const char *fmt, ...) {
 
 		// output the message to the user program
 
-		FreeImage_OutputMessageProc((FREE_IMAGE_FORMAT)fif, message);
+		FreeImage_OutputMessageProcProc((FREE_IMAGE_FORMAT)fif, message);
 	}
 }

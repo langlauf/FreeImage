@@ -4,13 +4,13 @@ INCLUDE = -I../
 CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
 
 TARGET  = freeimage
-VER_MAJOR = 2
-VER_MINOR = 6.0
+VER_MAJOR = 3
+VER_MINOR = 0.0
 MODULES = BitmapAccess.o CacheFile.o Conversion.o Conversion16_555.o Conversion16_565.o \
 Conversion24.o Conversion32.o Conversion8.o Deprecated.o FreeImage.o FreeImageIO.o GetType.o \
 Halftoning.o MultiPage.o NNQuantizer.o Plugin.o PluginBMP.o PluginCUT.o PluginICO.o PluginIFF.o \
 PluginJPEG.o PluginKOALA.o PluginMNG.o PluginPCD.o PluginPCX.o PluginPNG.o PluginPNM.o PluginPSD.o \
-PluginRAS.o PluginTARGA.o PluginTIFF.o PluginWBMP.o PluginXBM.o WuQuantizer.o
+PluginRAS.o PluginTARGA.o PluginTIFF.o PluginWBMP.o PluginXBM.o PluginXPM.o WuQuantizer.o ZLibInterface.o
 
 
 STATICLIB = lib$(TARGET).a

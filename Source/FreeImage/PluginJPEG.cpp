@@ -6,8 +6,9 @@
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Jan L. Nauta (jln@magentammt.com)
 // - Markus Loibl (markus.loibl@epost.de)
+// - Karl-Heinz Bussian (khbussian@moss.de)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -80,9 +81,9 @@ jpeg_output_message (j_common_ptr cinfo) {
  * than 8 bits on your machine, you may need to do some tweaking.
  */
 
-#include "../libjpeg/jinclude.h"
-#include "../libjpeg/jpeglib.h"
-#include "../libjpeg/jerror.h"
+#include "../LibJPEG/jinclude.h"
+#include "../LibJPEG/jpeglib.h"
+#include "../LibJPEG/jerror.h"
 
 // Expanded data source object for stdio input --------------
 
@@ -307,7 +308,7 @@ jpeg_freeimage_src (j_decompress_ptr cinfo, fi_handle infile, FreeImageIO *io) {
 	}
 
 	// initialize the jpeg pointer struct with pointers to functions
-	
+
 	src = (freeimage_src_ptr) cinfo->src;
 	src->pub.init_source = init_source;
 	src->pub.fill_input_buffer = fill_input_buffer;
@@ -393,10 +394,10 @@ SupportsExportDepth(int depth) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle) {
 		FIBITMAP *dib = NULL;
-	
+
 		try {
 			// remember the start position for EXIF reading later
 
@@ -433,10 +434,10 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			// step 4b: allocate dib and init header
 
-			dib = freeimage->allocate_proc(cinfo.image_width, cinfo.image_height, 8 * cinfo.num_components, 0xFF, 0xFF00, 0xFF0000);
-			
+			dib = FreeImage_Allocate(cinfo.image_width, cinfo.image_height, 8 * cinfo.num_components, 0xFF, 0xFF00, 0xFF0000);
+
 			if (cinfo.num_components == 1) {
-				RGBQUAD *colors = freeimage->get_palette_proc(dib);
+				RGBQUAD *colors = FreeImage_GetPalette(dib);
 
 				for (int i = 0; i < 256; i++) {
 					colors[i].rgbRed   = i;
@@ -447,7 +448,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			// step 4c: handle metrices
 
-			BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+			BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 
 			if (cinfo.density_unit == 1) {
 				// dots/inch
@@ -460,7 +461,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				pInfoHeader->biXPelsPerMeter = cinfo.X_density * 100;
 				pInfoHeader->biYPelsPerMeter = cinfo.Y_density * 100;
 			}
-			
+
 			// step 5: start decompressor
 
 			jpeg_start_decompress(&cinfo);
@@ -468,12 +469,12 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			// step 6: while (scan lines remain to be read) jpeg_read_scanlines(...);
 
 			while (cinfo.output_scanline < cinfo.output_height) {
-				JSAMPROW b = freeimage->get_scanline_proc(dib, cinfo.output_height - cinfo.output_scanline - 1);
+				JSAMPROW b = FreeImage_GetScanLine(dib, cinfo.output_height - cinfo.output_scanline - 1);
 
 				jpeg_read_scanlines(&cinfo, &b, 1);
 			}
 
-			// step 7: finish decompression 
+			// step 7: finish decompression
 
 			jpeg_finish_decompress(&cinfo);
 
@@ -485,27 +486,33 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			return (FIBITMAP *)dib;
 		} catch (...) {
-			freeimage->unload_proc(dib);
-		}		
+			FreeImage_Unload(dib);
+		}
 	}
 
 	return NULL;
 }
 
 static BOOL DLL_CALLCONV
-Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
+Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
 	if ((dib) && (handle)) {
 		try {
 			// Check dib format
 
-			WORD bpp = freeimage->get_bpp_proc(dib);
+			const char *sError = "only 24-bit highcolor or 8-bit greyscale/palette bitmaps can be saved as JPEG";
+
+			FREE_IMAGE_COLOR_TYPE color_type = FreeImage_GetColorType(dib);
+			WORD bpp = FreeImage_GetBPP(dib);
 
 			if ((bpp != 24) && (bpp != 8))
-				throw "only 24-bit highcolor or 8-bit greyscale bitmaps can be saved as JPEG";
+				throw sError;
 
-			if ((bpp == 8) && (FreeImage_GetColorType(dib) != FIC_MINISBLACK))
-				throw "only 24-bit highcolor or 8-bit greyscale bitmaps can be saved as JPEG";
-				
+			if(bpp == 8) {
+				if ((color_type != FIC_MINISBLACK) && (color_type != FIC_PALETTE))
+					throw sError;
+			}
+
+
 			struct jpeg_compress_struct cinfo;
 			struct jpeg_error_mgr jerr;
 
@@ -523,13 +530,13 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			/* Step 2: specify data destination (eg, a file) */
 
 			jpeg_freeimage_dst(&cinfo, handle, io);
-			
-			/* Step 3: set parameters for compression */											    
 
-			cinfo.image_width = freeimage->get_width_proc(dib);
-			cinfo.image_height = freeimage->get_height_proc(dib);
+			/* Step 3: set parameters for compression */
 
-			switch(FreeImage_GetColorType(dib)) {
+			cinfo.image_width = FreeImage_GetWidth(dib);
+			cinfo.image_height = FreeImage_GetHeight(dib);
+
+			switch(color_type) {
 				case FIC_MINISBLACK :
 					cinfo.in_color_space = JCS_GRAYSCALE;
 					cinfo.input_components = 1;
@@ -545,7 +552,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 			// Set JFIF density parameters from the DIB data
 
-			BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+			BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 			cinfo.X_density = (WORD)(pInfoHeader->biXPelsPerMeter / 100.0F + 0.5);
 			cinfo.Y_density = (WORD)(pInfoHeader->biYPelsPerMeter / 100.0F + 0.5);
 			cinfo.density_unit = 2;	// dots / cm
@@ -582,10 +589,26 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 			/* Step 6: while (scan lines remain to be written) */
 
-			while (cinfo.next_scanline < cinfo.image_height) {
-				JSAMPROW b = freeimage->get_scanline_proc(dib, freeimage->get_height_proc(dib) - cinfo.next_scanline - 1);
+			if (color_type != FIC_PALETTE) {
+				// 24-bit or 8-bit greyscale images
+				while (cinfo.next_scanline < cinfo.image_height) {
+					JSAMPROW b = FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1);
 
-				jpeg_write_scanlines(&cinfo, &b, 1);
+					jpeg_write_scanlines(&cinfo, &b, 1);
+				}
+			} else {
+				// 8-bit palettized images are converted to 24-bit images
+				RGBQUAD *palette = FreeImage_GetPalette(dib);
+				BYTE *target = (BYTE*)malloc(cinfo.image_width * 3);
+
+				while (cinfo.next_scanline < cinfo.image_height) {
+					BYTE *source = FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1);
+					FreeImage_ConvertLine8To24(target, source, cinfo.image_width, palette);
+
+					jpeg_write_scanlines(&cinfo, &target, 1);
+				}
+
+				free(target);
 			}
 
 			/* Step 7: Finish compression */
@@ -595,11 +618,11 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			/* Step 8: release JPEG compression object */
 
 			jpeg_destroy_compress(&cinfo);
-			
+
 			return TRUE;
 
-		} catch (char *text) {
-			freeimage->output_message_proc(s_format_id, text);
+		} catch (const char *text) {
+			FreeImage_OutputMessageProc(s_format_id, text);
 
 			return FALSE;
 		} catch (FREE_IMAGE_FORMAT) {
@@ -622,10 +645,14 @@ InitJPEG(Plugin *plugin, int format_id) {
 	plugin->description_proc = Description;
 	plugin->extension_proc = Extension;
 	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
 	plugin->save_proc = Save;
 	plugin->validate_proc = Validate;
 	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
-	plugin->supports_icc_profiles_proc = NULL;	// not implemented yet
+	plugin->supports_icc_profiles_proc = NULL;	// not implemented yet;
 }

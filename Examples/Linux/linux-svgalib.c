@@ -16,7 +16,7 @@ int main(void)
 
 	switch(inf->colors) {
 	default:
-		printf("Must be at least 256color mode!\n");
+		printf("Must be at least 256 color mode!\n");
 		return;
 
 	case 1 << 8:
@@ -78,8 +78,7 @@ int main(void)
 	}
 
 	for(y = 0; y < height; y++) {
-		vga_drawscansegment(FreeImage_GetScanLine(dib, y),
-				    0,y,length);
+		vga_drawscansegment(FreeImage_GetScanLine(dib, y), 0, y, length);
 	}
 
 	FreeImage_Unload(dib);

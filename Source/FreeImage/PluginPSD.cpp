@@ -7,7 +7,7 @@
 // Based on public domain code created and
 // published by Thatcher Ulrich (ulrich@world.std.com)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -30,14 +30,14 @@
 
 #define BP_START(DIB, WIDTH, HEIGHT) \
 	int xxxscanline = 0; \
-	unsigned *xxxbits = (unsigned *)freeimage->get_scanline_proc(DIB, HEIGHT - 1 - xxxscanline); \
+	unsigned *xxxbits = (unsigned *)FreeImage_GetScanLine(DIB, HEIGHT - 1 - xxxscanline); \
 	unsigned *xxxp = xxxbits;
 
 #define BP_NEXT(DIB, WIDTH, HEIGHT) \
 	xxxp++; \
 	if (xxxp - xxxbits == WIDTH) { \
 		xxxscanline++; \
-		xxxbits = (unsigned *)freeimage->get_scanline_proc(DIB, HEIGHT - 1 - xxxscanline); \
+		xxxbits = (unsigned *)FreeImage_GetScanLine(DIB, HEIGHT - 1 - xxxscanline); \
 		xxxp = xxxbits; \
 	}
 
@@ -149,7 +149,7 @@ ScanForResolution(float* hres, float* vres, FreeImageIO *io, fi_handle handle, i
 // ----------------------------------------------------------
 
 static FIBITMAP *
-LoadPSDRGB(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int width, int height, int channel_count) {
+LoadPSDRGB(FreeImageIO *io, fi_handle handle, int width, int height, int channel_count) {
 	// skip the mode data.  (it's the palette for indexed color; other info for other modes.)
 
 	int	mode_data_count = Read32(io, handle);
@@ -193,7 +193,7 @@ LoadPSDRGB(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int width, i
 
 	// Create the destination bitmap
 
-	FIBITMAP *dib = freeimage->allocate_proc(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
+	FIBITMAP *dib = FreeImage_Allocate(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
 
 	// finally, read the image data.
 
@@ -317,6 +317,11 @@ Extension() {
 	return "psd";
 }
 
+static const char * DLL_CALLCONV
+MimeType() {
+	return "image/freeimage-psd";
+}
+
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO *io, fi_handle handle) {
 	return (Read32(io, handle) == 0x38425053);
@@ -330,7 +335,7 @@ SupportsExportDepth(int depth) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	try {
 		if (Read32(io, handle) == 0x38425053) {
 			if (Read16(io, handle) == 1) {
@@ -362,7 +367,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 						switch (mode) {
 							case 3 :
-								return LoadPSDRGB(freeimage, io, handle, width, height, channel_count);
+								return LoadPSDRGB(io, handle, width, height, channel_count);
 
 							default :
 								throw "color mode not supported";
@@ -372,7 +377,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			}
 		}
 	} catch(const char *message) {
-		freeimage->output_message_proc(s_format_id, message);
+		FreeImage_OutputMessageProc(s_format_id, message);
 	}
 
 	return NULL;
@@ -389,7 +394,15 @@ InitPSD(Plugin *plugin, int format_id) {
 	plugin->format_proc = Format;
 	plugin->description_proc = Description;
 	plugin->extension_proc = Extension;
-	plugin->validate_proc = Validate;
+	plugin->regexpr_proc = NULL;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
+	plugin->save_proc = NULL;
+	plugin->validate_proc = Validate;
+	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;	// not implemented yet;
 }

@@ -4,7 +4,7 @@
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -33,7 +33,6 @@
 
 typedef struct {
 	FIBITMAP    *bitmap;    // pointer to the bitmap data
-	FreeImage   *freeimage; // pointer to the freeimage access functions
 	FreeImageIO *io;        // pointer to the io functions
 	fi_handle   file;	    // pointer to the file we're decoding
 } mngstuff;
@@ -81,9 +80,7 @@ mng_bool
 mymngprocessheader(mng_handle mng, mng_uint32 width, mng_uint32 height) {
 	// allocate a bitmap with the given dimensions
 
-	FreeImage *freeimage = ((mngstuff *)mng_get_userdata(mng))->freeimage;
-
-	((mngstuff *)mng_get_userdata(mng))->bitmap = freeimage->allocate_proc(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+	((mngstuff *)mng_get_userdata(mng))->bitmap = FreeImage_Allocate(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
 
 	// tell the mng decoder about our bit-depth choice
 
@@ -94,11 +91,9 @@ mymngprocessheader(mng_handle mng, mng_uint32 width, mng_uint32 height) {
 
 mng_ptr
 mymnggetcanvasline(mng_handle mng, mng_uint32 line) {
-	FreeImage *freeimage = ((mngstuff *)mng_get_userdata(mng))->freeimage;
-
 	FIBITMAP *bitmap = ((mngstuff *)mng_get_userdata(mng))->bitmap;
 
-	return freeimage->get_scanline_proc(bitmap, freeimage->get_height_proc(bitmap) - line - 1);
+	return FreeImage_GetScanLine(bitmap, FreeImage_GetHeight(bitmap) - line - 1);
 }
 
 mng_bool
@@ -162,6 +157,11 @@ RegExpr() {
 	return NULL;
 }
 
+static const char * DLL_CALLCONV
+MimeType() {
+	return "video/x-mng";
+}
+
 static BOOL DLL_CALLCONV
 SupportsExportDepth(int depth) {
 	return FALSE;
@@ -186,13 +186,12 @@ Close(FreeImageIO *io, fi_handle handle, void *data) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle != NULL) {
 		try {
 			// allocate our stream data structure
 
 			mngstuff *mymng = (mngstuff *)data;
-			mymng->freeimage = freeimage;
 
 			// set up the mng decoder for our stream
 
@@ -227,7 +226,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			return bitmap;
 		} catch (const char *message) {
-			freeimage->output_message_proc(s_format_id, message);
+			FreeImage_OutputMessageProc(s_format_id, message);
 		}
 	}
 
@@ -248,7 +247,12 @@ InitMNG(Plugin *plugin, int format_id) {
 	plugin->regexpr_proc = RegExpr;
 	plugin->open_proc = Open;
 	plugin->close_proc = Close;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
+	plugin->save_proc = NULL;
+	plugin->validate_proc = NULL;
+	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
-	plugin->supports_icc_profiles_proc = NULL;	// not implemented yet
+	plugin->supports_icc_profiles_proc = NULL;	// not implemented yet;
 }

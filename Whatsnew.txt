@@ -1,9 +1,45 @@
-Whats New for FreeImage
+What's New for FreeImage
 
 * : fixed
 - : removed
 ! : changed
 + : added
+
+September 8, 2003 - 3.0.0
+- [Herve Drolon] removed deprecated functions
+- [Herve Drolon] removed deprecated flags (TARGA_LOAD_RGB555, ICO_*, except ICO_DEFAULT)
+- [Herve Drolon] removed the FreeImage pointer table (internal stuff)
++ [Herve Drolon] added a C++ wrapper
++ [Herve Drolon] added the FreeImage Toolkit (see below)
++                added FreeImage_Rescale
++                added FreeImage_RotateClassic
++                added FreeImage_RotateEx
++                added FreeImage_FlipHorizontal
++                added FreeImage_FlipVertical
++                added FreeImage_Invert
++                added FreeImage_AdjustCurve
++                added FreeImage_AdjustGamma
++                added FreeImage_AdjustBrightness
++                added FreeImage_AdjustContrast
++                added FreeImage_GetHistogram
++                added FreeImage_GetChannel
++                added FreeImage_SetChannel
++                added FreeImage_Copy
++                added FreeImage_Paste
++ [Karl-Heinz Bussian] added XPM loader
++ [Karl-Heinz Bussian] added flags parameter to FreeImage_CloseMultiBitmap
++ [Karl-Heinz Bussian] added JPEG save support for 8-bit palettized bitmaps (transparent conversion to 24-bit)
++ [Herve Drolon] added interface to ZLib compression functions
++ [Herve Drolon] added ICO format to the multipage API (loader & writer)
++ [Herve Drolon] added a MIME type to all plugins
+* [Karl-Heinz Bussian] fixed incorrect conversion from 1-bit FIC_MINISWHITE bitmaps to 8-bit
+* [Herve Drolon] fixed a bug in FreeImage_CloseMultiBitmap
+* [Herve Drolon] fixed a potential memory leak in conversion functions (8-, 24-, 32-bit)
+* [Robert Walker] fixed incorrect conversion from 16-bit to 24-bit and 16-bit to 32-bit
+* [blurble] fixed TIFF validate signature problem (3DS files were recognized as TIFF)
+* [Kurt Jankowski-Tepe] fixed FreeImage not compiling on MinGW / LCC WIN32
+* [Jani Peltonen] fixed bug in PluginTARGA where 32-bit bitmaps are not always correctly flipped 
+* [Detlev Vendt] fixed a bug with TIFF (memory leak with ICC profiles)
 
 May 25, 2003 - 2.6.1
 + [Detlev Vendt] added FIC_CMYK to FREE_IMAGE_COLOR_TYPE

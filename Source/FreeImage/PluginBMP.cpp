@@ -6,7 +6,7 @@
 // - Markus Loibl (markus.loibl@epost.de)
 // - Martin Weber (martweb@gmx.net)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -93,7 +93,7 @@ static int s_format_id;
 // ==========================================================
 
 static FIBITMAP *
-LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_offset) {
+LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_offset) {
 	FIBITMAP *dib;
 
 	try {
@@ -124,18 +124,18 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 				
 				// allocate enough memory to hold the bitmap (header, palette, pixels) and read the palette
 
-				dib = freeimage->allocate_proc(width, height, bit_count);
+				dib = FreeImage_Allocate(width, height, bit_count);
 
 				if (dib == NULL)
 					throw "DIB allocation failed";
 
-				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 				pInfoHeader->biXPelsPerMeter = bih.biXPelsPerMeter;
 				pInfoHeader->biYPelsPerMeter = bih.biYPelsPerMeter;
 				
 				// load the palette
 
-				io->read_proc(freeimage->get_palette_proc(dib), used_colors * sizeof(RGBQUAD), 1, handle);
+				io->read_proc(FreeImage_GetPalette(dib), used_colors * sizeof(RGBQUAD), 1, handle);
 
 				// seek to the actual pixel data.
 				// this is needed because sometimes the palette is larger than the entries it contains predicts
@@ -148,12 +148,12 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 				switch (compression) {
 					case BI_RGB :
 						if (height > 0) {
-							io->read_proc((void *)freeimage->get_bits_proc(dib), height * pitch, 1, handle);
+							io->read_proc((void *)FreeImage_GetBits(dib), height * pitch, 1, handle);
 						} else {
 							int tmp = abs(height);
 
 							for (int c = 0; c < tmp; ++c) {
-								io->read_proc((void *)freeimage->get_scanline_proc(dib, tmp - c - 1), pitch, 1, handle);
+								io->read_proc((void *)FreeImage_GetScanLine(dib, tmp - c - 1), pitch, 1, handle);
 							}
 						}
 						
@@ -204,7 +204,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 										default :
 											io->read_proc(&second_byte, sizeof(BYTE), 1, handle);
 
-											BYTE *sline = freeimage->get_scanline_proc(dib, scanline);
+											BYTE *sline = FreeImage_GetScanLine(dib, scanline);
 
 											for (int i = 0; i < status_byte; i++) {
 												if (low_nibble) {
@@ -228,7 +228,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 
 								default :
 								{
-									BYTE *sline = freeimage->get_scanline_proc(dib, scanline);
+									BYTE *sline = FreeImage_GetScanLine(dib, scanline);
 
 									io->read_proc(&second_byte, sizeof(BYTE), 1, handle);
 
@@ -294,7 +294,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 										}
 
 										default :
-											io->read_proc((void *)(freeimage->get_scanline_proc(dib, scanline) + bits), sizeof(BYTE) * status_byte, 1, handle);
+											io->read_proc((void *)(FreeImage_GetScanLine(dib, scanline) + bits), sizeof(BYTE) * status_byte, 1, handle);
 											
 											// align run length to even number of bytes 
 
@@ -309,7 +309,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 									break;
 
 								default :
-									BYTE *sline = freeimage->get_scanline_proc(dib, scanline);
+									BYTE *sline = FreeImage_GetScanLine(dib, scanline);
 
 									io->read_proc(&second_byte, sizeof(BYTE), 1, handle);
 
@@ -340,19 +340,19 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 
 					io->read_proc(bitfields, 3 * sizeof(DWORD), 1, handle);
 
-					dib = freeimage->allocate_proc(width, height, bit_count, bitfields[2], bitfields[1], bitfields[0]);
+					dib = FreeImage_Allocate(width, height, bit_count, bitfields[2], bitfields[1], bitfields[0]);
 				} else {
-					dib = freeimage->allocate_proc(width, height, bit_count, 0x1F, 0x3E0, 0x7C00);
+					dib = FreeImage_Allocate(width, height, bit_count, 0x1F, 0x3E0, 0x7C00);
 				}
 
 				if (dib == NULL)
 					throw "DIB allocation failed";						
 
-				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 				pInfoHeader->biXPelsPerMeter = bih.biXPelsPerMeter;
 				pInfoHeader->biYPelsPerMeter = bih.biYPelsPerMeter;
 
-				io->read_proc(freeimage->get_bits_proc(dib), height * pitch, 1, handle);
+				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
 
 				return dib;
 			}
@@ -365,15 +365,15 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 
 					io->read_proc(bitfields, 3 * sizeof(DWORD), 1, handle);
 
-					dib = freeimage->allocate_proc(width, height, bit_count, bitfields[2], bitfields[1], bitfields[0]);
+					dib = FreeImage_Allocate(width, height, bit_count, bitfields[2], bitfields[1], bitfields[0]);
 				} else {
-					dib = freeimage->allocate_proc(width, height, bit_count, 0xFF, 0xFF00, 0xFF0000);
+					dib = FreeImage_Allocate(width, height, bit_count, 0xFF, 0xFF00, 0xFF0000);
 				}
 
 				if (dib == NULL)
 					throw "DIB allocation failed";
 
-				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 				pInfoHeader->biXPelsPerMeter = bih.biXPelsPerMeter;
 				pInfoHeader->biYPelsPerMeter = bih.biYPelsPerMeter;
 
@@ -388,24 +388,24 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 
 				// read in the bitmap bits
 
-				io->read_proc(freeimage->get_bits_proc(dib), height * pitch, 1, handle);
+				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
 
 				// check if the bitmap contains transparency, if so enable it in the header
 
-				freeimage->set_transparent_proc(dib, (freeimage->get_color_type_proc(dib) == FIC_RGBALPHA));
+				FreeImage_SetTransparent(dib, (FreeImage_GetColorType(dib) == FIC_RGBALPHA));
 
 				return dib;
 			}
 		}
 	} catch(const char *message) {
-		freeimage->output_message_proc(s_format_id, message);
+		FreeImage_OutputMessageProc(s_format_id, message);
 	}
 
 	return NULL;
 }
 
 static FIBITMAP *
-LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_offset) {
+LoadOS22XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_offset) {
 	FIBITMAP *dib = NULL;
 
 	try {
@@ -434,12 +434,12 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 					
 				// allocate enough memory to hold the bitmap (header, palette, pixels) and read the palette
 
-				dib = freeimage->allocate_proc(width, height, bit_count);
+				dib = FreeImage_Allocate(width, height, bit_count);
 
 				if (dib == NULL)
 					throw "DIB allocation failed";
 
-				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 				pInfoHeader->biXPelsPerMeter = bih.biXPelsPerMeter;
 				pInfoHeader->biYPelsPerMeter = bih.biYPelsPerMeter;
 				
@@ -447,7 +447,7 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 
 				io->seek_proc(handle, sizeof(BITMAPFILEHEADER) + bih.biSize, SEEK_SET);
 
-				RGBQUAD *pal = freeimage->get_palette_proc(dib);
+				RGBQUAD *pal = FreeImage_GetPalette(dib);
 
 				for (int count = 0; count < used_colors; count++) {
 					RGBTRIPLE triple;
@@ -470,10 +470,10 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 				switch (compression) {
 					case BI_RGB :
 						if (height > 0) {
-							io->read_proc((void *)freeimage->get_bits_proc(dib), height * pitch, 1, handle);
+							io->read_proc((void *)FreeImage_GetBits(dib), height * pitch, 1, handle);
 						} else {
 							for (int c = 0; c < abs(height); ++c) {
-								io->read_proc((void *)freeimage->get_scanline_proc(dib, height - c - 1), pitch, 1, handle);								
+								io->read_proc((void *)FreeImage_GetScanLine(dib, height - c - 1), pitch, 1, handle);								
 							}
 						}
 						
@@ -524,7 +524,7 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 										default :
 											io->read_proc(&second_byte, sizeof(BYTE), 1, handle);
 
-											BYTE *sline = freeimage->get_scanline_proc(dib, scanline);
+											BYTE *sline = FreeImage_GetScanLine(dib, scanline);
 
 											for (int i = 0; i < status_byte; i++) {
 												if (low_nibble) {
@@ -551,7 +551,7 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 
 								default :
 								{
-									BYTE *sline = freeimage->get_scanline_proc(dib, scanline);
+									BYTE *sline = FreeImage_GetScanLine(dib, scanline);
 
 									io->read_proc(&second_byte, sizeof(BYTE), 1, handle);
 
@@ -616,7 +616,7 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 										}
 
 										default :
-											io->read_proc((void *)(freeimage->get_scanline_proc(dib, scanline) + bits), sizeof(BYTE) * status_byte, 1, handle);
+											io->read_proc((void *)(FreeImage_GetScanLine(dib, scanline) + bits), sizeof(BYTE) * status_byte, 1, handle);
 											
 											// align run length to even number of bytes 
 
@@ -631,7 +631,7 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 									break;
 
 								default :
-									BYTE *sline = freeimage->get_scanline_proc(dib, scanline);
+									BYTE *sline = FreeImage_GetScanLine(dib, scanline);
 
 									io->read_proc(&second_byte, sizeof(BYTE), 1, handle);
 
@@ -662,22 +662,22 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 
 					io->read_proc(bitfields, 3 * sizeof(DWORD), 1, handle);
 
-					dib = freeimage->allocate_proc(width, height, bit_count, bitfields[2], bitfields[1], bitfields[0]);
+					dib = FreeImage_Allocate(width, height, bit_count, bitfields[2], bitfields[1], bitfields[0]);
 				} else {
-					dib = freeimage->allocate_proc(width, height, bit_count, 0x1F, 0x3E0, 0x7C00);
+					dib = FreeImage_Allocate(width, height, bit_count, 0x1F, 0x3E0, 0x7C00);
 				}
 
 				if (dib == NULL)
 					throw "DIB allocation failed";						
 
-				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 				pInfoHeader->biXPelsPerMeter = bih.biXPelsPerMeter;
 				pInfoHeader->biYPelsPerMeter = bih.biYPelsPerMeter;
 
 				if (bitmap_bits_offset > (sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + (used_colors * 3)))
 					io->seek_proc(handle, bitmap_bits_offset, SEEK_SET);
 
-				io->read_proc(freeimage->get_bits_proc(dib), height * pitch, 1, handle);
+				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
 
 				return dib;
 			}
@@ -685,12 +685,12 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 			case 24 :
 			case 32 :
 			{
-				dib = freeimage->allocate_proc(width, height, bit_count, 0xFF, 0xFF00, 0xFF0000);
+				dib = FreeImage_Allocate(width, height, bit_count, 0xFF, 0xFF00, 0xFF0000);
 
 				if (dib == NULL)
 					throw "DIB allocation failed";
 				
-				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 				pInfoHeader->biXPelsPerMeter = bih.biXPelsPerMeter;
 				pInfoHeader->biYPelsPerMeter = bih.biYPelsPerMeter;
 
@@ -702,24 +702,24 @@ LoadOS22XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 				
 				// read in the bitmap bits
 
-				io->read_proc(freeimage->get_bits_proc(dib), height * pitch, 1, handle);
+				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
 
 				// check if the bitmap contains transparency, if so enable it in the header
 
-				freeimage->set_transparent_proc(dib, (freeimage->get_color_type_proc(dib) == FIC_RGBALPHA));
+				FreeImage_SetTransparent(dib, (FreeImage_GetColorType(dib) == FIC_RGBALPHA));
 
 				return dib;
 			}
 		}
 	} catch(const char *message) {
-		freeimage->output_message_proc(s_format_id, message);
+		FreeImage_OutputMessageProc(s_format_id, message);
 	}
 
 	return NULL;
 }
 
 static FIBITMAP *
-LoadOS21XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_offset) {
+LoadOS21XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_offset) {
 	FIBITMAP *dib = NULL;
 
 	try {
@@ -745,18 +745,18 @@ LoadOS21XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 				
 				// allocate enough memory to hold the bitmap (header, palette, pixels) and read the palette
 
-				dib = freeimage->allocate_proc(width, height, bit_count);
+				dib = FreeImage_Allocate(width, height, bit_count);
 
 				if (dib == NULL)
 					throw "DIB allocation failed";						
 
-				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 				pInfoHeader->biXPelsPerMeter = 0;
 				pInfoHeader->biYPelsPerMeter = 0;
 				
 				// load the palette
 
-				RGBQUAD *pal = freeimage->get_palette_proc(dib);
+				RGBQUAD *pal = FreeImage_GetPalette(dib);
 
 				for (int count = 0; count < used_colors; count++) {
 					RGBTRIPLE triple;
@@ -776,10 +776,10 @@ LoadOS21XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 				// read the pixel data
 
 				if (height > 0) {
-					io->read_proc((void *)freeimage->get_bits_proc(dib), height * pitch, 1, handle);
+					io->read_proc((void *)FreeImage_GetBits(dib), height * pitch, 1, handle);
 				} else {
 					for (int c = 0; c < abs(height); ++c) {
-						io->read_proc((void *)freeimage->get_scanline_proc(dib, height - c - 1), pitch, 1, handle);								
+						io->read_proc((void *)FreeImage_GetScanLine(dib, height - c - 1), pitch, 1, handle);								
 					}
 				}
 						
@@ -788,16 +788,16 @@ LoadOS21XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 
 			case 16 :
 			{
-				dib = freeimage->allocate_proc(width, height, bit_count, 0x1F, 0x3E0, 0x7C00);
+				dib = FreeImage_Allocate(width, height, bit_count, 0x1F, 0x3E0, 0x7C00);
 
 				if (dib == NULL)
 					throw "DIB allocation failed";						
 
-				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 				pInfoHeader->biXPelsPerMeter = 0;
 				pInfoHeader->biYPelsPerMeter = 0;
 
-				io->read_proc(freeimage->get_bits_proc(dib), height * pitch, 1, handle);
+				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
 
 				return dib;
 			}
@@ -805,29 +805,29 @@ LoadOS21XBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flags,
 			case 24 :
 			case 32 :
 			{
-				dib = freeimage->allocate_proc(width, height, bit_count, 0xFF, 0xFF00, 0xFF0000);
+				dib = FreeImage_Allocate(width, height, bit_count, 0xFF, 0xFF00, 0xFF0000);
 
 				if (dib == NULL)
 					throw "DIB allocation failed";						
 
-				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 				pInfoHeader->biXPelsPerMeter = 0;
 				pInfoHeader->biYPelsPerMeter = 0;
 
 				// Skip over the optional palette 
 				// A 24 or 32 bit DIB may contain a palette for faster color reduction
 
-				io->read_proc(freeimage->get_bits_proc(dib), height * pitch, 1, handle);
+				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
 
 				// check if the bitmap contains transparency, if so enable it in the header
 
-				freeimage->set_transparent_proc(dib, (freeimage->get_color_type_proc(dib) == FIC_RGBALPHA));
+				FreeImage_SetTransparent(dib, (FreeImage_GetColorType(dib) == FIC_RGBALPHA));
 
 				return dib;
 			}
 		}
 	} catch(const char *message) {	
-		freeimage->output_message_proc(s_format_id, message);
+		FreeImage_OutputMessageProc(s_format_id, message);
 	}
 
 	return NULL;
@@ -855,6 +855,11 @@ Extension() {
 static const char * DLL_CALLCONV
 RegExpr() {
 	return "^BM";
+}
+
+static const char * DLL_CALLCONV
+MimeType() {
+	return "image/bmp";
 }
 
 static BOOL DLL_CALLCONV
@@ -889,7 +894,7 @@ SupportsExportDepth(int depth) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle != NULL) {
 		BITMAPFILEHEADER bitmapfileheader;
 		DWORD type = 0;
@@ -926,15 +931,15 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		// call the appropriate load function for the found bitmap type
 
 		if (type == 40)
-			return LoadWindowsBMP(freeimage, io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
+			return LoadWindowsBMP(io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
 		
 		if (type == 12)
-			return LoadOS21XBMP(freeimage, io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
+			return LoadOS21XBMP(io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
 
 		if (type <= 64)
-			return LoadOS22XBMP(freeimage, io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
+			return LoadOS22XBMP(io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
 
-		freeimage->output_message_proc(s_format_id, "unknown bmp subtype with id %d", type);
+		FreeImage_OutputMessageProc(s_format_id, "unknown bmp subtype with id %d", type);
 	}
 
 	return NULL;
@@ -1082,20 +1087,20 @@ RLEEncodeLine(BYTE *target, BYTE *source, int size) {
 }
 
 static BOOL DLL_CALLCONV
-Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
+Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
 	if ((dib != NULL) && (handle != NULL)) {
 		// write the file header
 
 		BITMAPFILEHEADER bitmapfileheader;
 		bitmapfileheader.bfType = 0x4D42;
-		bitmapfileheader.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + freeimage->get_height_proc(dib) * freeimage->get_pitch_proc(dib);
-		bitmapfileheader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + freeimage->get_colors_used_proc(dib) * sizeof(RGBQUAD);
+		bitmapfileheader.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + FreeImage_GetHeight(dib) * FreeImage_GetPitch(dib);
+		bitmapfileheader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + FreeImage_GetColorsUsed(dib) * sizeof(RGBQUAD);
 		bitmapfileheader.bfReserved1 = 0;
 		bitmapfileheader.bfReserved2 = 0;
 
 		// take care of the bit fields data of any
 
-		bool bit_fields = (freeimage->get_bpp_proc(dib) == 16);
+		bool bit_fields = (FreeImage_GetBPP(dib) == 16);
 
 		if (bit_fields) {
 			bitmapfileheader.bfSize += 3 * sizeof(DWORD);
@@ -1107,7 +1112,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 		// update the bitmap info header
 
-		BITMAPINFOHEADER bih = *freeimage->get_info_header_proc(dib);
+		BITMAPINFOHEADER bih = *FreeImage_GetInfoHeader(dib);
 
 		if (bit_fields)
 			bih.biCompression = BI_BITFIELDS;
@@ -1126,17 +1131,17 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 		if (bit_fields) {
 			DWORD d;
 
-			d = freeimage->get_blue_mask_proc(dib);
+			d = FreeImage_GetBlueMask(dib);
 
 			if (io->write_proc(&d, sizeof(DWORD), 1, handle) != 1)
 				return FALSE;
 
-			d = freeimage->get_green_mask_proc(dib);
+			d = FreeImage_GetGreenMask(dib);
 
 			if (io->write_proc(&d, sizeof(DWORD), 1, handle) != 1)
 				return FALSE;
 
-			d = freeimage->get_red_mask_proc(dib);
+			d = FreeImage_GetRedMask(dib);
 
 			if (io->write_proc(&d, sizeof(DWORD), 1, handle) != 1)
 				return FALSE;
@@ -1144,17 +1149,17 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 		// write the palette
 
-		if (freeimage->get_palette_proc(dib) != NULL)
-			if (io->write_proc(freeimage->get_palette_proc(dib), sizeof(RGBQUAD) * freeimage->get_colors_used_proc(dib), 1, handle) != 1)
+		if (FreeImage_GetPalette(dib) != NULL)
+			if (io->write_proc(FreeImage_GetPalette(dib), sizeof(RGBQUAD) * FreeImage_GetColorsUsed(dib), 1, handle) != 1)
 				return FALSE;
 
 		// write the bitmap data... if RLE compression is enable, use it
 
-		if ((freeimage->get_bpp_proc(dib) == 8) && (flags & BMP_SAVE_RLE)) {
-			BYTE *buffer = new BYTE[freeimage->get_pitch_proc(dib) * 2];
+		if ((FreeImage_GetBPP(dib) == 8) && (flags & BMP_SAVE_RLE)) {
+			BYTE *buffer = new BYTE[FreeImage_GetPitch(dib) * 2];
 
-			for (DWORD i = 0; i < freeimage->get_height_proc(dib); ++i) {
-				int size = RLEEncodeLine(buffer, freeimage->get_scanline_proc(dib, i), freeimage->get_line_proc(dib));
+			for (DWORD i = 0; i < FreeImage_GetHeight(dib); ++i) {
+				int size = RLEEncodeLine(buffer, FreeImage_GetScanLine(dib, i), FreeImage_GetLine(dib));
 
 				if (io->write_proc(buffer, size, 1, handle) != 1) {
 					delete [] buffer;
@@ -1171,7 +1176,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			}
 
 			delete [] buffer;
-		} else if (io->write_proc(freeimage->get_bits_proc(dib), freeimage->get_height_proc(dib) * freeimage->get_pitch_proc(dib), 1, handle) != 1) {
+		} else if (io->write_proc(FreeImage_GetBits(dib), FreeImage_GetHeight(dib) * FreeImage_GetPitch(dib), 1, handle) != 1) {
 			return FALSE;
 		}
 
@@ -1193,8 +1198,14 @@ InitBMP(Plugin *plugin, int format_id) {
 	plugin->description_proc = Description;
 	plugin->extension_proc = Extension;
 	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
 	plugin->save_proc = Save;
 	plugin->validate_proc = Validate;
+	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;	// not implemented yet;
 }

@@ -6,7 +6,7 @@
 // 
 // Based on pascal code developed by Alex Kwak
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -94,6 +94,11 @@ RegExpr() {
 	return NULL;
 }
 
+static const char * DLL_CALLCONV
+MimeType() {
+	return "image/freeimage-pcd";
+}
+
 static BOOL DLL_CALLCONV
 SupportsExportDepth(int depth) {
 	return FALSE;
@@ -102,7 +107,7 @@ SupportsExportDepth(int depth) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	int width;
 	int height;
 	int line;
@@ -145,7 +150,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 	// allocate the dib and write out the header
 
-	FIBITMAP *dib = freeimage->allocate_proc(width, height, bpp, 0xFF, 0xFF00, 0xFF0000);
+	FIBITMAP *dib = FreeImage_Allocate(width, height, bpp, 0xFF, 0xFF00, 0xFF0000);
 	
 	// check if the PCD is bottom-up
 
@@ -179,9 +184,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 				YUV2RGB(yl[i][x], cbcr[x / 2], cbcr[(width / 2) + (x / 2)], r, g, b);
 
-				*(freeimage->get_scanline_proc(dib, start_scan_line) + (x * 3) + 0) = b;
-				*(freeimage->get_scanline_proc(dib, start_scan_line) + (x * 3) + 1) = g;
-				*(freeimage->get_scanline_proc(dib, start_scan_line) + (x * 3) + 2) = r;
+				*(FreeImage_GetScanLine(dib, start_scan_line) + (x * 3) + 0) = b;
+				*(FreeImage_GetScanLine(dib, start_scan_line) + (x * 3) + 1) = g;
+				*(FreeImage_GetScanLine(dib, start_scan_line) + (x * 3) + 2) = r;
 			}
 
 			start_scan_line += scan_line_add;
@@ -207,6 +212,14 @@ InitPCD(Plugin *plugin, int format_id) {
 	plugin->description_proc = Description;
 	plugin->extension_proc = Extension;
 	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
+	plugin->save_proc = NULL;
+	plugin->validate_proc = NULL;
+	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;
 }

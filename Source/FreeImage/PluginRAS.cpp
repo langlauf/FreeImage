@@ -4,7 +4,7 @@
 // Design and implementation by 
 // - Hervé Drolon (drolon@infonie.fr)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -35,7 +35,7 @@
 #pragma pack(1)
 #endif
 
-typedef struct {
+typedef struct tagSUNHEADER {
 	DWORD magic;		// Magic number
 	DWORD width;		// Image width in pixels
 	DWORD height;		// Image height in pixels
@@ -44,7 +44,7 @@ typedef struct {
 	DWORD type;			// Format of file (see RT_* below)
 	DWORD maptype;		// Type of colormap (see RMT_* below)
 	DWORD maplength;	// Length of colormap (in bytes)
-} Sun_Header;
+} SUNHEADER;
 
 #ifdef WIN32
 #pragma pack(pop)
@@ -173,6 +173,11 @@ RegExpr() {
 	return NULL;
 }
 
+static const char * DLL_CALLCONV
+MimeType() {
+	return "image/x-cmu-raster";
+}
+
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO *io, fi_handle handle) {
 	BYTE ras_signature[] = { 0x59, 0xA6, 0x6A, 0x95 };
@@ -191,8 +196,8 @@ SupportsExportDepth(int depth) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
-	Sun_Header header;	// Sun file header
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+	SUNHEADER header;	// Sun file header
 	WORD linelength;	// Length of raster line in bytes
 	WORD fill;			// Number of fill bytes per raster line
 	BOOL rle;			// TRUE if RLE file
@@ -207,7 +212,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		try {
 			// Read SUN raster header
 
-			io->read_proc(&header, sizeof(Sun_Header), 1, handle);
+			io->read_proc(&header, sizeof(SUNHEADER), 1, handle);
 
 			// SUN rasterfiles are big endian only
 
@@ -230,12 +235,12 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			switch(header.depth) {
 				case 1:
 				case 8:
-					dib = freeimage->allocate_proc(header.width, header.height, header.depth);
+					dib = FreeImage_Allocate(header.width, header.height, header.depth);
 					break;
 
 				case 24:
 				case 32:
-					dib = freeimage->allocate_proc(header.width, header.height, header.depth, 0xFF, 0xFF00, 0xFF0000);
+					dib = FreeImage_Allocate(header.width, header.height, header.depth, 0xFF, 0xFF00, 0xFF0000);
 					break;
 			}
 
@@ -275,7 +280,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					if (header.depth < 24) {
 						// Create linear color ramp
 
-						RGBQUAD *pal = freeimage->get_palette_proc(dib);
+						RGBQUAD *pal = FreeImage_GetPalette(dib);
 
 						int numcolors = 1 << header.depth;
 
@@ -301,7 +306,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					g = r + numcolors;
 					b = g + numcolors;
 
-					RGBQUAD *pal = freeimage->get_palette_proc(dib);
+					RGBQUAD *pal = FreeImage_GetPalette(dib);
 
 					io->read_proc(r, 3 * numcolors, 1, handle);
 
@@ -340,7 +345,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			fill = (linelength % 2) ? 1 : 0;
 
-			int pitch = freeimage->get_pitch_proc(dib);
+			int pitch = FreeImage_GetPitch(dib);
 
 			// Read the image data
 			
@@ -348,7 +353,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				case 1:
 				case 8:
 				{
-					bits = freeimage->get_bits_proc(dib) + (header.height - 1) * pitch;
+					bits = FreeImage_GetBits(dib) + (header.height - 1) * pitch;
 
 					for (y = 0; y < header.height; y++) {
 						ReadData(io, handle, bits, linelength, rle);
@@ -369,7 +374,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					buf = (BYTE*)malloc(header.width * 3);
 
 					for (y = 0; y < header.height; y++) {
-						bits = freeimage->get_bits_proc(dib) + (header.height - 1 - y) * pitch;
+						bits = FreeImage_GetBits(dib) + (header.height - 1 - y) * pitch;
 
 						ReadData(io, handle, buf, header.width * 3, rle);
 
@@ -408,7 +413,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					buf = (BYTE*)malloc(header.width * 4);
 
 					for (y = 0; y < header.height; y++) {
-						bits = freeimage->get_bits_proc(dib) + (header.height - 1 - y) * pitch;
+						bits = FreeImage_GetBits(dib) + (header.height - 1 - y) * pitch;
 
 						ReadData(io, handle, buf, header.width * 4, rle);
 
@@ -447,8 +452,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			
 			return dib;
 
-		} catch (char *text) {
-			freeimage->output_message_proc(s_format_id, text);
+		} catch (const char *text) {
+			FreeImage_OutputMessageProc(s_format_id, text);
 	
 			return NULL;
 		}
@@ -470,7 +475,14 @@ InitRAS(Plugin *plugin, int format_id) {
 	plugin->description_proc = Description;
 	plugin->extension_proc = Extension;
 	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
+	plugin->save_proc = NULL;
 	plugin->validate_proc = Validate;
+	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;
 }

@@ -5,8 +5,9 @@
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Hervé Drolon (drolon@infonie.fr)
 // - Jani Kajala (janik@remedy.fi)
+// - Karl-Heinz Bussian (khbussian@moss.de)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -23,11 +24,6 @@
 
 #include "FreeImage.h"
 #include "Utilities.h"
-
-// ----------------------------------------------------------
-
-#define GREY1(r,g,b) (BYTE)(((WORD)r * 77 + (WORD)g * 150 + (WORD)b * 29) >> 8)	// .299R + .587G + .114B
-#define GREY2(r,g,b) (BYTE)(((WORD)r * 169 + (WORD)g * 256 + (WORD)b * 87) >> 9)	// .33R + 0.5G + .17B
 
 // ----------------------------------------------------------
 //  internal conversions X to 8 bits
@@ -65,7 +61,7 @@ FreeImage_ConvertLine16To8_555(BYTE *target, BYTE *source, int width_in_pixels) 
 	WORD *bits = (WORD *)source;
 
 	for (int cols = 0; cols < width_in_pixels; cols++) {
-		target[cols] = GREY1((((bits[cols] & 0x7C00) >> 10) * 0xFF) / 0x1F,
+		target[cols] = GREY((((bits[cols] & 0x7C00) >> 10) * 0xFF) / 0x1F,
 			                (((bits[cols] & 0x3E0) >> 5) * 0xFF) / 0x1F,
 							((bits[cols] & 0x1F) * 0xFF) / 0x1F);
 	}
@@ -76,7 +72,7 @@ FreeImage_ConvertLine16To8_565(BYTE *target, BYTE *source, int width_in_pixels) 
 	WORD *bits = (WORD *)source;
 
 	for (int cols = 0; cols < width_in_pixels; cols++)
-		target[cols] = GREY1((((bits[cols] & 0xF800) >> 11) * 0xFF) / 0x1F,
+		target[cols] = GREY((((bits[cols] & 0xF800) >> 11) * 0xFF) / 0x1F,
 			        (((bits[cols] & 0x7E0) >> 5) * 0xFF) / 0x3F,
 					((bits[cols] & 0x1F) * 0xFF) / 0x1F);	
 }
@@ -84,7 +80,7 @@ FreeImage_ConvertLine16To8_565(BYTE *target, BYTE *source, int width_in_pixels) 
 void DLL_CALLCONV
 FreeImage_ConvertLine24To8(BYTE *target, BYTE *source, int width_in_pixels) {
 	for (int cols = 0; cols < width_in_pixels; cols++) {
-		target[cols] = GREY1(source[2], source[1], source[0]);
+		target[cols] = GREY(source[2], source[1], source[0]);
 
 		source += 3;
 	}
@@ -93,7 +89,7 @@ FreeImage_ConvertLine24To8(BYTE *target, BYTE *source, int width_in_pixels) {
 void DLL_CALLCONV
 FreeImage_ConvertLine32To8(BYTE *target, BYTE *source, int width_in_pixels) {
 	for (int cols = 0; cols < width_in_pixels; cols++) {
-		target[cols] = GREY1(source[2], source[1], source[0]);
+		target[cols] = GREY(source[2], source[1], source[0]);
 
 		source += 4;
 	}
@@ -105,12 +101,16 @@ FreeImage_ConvertLine32To8(BYTE *target, BYTE *source, int width_in_pixels) {
 
 FIBITMAP * DLL_CALLCONV
 FreeImage_ConvertTo8Bits(FIBITMAP *dib) {
-	if(dib) {
+	if(!dib) return NULL;
+
+	int bpp = FreeImage_GetBPP(dib);
+
+	if(bpp != 8) {
 		int width  = FreeImage_GetWidth(dib);
 		int height = FreeImage_GetHeight(dib);
 		FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
 
-		if (new_dib == NULL) {
+		if(new_dib == NULL) {
 			return NULL;
 		}
 
@@ -118,13 +118,13 @@ FreeImage_ConvertTo8Bits(FIBITMAP *dib) {
 
 		RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
 
-		for (int i = 0; i < 256; i++) {
+		for(int i = 0; i < 256; i++) {
 			new_pal[i].rgbRed	= i;
 			new_pal[i].rgbGreen = i;
 			new_pal[i].rgbBlue	= i;
 		}
 
-		switch(FreeImage_GetBPP(dib)) {
+		switch(bpp) {
 			case 1:
 			{
 				if(FreeImage_GetColorType(dib) == FIC_PALETTE) {
@@ -136,6 +136,15 @@ FreeImage_ConvertTo8Bits(FIBITMAP *dib) {
 					memcpy(&new_pal[255], &old_pal[1], sizeof(RGBQUAD));
 
 				}
+				else if(FreeImage_GetColorType(dib) == FIC_MINISWHITE) {
+					
+					// Reverse the grayscale palette
+
+					for(int i = 0; i < 256; i++) {
+						new_pal[i].rgbRed = new_pal[i].rgbGreen = new_pal[i].rgbBlue = 255 - i;
+					}
+				}
+
 
 				// Expand and copy the bitmap data
 
@@ -205,5 +214,5 @@ FreeImage_ConvertTo8Bits(FIBITMAP *dib) {
 		}
 	}
 
-	return NULL;
+	return FreeImage_Clone(dib);
 }

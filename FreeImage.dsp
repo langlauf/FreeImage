@@ -176,6 +176,10 @@ SOURCE=.\Source\FreeImage\PluginWBMP.cpp
 
 SOURCE=.\Source\FreeImage\PluginXBM.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\PluginXPM.cpp
+# End Source File
 # End Group
 # Begin Group "Conversion"
 
@@ -240,14 +244,14 @@ SOURCE=.\Source\FreeImage\CacheFile.cpp
 
 SOURCE=.\Source\FreeImage\MultiPage.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\ZLibInterface.cpp
+# End Source File
 # End Group
 # Begin Source File
 
 SOURCE=.\Source\FreeImage\BitmapAccess.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Source\FreeImage\Deprecated.cpp
 # End Source File
 # Begin Source File
 
@@ -298,9 +302,37 @@ SOURCE=.\Source\Quantizers.h
 SOURCE=.\Source\Utilities.h
 # End Source File
 # End Group
-# Begin Group "Resource Files"
+# Begin Group "Toolkit Files"
 
-# PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\BSplineRotate.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\ClassicRotate.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\Colors.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\CopyPaste.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\Flip.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\Rescale.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\Resize.h
+# End Source File
 # End Group
 # Begin Source File
 

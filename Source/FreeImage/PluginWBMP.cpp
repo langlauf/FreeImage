@@ -4,7 +4,7 @@
 // Design and implementation by
 // - Hervé Drolon <drolon@infonie.fr>
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -53,7 +53,7 @@
 #pragma pack(1)
 #endif
 
-typedef struct {
+typedef struct tagWBMPHEADER {
 	WORD TypeField;			// Image type identifier of multi-byte length
 	BYTE FixHeaderField;	// Octet of general header information
 	BYTE ExtHeaderFields;	// Zero or more extension header fields
@@ -216,7 +216,7 @@ SupportsExportDepth(int depth) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *dataa) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *dataa) {
 	WORD x, y, width, height;
 	FIBITMAP *dib;
     BYTE *bits;		// pointer to dib data
@@ -260,24 +260,24 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			// Allocate a new dib
 
-			dib = freeimage->allocate_proc(width, height, 1);
+			dib = FreeImage_Allocate(width, height, 1);
 
 			if (!dib)
 				throw "DIB allocation failed";
 
 			// write the palette data
 
-			pal = freeimage->get_palette_proc(dib);
+			pal = FreeImage_GetPalette(dib);
 			pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 0;
 			pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255;
 
 			// read the bitmap data
 			
-			int pitch = freeimage->get_pitch_proc(dib);
-			int line = freeimage->get_line_proc(dib);
+			int pitch = FreeImage_GetPitch(dib);
+			int line = FreeImage_GetLine(dib);
 
 			for (y = 0; y < height; y++) {
-				bits = freeimage->get_scanline_proc(dib, height - 1 - y);
+				bits = FreeImage_GetScanLine(dib, height - 1 - y);
 
 				for (x = 0; x < line; x++) {
 					io->read_proc(&bits[x], 1, 1, handle);
@@ -286,8 +286,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			return dib;
 
-		} catch(char *text)  {
-			freeimage->output_message_proc(s_format_id, text);
+		} catch(const char *text)  {
+			FreeImage_OutputMessageProc(s_format_id, text);
 
 			return NULL;
 		}
@@ -298,12 +298,12 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 }
 
 static BOOL DLL_CALLCONV
-Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
+Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
     BYTE *bits;	// pointer to dib data
 
 	if ((dib) && (handle)) {
 		try {
-			if (freeimage->get_bpp_proc(dib) != 1)
+			if (FreeImage_GetBPP(dib) != 1)
 				throw "Only 1-bit depth bitmaps can be saved as WBMP";
 
 			// write the header
@@ -311,8 +311,8 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			WBMPHEADER header;
 			header.TypeField = 0;								// Type 0: B/W, no compression
 			header.FixHeaderField = 0;							// No ExtHeaderField
-			header.Width = freeimage->get_width_proc(dib);		// Image width
-			header.Height = freeimage->get_height_proc(dib);	// Image height
+			header.Width = FreeImage_GetWidth(dib);		// Image width
+			header.Height = FreeImage_GetHeight(dib);	// Image height
 
 			multiByteWrite(io, handle, header.TypeField);
 			
@@ -323,18 +323,18 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 			// write the bitmap data
 
-			WORD linelength = freeimage->get_line_proc(dib);
+			WORD linelength = FreeImage_GetLine(dib);
 
 			for (WORD y = 0; y < header.Height; y++) {
-				bits = freeimage->get_scanline_proc(dib, header.Height - 1 - y);
+				bits = FreeImage_GetScanLine(dib, header.Height - 1 - y);
 
 				io->write_proc(&bits[0], linelength, 1, handle);
 			}
 
 			return TRUE;
 
-		} catch (char* text) {
-			freeimage->output_message_proc(s_format_id, text);
+		} catch (const char* text) {
+			FreeImage_OutputMessageProc(s_format_id, text);
 		}
 	}
 
@@ -353,8 +353,14 @@ InitWBMP(Plugin *plugin, int format_id) {
 	plugin->description_proc = Description;
 	plugin->extension_proc = Extension;
 	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
 	plugin->save_proc = Save;
+	plugin->validate_proc = NULL;
 	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;
 }

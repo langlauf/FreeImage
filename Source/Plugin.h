@@ -5,7 +5,7 @@
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Rui Lopes (ruiglopes@yahoo.com)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -97,7 +97,6 @@ extern "C" {
 	BOOL DLL_CALLCONV FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle);
     void * DLL_CALLCONV FreeImage_Open(PluginNode *node, FreeImageIO *io, fi_handle handle, BOOL open_for_reading);
     void DLL_CALLCONV FreeImage_Close(PluginNode *node, FreeImageIO *io, fi_handle handle, void *data); // plugin.cpp
-	FreeImage *FreeImage_GetFreeImageStruct();
     PluginList * DLL_CALLCONV FreeImage_GetPluginList(); // plugin.cpp
 }
 
@@ -123,5 +122,6 @@ void DLL_CALLCONV InitTARGA(Plugin *plugin, int format_id);
 void DLL_CALLCONV InitTIFF(Plugin *plugin, int format_id);
 void DLL_CALLCONV InitWBMP(Plugin *plugin, int format_id);
 void DLL_CALLCONV InitXBM(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitXPM(Plugin *plugin, int format_id);
 
 #endif //!PLUGIN_H

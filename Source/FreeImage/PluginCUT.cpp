@@ -4,7 +4,7 @@
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -34,11 +34,11 @@
 #pragma pack(1)
 #endif
 
-typedef struct CUT_HEAD {
+typedef struct tagCUTHEADER {
 	short width;
 	short height;
 	int dummy;
-} CUT_HEAD;
+} CUTHEADER;
 
 #ifdef WIN32
 #pragma pack(pop)
@@ -76,6 +76,11 @@ RegExpr() {
 	return NULL;
 }
 
+static const char * DLL_CALLCONV
+MimeType() {
+	return "image/freeimage-cut";
+}
+
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO *io, fi_handle handle) {
 	return FALSE;
@@ -89,39 +94,39 @@ SupportsExportDepth(int depth) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle != NULL) {
-		CUT_HEAD header;
+		CUTHEADER header;
 		FIBITMAP *dib;
 
 		// read the cut header
 
-		io->read_proc(&header, 1, sizeof(CUT_HEAD), handle);
+		io->read_proc(&header, 1, sizeof(CUTHEADER), handle);
 
 		if ((header.width == 0) || (header.width > 65536) || (header.height == 0) || (header.height > 65536))
 			return NULL;
 
 		// allocate a new bitmap
 
-		dib = freeimage->allocate_proc(header.width, header.height, 8);
+		dib = FreeImage_Allocate(header.width, header.height, 8);
 
 		if (dib == NULL)
 			return NULL;
 
 		// stuff it with a palette
 
-		RGBQUAD *palette = freeimage->get_palette_proc(dib);
+		RGBQUAD *palette = FreeImage_GetPalette(dib);
 
 		for (int j = 0; j < 256; ++j)
 			palette[j].rgbBlue = palette[j].rgbGreen = palette[j].rgbRed = j;
 
 		// unpack the RLE bitmap bits
 
-		BYTE *bits = freeimage->get_scanline_proc(dib, header.height - 1);
+		BYTE *bits = FreeImage_GetScanLine(dib, header.height - 1);
 
 		int i = 0, k = 0, count = 0, run = 0;
-		int line = freeimage->get_line_proc(dib);
-		int pitch = freeimage->get_pitch_proc(dib);
+		int line = FreeImage_GetLine(dib);
+		int pitch = FreeImage_GetPitch(dib);
 		int size = header.width * header.height;
 
 		while (i < size) {
@@ -170,7 +175,14 @@ InitCUT(Plugin *plugin, int format_id) {
 	plugin->description_proc = Description;
 	plugin->extension_proc = Extension;
 	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
+	plugin->save_proc = NULL;
 	plugin->validate_proc = Validate;
+	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;
 }

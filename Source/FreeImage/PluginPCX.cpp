@@ -8,7 +8,7 @@
 // - Hervé Drolon (drolon@infonie.fr)
 // - Juergen Riecker (j.riecker@gmx.de)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -170,7 +170,7 @@ Description() {
 }
 
 /*!
-    Returns a comma seperated list of file
+    Returns a comma separated list of file
 	extensions indicating what files this plugin can open. The
 	list, being used by FreeImage_GetFIFFromFilename, is usually
 	used as a last resort in finding the type of the bitmap we
@@ -198,6 +198,11 @@ Extension() {
 static const char * DLL_CALLCONV
 RegExpr() {
 	return NULL;
+}
+
+static const char * DLL_CALLCONV
+MimeType() {
+	return "image/x-pcx";
 }
 
 /*!
@@ -286,7 +291,7 @@ SupportsExportDepth(int depth) {
 */
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	FIBITMAP *dib = NULL;
 	BYTE *bits;			  // Pointer to dib data
 	RGBQUAD *pal;		  // Pointer to dib palette
@@ -316,9 +321,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			WORD bitcount = header.bpp * header.planes;
 
 			if (bitcount == 24)
-				dib = freeimage->allocate_proc(width, height, bitcount, 0xFF, 0xFF00, 0xFF0000);
+				dib = FreeImage_Allocate(width, height, bitcount, 0xFF, 0xFF00, 0xFF0000);
 			else
-				dib = freeimage->allocate_proc(width, height, bitcount);			
+				dib = FreeImage_Allocate(width, height, bitcount);			
 
 			// if the dib couldn't be allocated, throw an error
 
@@ -327,7 +332,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			// metrics handling code
 
-			BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
+			BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
 			pInfoHeader->biXPelsPerMeter = (int) (((float)header.hdpi) / 0.0254000 + 0.5);
 			pInfoHeader->biYPelsPerMeter = (int) (((float)header.vdpi) / 0.0254000 + 0.5);
 
@@ -337,7 +342,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			switch(bitcount) {
 				case 1:
 				{
-					pal = freeimage->get_palette_proc(dib);
+					pal = FreeImage_GetPalette(dib);
 					pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 0;
 					pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255;
 					break;
@@ -345,7 +350,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 				case 4:
 				{
-					pal = freeimage->get_palette_proc(dib);
+					pal = FreeImage_GetPalette(dib);
 
 					BYTE *pColormap = &header.color_map[0];
 
@@ -370,7 +375,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 						BYTE *cmap = (BYTE*)malloc(768 * sizeof(BYTE));
 						io->read_proc(cmap, 768, 1, handle);
 
-						pal = freeimage->get_palette_proc(dib);
+						pal = FreeImage_GetPalette(dib);
 						BYTE *pColormap = &cmap[0];
 
 						for(int i = 0; i < 256; i++) {
@@ -386,7 +391,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					// wrong palette ID, perhaps a gray scale is needed ?
 
 					else if (header.palette_info == 2) {
-						pal = freeimage->get_palette_proc(dib);
+						pal = FreeImage_GetPalette(dib);
 
 						for(int i = 0; i < 256; i++) {
 							pal[i].rgbRed   = i;
@@ -403,7 +408,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			// calculate the line length for the PCX and the DIB
 
 			linelength = header.bytes_per_line * header.planes;
-			pitch = freeimage->get_pitch_proc(dib);
+			pitch = FreeImage_GetPitch(dib);
 
 			// run-length encoding ?
 
@@ -413,7 +418,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			// ---------------
 
 			line = new BYTE[linelength];
-			bits = freeimage->get_scanline_proc(dib, height - 1);
+			bits = FreeImage_GetScanLine(dib, height - 1);
 			ReadBuf = new BYTE[IO_BUF_SIZE];
 
 			int ReadPos = IO_BUF_SIZE;
@@ -506,11 +511,11 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			delete [] line;
 			delete [] ReadBuf;
 			return dib;
-		} catch (char *text) {
+		} catch (const char *text) {
 			// free allocated memory
 
 			if (dib != NULL)
-				freeimage->unload_proc(dib);
+				FreeImage_Unload(dib);
 
 			if (line != NULL)
 				delete [] line;
@@ -518,7 +523,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			if (ReadBuf != NULL)
 				delete [] ReadBuf;
 
-			freeimage->output_message_proc(s_format_id, text);
+			FreeImage_OutputMessageProc(s_format_id, text);
 
 			return NULL;
 		}
@@ -560,8 +565,15 @@ InitPCX(Plugin *plugin, int format_id) {
 	plugin->format_proc = Format;
 	plugin->description_proc = Description;
 	plugin->extension_proc = Extension;
-	plugin->validate_proc = Validate;
 	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
+	plugin->save_proc = NULL;
+	plugin->validate_proc = Validate;
+	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;
 }

@@ -4,7 +4,7 @@
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -85,8 +85,8 @@ CacheFile::close() {
 
 int
 CacheFile::allocateBlock() {
-	Block *block = new Block;
-	memset(block, 0, sizeof(Block));
+	//Block *block = new Block;
+	//memset(block, 0, sizeof(Block));
 
 	if (!m_free_pages.empty()) {
 		int free_page = *m_free_pages.begin();
@@ -134,6 +134,7 @@ CacheFile::lockBlock(int nr) {
 			// allocate a new block
 
 			m_current_block = new Block;
+			memset(m_current_block, 0, sizeof(Block));
 
 			// allocate a new cache entry
 

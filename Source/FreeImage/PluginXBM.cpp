@@ -5,7 +5,7 @@
 // - Hervé Drolon <drolon@infonie.fr>
 // part of the code adapted from the netPBM package (xbmtopbm.c)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -31,13 +31,13 @@
 
 #define MAX_LINE	512
 
-static const char *ERR_XBM_SYNTAX	= "syntax error";
-static const char *ERR_XBM_LINE		= "line too long";
+static const char *ERR_XBM_SYNTAX	= "Syntax error";
+static const char *ERR_XBM_LINE		= "Line too long";
 static const char *ERR_XBM_DECL		= "Unable to find a line in the file containing the start of C array declaration (\"static char\" or whatever)";
 static const char *ERR_XBM_EOFREAD	= "EOF / read error";
-static const char *ERR_XBM_WIDTH	= "invalid width";
-static const char *ERR_XBM_HEIGHT	= "invalid height";
-static const char *ERR_XBM_MEMORY	= "out of memory";
+static const char *ERR_XBM_WIDTH	= "Invalid width";
+static const char *ERR_XBM_HEIGHT	= "Invalid height";
+static const char *ERR_XBM_MEMORY	= "Out of memory";
 
 /**
 Get a string from a stream. 
@@ -307,7 +307,7 @@ SupportsExportDepth(int depth) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	char *buffer = NULL;
 	int width, height;
 	FIBITMAP *dib = NULL;
@@ -321,11 +321,11 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 
 		// allocate a new dib
-		dib = freeimage->allocate_proc(width, height, 1);
+		dib = FreeImage_Allocate(width, height, 1);
 		if(!dib) throw (char*)ERR_XBM_MEMORY;
 
 		// write the palette data
-		RGBQUAD *pal = freeimage->get_palette_proc(dib);
+		RGBQUAD *pal = FreeImage_GetPalette(dib);
 		pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 0;
 		pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255;
 
@@ -334,7 +334,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		for(int y = 0; y < height; y++) {
 			BYTE count = 0;
 			BYTE mask = 1;
-			BYTE *bits = freeimage->get_scanline_proc(dib, height - 1 - y);
+			BYTE *bits = FreeImage_GetScanLine(dib, height - 1 - y);
 
 			for(int x = 0; x < width; x++) {
 				if(count >= 8) {
@@ -358,10 +358,10 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		free(buffer);
 		return dib;
 
-	} catch(char *text) {
+	} catch(const char *text) {
 		if(buffer)	free(buffer);
 		if(dib)		free(dib);
-		freeimage->output_message_proc(s_format_id, text);
+		FreeImage_OutputMessageProc(s_format_id, text);
 		return NULL;
 	}
 
@@ -377,14 +377,19 @@ void DLL_CALLCONV
 InitXBM(Plugin *plugin, int format_id) {
     s_format_id = format_id;
 
-    plugin->format_proc = Format;
-    plugin->description_proc = Description;
-    plugin->extension_proc = Extension;
-    plugin->regexpr_proc = RegExpr;
-    plugin->load_proc = Load;
-    plugin->save_proc = NULL;
-    plugin->validate_proc = Validate;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = NULL;
+	plugin->close_proc = NULL;
+	plugin->pagecount_proc = NULL;
+	plugin->pagecapability_proc = NULL;
+	plugin->load_proc = Load;
+	plugin->save_proc = NULL;
+	plugin->validate_proc = Validate;
 	plugin->mime_proc = MimeType;
-    plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;
 }
 

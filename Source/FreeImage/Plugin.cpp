@@ -6,7 +6,7 @@
 // - Rui Lopes (ruiglopes@yahoo.com)
 // - Detlev Vendt (detlev.vendt@brillit.de)
 //
-// This file is part of FreeImage 2
+// This file is part of FreeImage 3
 //
 // COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS, WITHOUT WARRANTY
 // OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES
@@ -72,12 +72,6 @@ FreeImage_stricmp(const char *s1, const char *s2) {
 
 	return c1 - c2;
 }
-
-// =====================================================================
-//  Declaration of the FreeImage function pointer structure
-// =====================================================================
-
-static FreeImage s_freeimage;
 
 // =====================================================================
 //  Implementation of PluginList
@@ -205,11 +199,6 @@ PluginList::~PluginList() {
 // Retrieve a pointer to the plugin list container
 // =====================================================================
 
-FreeImage *
-FreeImage_GetFreeImageStruct() {
-	return &s_freeimage;
-}
-
 PluginList * DLL_CALLCONV
 FreeImage_GetPluginList() {
 	return s_plugins;
@@ -222,69 +211,6 @@ FreeImage_GetPluginList() {
 void DLL_CALLCONV
 FreeImage_Initialise(BOOL load_local_plugins_only) {
 	if (s_plugin_reference_count++ == 0) {
-		// initialize the freeimage function pointer table
-
-		s_freeimage.allocate_proc = FreeImage_Allocate;
-		s_freeimage.free_proc = FreeImage_Free;
-		s_freeimage.get_bits_proc = FreeImage_GetBits;
-		s_freeimage.get_bits_row_col_proc = FreeImage_GetBitsRowCol;
-		s_freeimage.get_blue_mask_proc = FreeImage_GetBlueMask;
-		s_freeimage.get_bpp_proc = FreeImage_GetBPP;
-		s_freeimage.get_color_type_proc = FreeImage_GetColorType;
-		s_freeimage.get_colors_used_proc = FreeImage_GetColorsUsed;
-		s_freeimage.get_dib_size_proc = FreeImage_GetDIBSize;
-		s_freeimage.get_dots_per_meter_x_proc = FreeImage_GetDotsPerMeterX;
-		s_freeimage.get_dots_per_meter_y_proc = FreeImage_GetDotsPerMeterY;
-		s_freeimage.get_green_mask_proc = FreeImage_GetGreenMask;
-		s_freeimage.get_height_proc = FreeImage_GetHeight;
-		s_freeimage.get_info_header_proc = FreeImage_GetInfoHeader;
-		s_freeimage.get_icc_profile_proc = FreeImage_GetICCProfile;
-		s_freeimage.create_icc_profile_proc = FreeImage_CreateICCProfile;
-		s_freeimage.destroy_icc_profile_proc = FreeImage_DestroyICCProfile;
-		s_freeimage.get_info_proc = FreeImage_GetInfo;
-		s_freeimage.get_line_proc = FreeImage_GetLine;
-		s_freeimage.get_palette_proc = FreeImage_GetPalette;
-		s_freeimage.get_pitch_proc = FreeImage_GetPitch;
-		s_freeimage.get_red_mask_proc = FreeImage_GetRedMask;
-		s_freeimage.get_scanline_proc = FreeImage_GetScanLine;
-		s_freeimage.get_transparency_count_proc = FreeImage_GetTransparencyCount;
-		s_freeimage.get_transparency_table_proc = FreeImage_GetTransparencyTable;
-		s_freeimage.get_width_proc = FreeImage_GetWidth;
-		s_freeimage.output_message_proc = FreeImage_OutputMessage;
-		s_freeimage.set_transparency_table_proc = FreeImage_SetTransparencyTable;
-		s_freeimage.is_transparent_proc = FreeImage_IsTransparent;
-		s_freeimage.set_transparent_proc = FreeImage_SetTransparent;
-		s_freeimage.unload_proc = FreeImage_Unload;
-		s_freeimage.convert_line1to8_proc = FreeImage_ConvertLine1To8;
-		s_freeimage.convert_line_4to8_proc = FreeImage_ConvertLine4To8;
-		s_freeimage.convert_line_16to8_555_proc = FreeImage_ConvertLine16To8_555;
-		s_freeimage.convert_line_16to8_565_proc = FreeImage_ConvertLine16To8_565;
-		s_freeimage.convert_line_24to8_proc = FreeImage_ConvertLine24To8;
-		s_freeimage.convert_line_32to8_proc = FreeImage_ConvertLine32To8;
-		s_freeimage.convert_line_1to16_555_proc = FreeImage_ConvertLine1To16_555;
-		s_freeimage.convert_line_4to16_555_proc = FreeImage_ConvertLine4To16_555;
-		s_freeimage.convert_line_8to16_555_proc = FreeImage_ConvertLine8To16_555;
-		s_freeimage.convert_line_16_565_to_16_555_proc = FreeImage_ConvertLine16_565_To16_555;
-		s_freeimage.convert_line_24to16_555_proc = FreeImage_ConvertLine24To16_555;
-		s_freeimage.convert_line_32to16_555_proc = FreeImage_ConvertLine32To16_555;
-		s_freeimage.convert_line_1to16_565_proc = FreeImage_ConvertLine1To16_565;
-		s_freeimage.convert_line_4to16_565_proc = FreeImage_ConvertLine4To16_565;
-		s_freeimage.convert_line_8to16_565_proc = FreeImage_ConvertLine8To16_565;
-		s_freeimage.convert_line_16_555_to_16_565_proc = FreeImage_ConvertLine16_555_To16_565;
-		s_freeimage.convert_line_24to16_565_proc = FreeImage_ConvertLine24To16_565;
-		s_freeimage.convert_line_32to16_565_proc = FreeImage_ConvertLine32To16_565;
-		s_freeimage.convert_line_1to24_proc = FreeImage_ConvertLine1To24;
-		s_freeimage.convert_line_4to24_proc = FreeImage_ConvertLine4To24;
-		s_freeimage.convert_line_8to24_proc = FreeImage_ConvertLine8To24;
-		s_freeimage.convert_line_16to24_555_proc = FreeImage_ConvertLine16To24_555;
-		s_freeimage.convert_line_16to24_565_proc = FreeImage_ConvertLine16To24_565;
-		s_freeimage.convert_line_32to24_proc = FreeImage_ConvertLine32To24;
-		s_freeimage.convert_line_1to32_proc = FreeImage_ConvertLine1To32;
-		s_freeimage.convert_line_4to32_proc = FreeImage_ConvertLine4To32;
-		s_freeimage.convert_line_8to32_proc = FreeImage_ConvertLine8To32;
-		s_freeimage.convert_line_16to32_555_proc = FreeImage_ConvertLine16To32_555;
-		s_freeimage.convert_line_16to32_565_proc = FreeImage_ConvertLine16To32_565;
-		s_freeimage.convert_line_24to32_proc = FreeImage_ConvertLine24To32;
 
 		// internal plugin initialization
 
@@ -314,6 +240,7 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 			s_plugins->AddNode(InitPSD);
 			s_plugins->AddNode(InitCUT);
 			s_plugins->AddNode(InitXBM);
+			s_plugins->AddNode(InitXPM);
 
 			// external plugin initialization
 
@@ -375,7 +302,7 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 				if (bOk)
 					SetCurrentDirectory(current_dir);
 			}
-#endif
+#endif // WIN32
 		}
 	}
 }
@@ -422,7 +349,7 @@ FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handl
 
 				void *data = FreeImage_Open(node, io, handle, TRUE);
 
-				bitmap = node->m_plugin->load_proc(&s_freeimage, io, handle, -1, flags, data);
+				bitmap = node->m_plugin->load_proc(io, handle, -1, flags, data);
 
 				FreeImage_Close(node, io, handle, data);
 
@@ -463,7 +390,7 @@ FreeImage_SaveToHandle(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, FreeImageIO *io, fi
 
 				void *data = FreeImage_Open(node, io, handle, FALSE);
 
-				result = node->m_plugin->save_proc(&s_freeimage, io, dib, handle, -1, flags, data);
+				result = node->m_plugin->save_proc(io, dib, handle, -1, flags, data);
 
 				FreeImage_Close(node, io, handle, data);
 
