@@ -129,10 +129,6 @@ SOURCE=.\pngset.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\pngtest.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\pngtrans.c
 # End Source File
 # Begin Source File
@@ -162,6 +158,10 @@ SOURCE=.\pngwutil.c
 # Begin Source File
 
 SOURCE=.\png.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\pngasmrd.h
 # End Source File
 # Begin Source File
 

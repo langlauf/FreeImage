@@ -174,14 +174,14 @@ CheckColormap(int n, uint16* r, uint16* g, uint16* b) {
 }
 
 static uint16
-CheckPhotometric(FreeImage &freeimage, FIBITMAP *dib, uint16 bitspersample) {
+CheckPhotometric(FreeImage *freeimage, FIBITMAP *dib, uint16 bitspersample) {
 	RGBQUAD *rgb;
 	uint16 i;
 
 	switch(bitspersample) {
 		case 1:
 		{
-			rgb = freeimage.get_palette_proc(dib);
+			rgb = freeimage->get_palette_proc(dib);
 
 			if ((rgb->rgbRed == 0) && (rgb->rgbGreen == 0) && (rgb->rgbBlue == 0)) {
 				rgb++;
@@ -202,9 +202,9 @@ CheckPhotometric(FreeImage &freeimage, FIBITMAP *dib, uint16 bitspersample) {
 
 		case 4:	// Check if the DIB has a color or a greyscale palette
 		case 8:
-			rgb = freeimage.get_palette_proc(dib);
+			rgb = freeimage->get_palette_proc(dib);
 
-			for (i = 0; i < freeimage.get_colors_used_proc(dib); i++) {
+			for (i = 0; i < freeimage->get_colors_used_proc(dib); i++) {
 				if ((rgb->rgbRed != rgb->rgbGreen) || (rgb->rgbRed != rgb->rgbBlue))
 					return PHOTOMETRIC_PALETTE;
 				
@@ -261,12 +261,12 @@ MimeType() {
 }
 
 static BOOL DLL_CALLCONV
-Validate(FreeImageIO &io, fi_handle handle) {	
+Validate(FreeImageIO *io, fi_handle handle) {	
 	BYTE tiff_id1[] = { 0x49, 0x49 };
 	BYTE tiff_id2[] = { 0x4D, 0x4D };
 	BYTE signature[2] = { 0, 0 };
 
-	io.read_proc(signature, 1, sizeof(tiff_id1), handle);
+	io->read_proc(signature, 1, sizeof(tiff_id1), handle);
 
 	if (memcmp(tiff_id1, signature, sizeof(tiff_id1)) == 0)
 		return TRUE;
@@ -277,11 +277,21 @@ Validate(FreeImageIO &io, fi_handle handle) {
 	return FALSE;
 }
 
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return (
+			(depth == 1) ||
+			(depth == 4) ||
+			(depth == 8) ||
+			(depth == 24)
+		);
+}
+
 // ----------------------------------------------------------
 
 static void * DLL_CALLCONV
-Open(FreeImageIO &io, fi_handle handle, BOOL read) {
-	g_io = &io;
+Open(FreeImageIO *io, fi_handle handle, BOOL read) {
+	g_io = io;
 
 	if (read)
 		return TIFFFdOpen((thandle_t)handle, "", "r");
@@ -290,7 +300,7 @@ Open(FreeImageIO &io, fi_handle handle, BOOL read) {
 }
 
 static void DLL_CALLCONV
-Close(FreeImageIO &io, fi_handle handle, void *data) {
+Close(FreeImageIO *io, fi_handle handle, void *data) {
 	TIFFClose((TIFF *)data);
 
 	g_io = NULL;
@@ -299,7 +309,7 @@ Close(FreeImageIO &io, fi_handle handle, void *data) {
 // ----------------------------------------------------------
 
 static int DLL_CALLCONV
-PageCount(FreeImageIO &io, fi_handle handle, void *data) {
+PageCount(FreeImageIO *io, fi_handle handle, void *data) {
 	int nr_ifd = 0;
 
 	TIFF *tif = (TIFF *)data;
@@ -314,18 +324,18 @@ PageCount(FreeImageIO &io, fi_handle handle, void *data) {
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if ((handle != NULL) && (data != NULL)) {
 		TIFF   *tif;
-		uint32 height; 
-		uint32 width; 
-		uint16 bitspersample;
-		uint16 samplesperpixel;
+		uint32 height = 0; 
+		uint32 width = 0; 
+		uint16 bitspersample = 1;
+		uint16 samplesperpixel = 1;
 		uint32 rowsperstrip;  
-		uint16 photometric;
-		uint16 compression;
-		uint32 x, y;
-		BOOL isRGB;
+		uint16 photometric = PHOTOMETRIC_MINISWHITE;
+		uint16 compression = COMPRESSION_NONE;
+		uint32 x = 0;
+		uint32 y = 0;
 
 		int32 nrow;
 		BYTE *buf;          
@@ -350,11 +360,11 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 				TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric);
 
 				if (compression == COMPRESSION_LZW)
-					throw "LZW compression is no longer supported due to Unisys patent enforcement";			
+					throw "LZW compression is no longer supported due to Unisys patent enforcement";
 
 				// Convert to 24 or 32 bits RGB if the image is full color
 
-				isRGB = (bitspersample >= 8) &&
+				BOOL isRGB = (bitspersample >= 8) &&
 					(photometric == PHOTOMETRIC_RGB) ||
 					(photometric == PHOTOMETRIC_YCBCR) ||
 					(photometric == PHOTOMETRIC_SEPARATED) ||
@@ -365,18 +375,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					// convert it to a DIB. This is using the traditional
 					// TIFFReadRGBAImage() API that we trust.
 
-					uint32* raster;		// retrieve RGBA image
-					uint32 *row;
+					uint32 *raster = (uint32*)_TIFFmalloc(width * height * sizeof(uint32));
 
-					raster = (uint32*)_TIFFmalloc(width * height * sizeof (uint32));
-
-					if (raster == NULL) {
+					if (raster == NULL)
 						throw "No space for raster buffer";
-					}
 					
-					// Read the image in one chunk into an RGBA array
+					// read the image in one chunk into an RGBA array
 
-					if(!TIFFReadRGBAImage(tif, width, height, raster, 0)) {
+					if (!TIFFReadRGBAImage(tif, width, height, raster, 0)) {
 						_TIFFfree(raster);
 						return NULL;
 					}
@@ -384,9 +390,11 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					// create a new DIB
 
 					if (samplesperpixel == 4)
-						dib = freeimage.allocate_proc(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
+						dib = freeimage->allocate_proc(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
 					else
-						dib = freeimage.allocate_proc(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+						dib = freeimage->allocate_proc(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+
+					// free the raster pointer and output an error if allocation failed
 
 					if (dib == NULL) {
 						_TIFFfree(raster);
@@ -396,13 +404,15 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					
 					// fill in the metrics (english or universal)
 
-					float	fResX, fResY;
-					uint16	resUnit;
+					float fResX = 300.0;
+					float fResY = 300.0;
+					uint16 resUnit = RESUNIT_INCH;
+
 					TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
 					TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fResX);
 					TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fResY);
 
-					BITMAPINFOHEADER *pInfoHeader = freeimage.get_info_header_proc(dib);
+					BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 
 					if (resUnit == RESUNIT_INCH) {
 						pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
@@ -418,33 +428,37 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					// form returned by TIFFReadRGBAImage.
 
 					BOOL has_alpha = FALSE;
-					row = &raster[0];
+					uint32 *row = &raster[0];
 
 					for (y = 0; y < height; y++) {
-						bits = freeimage.get_scanline_proc(dib, y);
+						bits = freeimage->get_scanline_proc(dib, y);
 
-						for (x = 0; x < width; x++) {
-							bits[0] = (BYTE)TIFFGetB(row[x]);
-							bits[1] = (BYTE)TIFFGetG(row[x]);
-							bits[2] = (BYTE)TIFFGetR(row[x]);
-
-							if (samplesperpixel == 4) {
+						if (samplesperpixel == 4) {
+							for (x = 0; x < width; x++) {
+								bits[0] = (BYTE)TIFFGetB(row[x]);
+								bits[1] = (BYTE)TIFFGetG(row[x]);
+								bits[2] = (BYTE)TIFFGetR(row[x]);
 								bits[3] = (BYTE)TIFFGetA(row[x]);
 
-								if (bits[3] != 0) {
-									has_alpha = TRUE;
-								}
+								if (bits[3] != 0)
+									has_alpha = TRUE;								
 
 								bits += 4;
-							} else {
+							}
+						} else {
+							for (x = 0; x < width; x++) {
+								bits[0] = (BYTE)TIFFGetB(row[x]);
+								bits[1] = (BYTE)TIFFGetG(row[x]);
+								bits[2] = (BYTE)TIFFGetR(row[x]);
+
 								bits += 3;
-							}							
+							}
 						}
 
 						row += width;
 					}
 
-					freeimage.set_transparent_proc(dib, has_alpha);
+					freeimage->set_transparent_proc(dib, has_alpha);
 
 					_TIFFfree(raster);
 
@@ -457,42 +471,38 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 					// create a new DIB
 
-					dib = freeimage.allocate_proc(width, height, bitspersample * samplesperpixel);
+					if (bitspersample * samplesperpixel == 16)
+						dib = freeimage->allocate_proc(width, height, bitspersample * samplesperpixel, 0x1F, 0x7E0, 0xF800);
+					else if ((bitspersample * samplesperpixel == 24) || (bitspersample * samplesperpixel == 32))
+						dib = freeimage->allocate_proc(width, height, bitspersample * samplesperpixel, 0xFF, 0xFF00, 0xFF0000);
+					else
+						dib = freeimage->allocate_proc(width, height, bitspersample * samplesperpixel);
 
 					if (dib == NULL) {
 						throw "No space for DIB image";
 					}
 
-					float fResX, fResY;
-					uint16 resUnit;
+					float fResX = 300.0;
+					float fResY = 300.0;
+					uint16 resUnit = RESUNIT_INCH;
+
 					TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
 					TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fResX);
 					TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fResY);
 
-					BITMAPINFOHEADER *pInfoHeader = freeimage.get_info_header_proc(dib);
-
 					if (resUnit == RESUNIT_INCH) {
-						/* english */
-
+						BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 						pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
 						pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
-					} else if (resUnit== RESUNIT_CENTIMETER) {
-						/* metric */
-
+					} else if (resUnit == RESUNIT_CENTIMETER) {
+						BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 						pInfoHeader->biXPelsPerMeter = (int) (fResX*100.0 + 0.5);
 						pInfoHeader->biYPelsPerMeter = (int) (fResY*100.0 + 0.5);
 					}
 
-					// In the tiff file the lines are save from up to down 
-					// In a DIB the lines must be save from down to up
-
-					bits = freeimage.get_bits_proc(dib) + height * pitch;
-
-					// now lpBits pointe on the bottom line
-
 					// set up the colormap based on photometric	
 
-					pal = freeimage.get_palette_proc(dib);
+					pal = freeimage->get_palette_proc(dib);
 
 					switch(photometric) {
 						case PHOTOMETRIC_MINISBLACK:	// bitmap and greyscale image types
@@ -500,21 +510,17 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 							// Monochrome image
 
 							if (bitspersample == 1) {
-								if (photometric == PHOTOMETRIC_MINISBLACK) {
-									pal[0].rgbRed = 0;
-									pal[0].rgbGreen = 0;
-									pal[0].rgbBlue = 0;
-									pal[1].rgbRed = 255;
-									pal[1].rgbGreen = 255;
-									pal[1].rgbBlue = 255;
-								} else {
-									pal[0].rgbRed = 255;
-									pal[0].rgbGreen = 255;
-									pal[0].rgbBlue = 255;
-									pal[1].rgbRed = 0;
-									pal[1].rgbGreen = 0;
-									pal[1].rgbBlue = 0;
-								}
+								int value = 0;
+
+								if ((compression == COMPRESSION_CCITTFAX3) || (compression == COMPRESSION_CCITTFAX4) || (photometric == PHOTOMETRIC_MINISWHITE))
+									value = 255;
+
+								pal[0].rgbRed =
+								pal[0].rgbGreen =
+								pal[0].rgbBlue = value;
+								pal[1].rgbRed =
+								pal[1].rgbGreen =
+								pal[1].rgbBlue = 255 - value;
 							} else {
 								// need to build the scale for greyscale images
 
@@ -539,26 +545,19 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 							uint16 *red;
 							uint16 *green;
 							uint16 *blue;
-							BOOL Palette16Bits;
 							
 							TIFFGetField(tif, TIFFTAG_COLORMAP, &red, &green, &blue); 
 
-							// Is the palette 16 or 8 bits ?
-
-							if (CheckColormap(1<<bitspersample, red, green, blue) == 16)  {
-								Palette16Bits = TRUE;
-							} else {
-								Palette16Bits = FALSE;
-							}
-
 							// load the palette in the DIB
 
-							for (int i = (1 << bitspersample) - 1; i >= 0; i--) {
-								if (Palette16Bits) {
+							if (CheckColormap(1<<bitspersample, red, green, blue) == 16) {
+								for (int i = (1 << bitspersample) - 1; i >= 0; i--) {
 									pal[i].rgbRed =(BYTE) CVT(red[i]);
 									pal[i].rgbGreen = (BYTE) CVT(green[i]);
 									pal[i].rgbBlue = (BYTE) CVT(blue[i]);           
-								} else {
+								}
+							} else {
+								for (int i = (1 << bitspersample) - 1; i >= 0; i--) {
 									pal[i].rgbRed = (BYTE) red[i];
 									pal[i].rgbGreen = (BYTE) green[i];
 									pal[i].rgbBlue = (BYTE) blue[i];        
@@ -568,6 +567,11 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 							break;
 						
 					}
+
+					// In the tiff file the lines are save from up to down 
+					// In a DIB the lines must be save from down to up
+
+					bits = freeimage->get_bits_proc(dib) + height * pitch;
 
 					// read the tiff lines and save them in the DIB
 
@@ -595,7 +599,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				}
 			} catch (char *message) {
-				freeimage.output_message_proc(s_format_id, message);
+				freeimage->output_message_proc(s_format_id, message);
 
 				return NULL;
 			}
@@ -606,7 +610,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 }
 
 static BOOL DLL_CALLCONV
-Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
+Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
 	if (dib != NULL) {
 		TIFF *out = (TIFF *)data;
 
@@ -621,15 +625,15 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 
 		uint32 x, y;
 
-		width = freeimage.get_width_proc(dib);
-		height = freeimage.get_height_proc(dib);
-		bitspersample = freeimage.get_bpp_proc(dib);
+		width = freeimage->get_width_proc(dib);
+		height = freeimage->get_height_proc(dib);
+		bitspersample = freeimage->get_bpp_proc(dib);
 		samplesperpixel = ((bitspersample == 24) || (bitspersample == 32)) ? 3 : 1;
 		photometric = CheckPhotometric(freeimage, dib, (bitspersample == 32) ? 24 : bitspersample);
 
 		// don't accept ALPHA at this moment
 
-		if ((bitspersample == 32) && (freeimage.is_transparent_proc(dib)))
+		if ((bitspersample == 32) && (freeimage->is_transparent_proc(dib)))
 			throw "alpha channels are currently unsupported";
 
 		// handle standard width/height/bpp stuff
@@ -645,7 +649,7 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 
 		// handle metrics
 
-		BITMAPINFOHEADER *pInfoHeader = freeimage.get_info_header_proc(dib);
+		BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 		TIFFSetField(out, TIFFTAG_RESOLUTIONUNIT, RESUNIT_INCH);
 		TIFFSetField(out, TIFFTAG_XRESOLUTION, 0.0254*((float)pInfoHeader->biXPelsPerMeter));
 		TIFFSetField(out, TIFFTAG_YRESOLUTION, 0.0254*((float)pInfoHeader->biYPelsPerMeter));
@@ -667,8 +671,8 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 
 		if (photometric == PHOTOMETRIC_PALETTE) {
 			uint16 *r, *g, *b;
-			uint16 nColors = freeimage.get_colors_used_proc(dib);
-			RGBQUAD *pal = freeimage.get_palette_proc(dib);
+			uint16 nColors = freeimage->get_colors_used_proc(dib);
+			RGBQUAD *pal = freeimage->get_palette_proc(dib);
 
 			r = (uint16 *) _TIFFmalloc(sizeof(uint16) * 3 * nColors);
 			g = r + nColors;
@@ -709,7 +713,7 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 		// and save them in the TIF
 		// -------------------------------------
 		
-		pitch = freeimage.get_pitch_proc(dib);
+		pitch = freeimage->get_pitch_proc(dib);
 		
 		switch(bitspersample) {				
 			case 1 :
@@ -717,7 +721,7 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 			case 8 :
 			{
 				for (y = 0; y < height; y++) {
-					BYTE *bits = freeimage.get_bits_row_col_proc(dib, 0, y);
+					BYTE *bits = freeimage->get_bits_row_col_proc(dib, 0, y);
 
 					TIFFWriteScanline(out,bits, y, 0);
 				}
@@ -726,7 +730,6 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 			}				
 
 			case 24:
-			case 32 :
 			{
 				BYTE *buffer = (BYTE *)malloc(CalculatePitch(CalculateLine(width, 24)));
 
@@ -734,9 +737,9 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 					// get a pointer to the (converted) scanline
 
 					if (bitspersample == 32)
-						freeimage.convert_line_32to24_proc(buffer, freeimage.get_scanline_proc(dib, height - y - 1), width);
+						freeimage->convert_line_32to24_proc(buffer, freeimage->get_scanline_proc(dib, height - y - 1), width);
 					else
-						memcpy(buffer, freeimage.get_scanline_proc(dib, height - y - 1), pitch);
+						memcpy(buffer, freeimage->get_scanline_proc(dib, height - y - 1), pitch);
 
 					// TIFFs store color data RGB instead of BGR
 
@@ -772,18 +775,19 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 // ==========================================================
 
 void DLL_CALLCONV
-InitTIFF(Plugin &plugin, int format_id) {
+InitTIFF(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.open_proc = Open;
-	plugin.close_proc = Close;
-	plugin.pagecount_proc = PageCount;
-	plugin.load_proc = Load;
-	plugin.save_proc = Save;
-	plugin.validate_proc = Validate;
-	plugin.mime_proc = MimeType;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = Open;
+	plugin->close_proc = Close;
+	plugin->pagecount_proc = PageCount;
+	plugin->load_proc = Load;
+	plugin->save_proc = Save;
+	plugin->validate_proc = Validate;
+	plugin->mime_proc = MimeType;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

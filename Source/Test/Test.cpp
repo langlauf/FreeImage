@@ -101,10 +101,18 @@ static Extensions s_extensions[] = {
 
 // ----------------------------------------------------------
 
+static char s_error_message[256];
+
+void
+MessageFunc(FREE_IMAGE_FORMAT fif, const char *message) {
+	strcpy(s_error_message, message);
+}
+
 #ifdef API
 int __cdecl
 TestAPI(int argc, char *argv[]) {
 	FreeImage_Initialise();
+	FreeImage_SetOutputMessage(MessageFunc);
 
 	FIBITMAP *dib = NULL;
 	int id = 1;
@@ -122,7 +130,7 @@ TestAPI(int argc, char *argv[]) {
 
 	long handle;
 
-	if ((handle = _findfirst("c:\\projects\\test images\\*.bmp", &finddata)) != -1) {
+	if ((handle = _findfirst("c:\\projects\\test images\\*.tif", &finddata)) != -1) {
 		do {
 			dib = NULL;
 
@@ -139,6 +147,10 @@ TestAPI(int argc, char *argv[]) {
 			strcat(directory, finddata.name);
 
 			// open the file
+
+			int before = GetTickCount();
+
+			printf("loading %s... ", finddata.name);
 
 			switch(FreeImage_GetFIFFromFilename(directory)) {
 				case FIF_BMP :
@@ -200,19 +212,28 @@ TestAPI(int argc, char *argv[]) {
 				case FIF_TIFF :
 					dib = FreeImage_LoadTIFF(directory, TIFF_DEFAULT);
 					break;
+
+				default :
+					strcpy(s_error_message, "file extension not bound to plugin");
+					break;
 			};
 
 			if (dib != NULL) {
+				printf("done in %d ms\n", GetTickCount() - before);
+
 				char unique[128];
 
 				FreeImage_SetTransparent(dib, FALSE);
 
-				for (int i = 0; i < 1; ++i) {
-//				for (int i = 0; i < sizeof(s_extensions) / sizeof(s_extensions[0]); ++i) {
-					itoa(id, unique, 10);
-					strcat(unique, ".");
-					strcat(unique, s_extensions[i].ext);
-					static_cast<void *(DLL_CALLCONV *)(FIBITMAP *dib, const char *filename, int flags)>(s_extensions[i].function)(dib, unique, BMP_DEFAULT);
+				for (int i = 0; i < sizeof(s_extensions) / sizeof(s_extensions[0]); ++i) {
+					FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(s_extensions[i].ext);
+
+					if ((FreeImage_FIFSupportsWriting(fif)) && (FreeImage_FIFSupportsExportBPP(fif, FreeImage_GetBPP(dib)))) {
+						itoa(id, unique, 10);
+						strcat(unique, ".");
+						strcat(unique, s_extensions[i].ext);
+						static_cast<void *(DLL_CALLCONV *)(FIBITMAP *dib, const char *filename, int flags)>(s_extensions[i].function)(dib, unique, BMP_DEFAULT);
+					}
 				}
 
 				FreeImage_Free(dib);
@@ -223,6 +244,9 @@ TestAPI(int argc, char *argv[]) {
 				fwrite("\n", 1, 1, log_file);
 
 				id++;
+			} else {
+				printf("failed\n");
+				printf("reason: %s\n", s_error_message);
 			}
 		} while (_findnext(handle, &finddata) == 0);
 
@@ -286,7 +310,7 @@ main(int argc, char *argv[]) {
 	return TestAPI(argc, argv);
 #endif
 #ifdef QT
-	return TestQt(argc, argv);
+	return TestQt(argc, argv); 
 #endif
 
 	return 0;

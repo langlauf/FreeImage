@@ -211,15 +211,29 @@ TIFFRGBAImageBegin(TIFFRGBAImage* img, TIFF* tif, int stop, char emsg[1024])
     }
     img->alpha = 0;
     TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &img->samplesperpixel);
-    TIFFGetFieldDefaulted(tif, TIFFTAG_EXTRASAMPLES,
-	&extrasamples, &sampleinfo);
-    if (extrasamples == 1)
-	switch (sampleinfo[0]) {
-	case EXTRASAMPLE_ASSOCALPHA:	/* data is pre-multiplied */
-	case EXTRASAMPLE_UNASSALPHA:	/* data is not pre-multiplied */
-	    img->alpha = sampleinfo[0];
-	    break;
+
+	// patched AUGUST 1 2001 (Yours Detlev)
+
+	TIFFGetFieldDefaulted(tif, TIFFTAG_EXTRASAMPLES, &extrasamples, &sampleinfo);
+
+	if (extrasamples == 1) {
+		switch (sampleinfo[0]) {
+			case EXTRASAMPLE_UNSPECIFIED: /* DVV 010722 not specified, associated 
+											 alpha implied */
+				if (img->samplesperpixel == 4)
+					img->alpha = EXTRASAMPLE_ASSOCALPHA;
+
+				break;
+
+			case EXTRASAMPLE_ASSOCALPHA: /* data is pre-multiplied */
+			case EXTRASAMPLE_UNASSALPHA: /* data is not pre-multiplied */
+				img->alpha = sampleinfo[0];
+				break;
+		}
 	}
+
+	// end patch
+
     colorchannels = img->samplesperpixel - extrasamples;
     TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &compress);
     TIFFGetFieldDefaulted(tif, TIFFTAG_PLANARCONFIG, &planarconfig);

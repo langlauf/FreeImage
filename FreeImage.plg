@@ -6,7 +6,7 @@
 --------------------Configuration: LibJPEG - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9C.tmp" with contents
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP129.tmp" with contents
 [
 /nologo /MT /W3 /GX /O1 /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibJPEG.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
 "C:\Projects\FreeImage\Source\LibJPEG\jcapimin.c"
@@ -56,8 +56,8 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9C.tmp" with cont
 "C:\Projects\FreeImage\Source\LibJPEG\jquant2.c"
 "C:\Projects\FreeImage\Source\LibJPEG\jutils.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9C.tmp" 
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9D.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP129.tmp" 
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12A.tmp" with contents
 [
 /nologo /out:"Release\LibJPEG.lib" 
 .\Release\jcapimin.obj
@@ -107,7 +107,7 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9D.tmp" with cont
 .\Release\jquant2.obj
 .\Release\jutils.obj
 ]
-Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9D.tmp"
+Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12A.tmp"
 <h3>Output Window</h3>
 Compiling...
 jcapimin.c
@@ -161,7 +161,7 @@ Creating library...
 --------------------Configuration: LibPNG - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9E.tmp" with contents
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12B.tmp" with contents
 [
 /nologo /MT /W3 /GX /O1 /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibPNG.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
 "C:\Projects\FreeImage\Source\LibPNG\png.c"
@@ -175,7 +175,6 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9E.tmp" with cont
 "C:\Projects\FreeImage\Source\LibPNG\pngrtran.c"
 "C:\Projects\FreeImage\Source\LibPNG\pngrutil.c"
 "C:\Projects\FreeImage\Source\LibPNG\pngset.c"
-"C:\Projects\FreeImage\Source\LibPNG\pngtest.c"
 "C:\Projects\FreeImage\Source\LibPNG\pngtrans.c"
 "C:\Projects\FreeImage\Source\LibPNG\pngvcrd.c"
 "C:\Projects\FreeImage\Source\LibPNG\pngwio.c"
@@ -183,8 +182,8 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9E.tmp" with cont
 "C:\Projects\FreeImage\Source\LibPNG\pngwtran.c"
 "C:\Projects\FreeImage\Source\LibPNG\pngwutil.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9E.tmp" 
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9F.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12B.tmp" 
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12C.tmp" with contents
 [
 /nologo /out:"Release\LibPNG.lib" 
 .\Release\png.obj
@@ -198,7 +197,6 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9F.tmp" with cont
 .\Release\pngrtran.obj
 .\Release\pngrutil.obj
 .\Release\pngset.obj
-.\Release\pngtest.obj
 .\Release\pngtrans.obj
 .\Release\pngvcrd.obj
 .\Release\pngwio.obj
@@ -206,7 +204,7 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9F.tmp" with cont
 .\Release\pngwtran.obj
 .\Release\pngwutil.obj
 ]
-Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP9F.tmp"
+Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12C.tmp"
 <h3>Output Window</h3>
 Compiling...
 png.c
@@ -220,7 +218,6 @@ pngrio.c
 pngrtran.c
 pngrutil.c
 pngset.c
-pngtest.c
 pngtrans.c
 pngvcrd.c
 pngwio.c
@@ -232,7 +229,7 @@ Creating library...
 --------------------Configuration: LibTIFF - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA0.tmp" with contents
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12D.tmp" with contents
 [
 /nologo /MT /W3 /GX /O1 /I "..\libtiff\libtiff" /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibTIFF.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
 "C:\Projects\FreeImage\Source\LibTIFF\fax3sm_winnt.c"
@@ -268,8 +265,8 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA0.tmp" with cont
 "C:\Projects\FreeImage\Source\LibTIFF\tif_write.c"
 "C:\Projects\FreeImage\Source\LibTIFF\tif_zip.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA0.tmp" 
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA1.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12D.tmp" 
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12E.tmp" with contents
 [
 /nologo /out:"Release\LibTIFF.lib" 
 .\Release\fax3sm_winnt.obj
@@ -305,7 +302,7 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA1.tmp" with cont
 .\Release\tif_write.obj
 .\Release\tif_zip.obj
 ]
-Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA1.tmp"
+Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12E.tmp"
 <h3>Output Window</h3>
 Compiling...
 fax3sm_winnt.c
@@ -345,7 +342,7 @@ Creating library...
 --------------------Configuration: ZLib - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA2.tmp" with contents
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12F.tmp" with contents
 [
 /nologo /MT /W3 /GX /O1 /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/ZLib.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
 "C:\Projects\FreeImage\Source\ZLib\adler32.c"
@@ -363,8 +360,8 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA2.tmp" with cont
 "C:\Projects\FreeImage\Source\ZLib\uncompr.c"
 "C:\Projects\FreeImage\Source\ZLib\zutil.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA2.tmp" 
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA3.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP12F.tmp" 
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP130.tmp" with contents
 [
 /nologo /out:"Release\ZLib.lib" 
 .\Release\adler32.obj
@@ -382,7 +379,7 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA3.tmp" with cont
 .\Release\uncompr.obj
 .\Release\zutil.obj
 ]
-Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA3.tmp"
+Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP130.tmp"
 <h3>Output Window</h3>
 Compiling...
 adler32.c
@@ -404,7 +401,7 @@ Creating library...
 --------------------Configuration: LibMNG - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA4.tmp" with contents
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP131.tmp" with contents
 [
 /nologo /MT /W3 /GX /O2 /I "..\Zlib" /I "..\libjpeg" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibMNG.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
 "C:\Projects\FreeImage\Source\LibMNG\libmng_callback_xs.c"
@@ -426,8 +423,8 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA4.tmp" with cont
 "C:\Projects\FreeImage\Source\LibMNG\libmng_write.c"
 "C:\Projects\FreeImage\Source\LibMNG\libmng_zlib.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA4.tmp" 
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA5.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP131.tmp" 
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP132.tmp" with contents
 [
 /nologo /out:"Release\LibMNG.lib" 
 .\Release\libmng_callback_xs.obj
@@ -450,7 +447,7 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA5.tmp" with cont
 .\Release\libmng_zlib.obj
 \Projects\FreeImage\Source\ZLib\Release\ZLib.lib
 ]
-Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA5.tmp"
+Creating command line "link.exe -lib @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP132.tmp"
 <h3>Output Window</h3>
 Compiling...
 libmng_callback_xs.c
@@ -476,7 +473,7 @@ Creating library...
 --------------------Configuration: FreeImage - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA6.tmp" with contents
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP133.tmp" with contents
 [
 /nologo /MT /W3 /GX /O1 /I "Source" /I "Source\ZLib" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /Fo"Release/" /Fd"Release/" /FD /c 
 "C:\Projects\FreeImage\SOURCE\FreeImage\Plugin.cpp"
@@ -505,12 +502,13 @@ Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA6.tmp" with cont
 "C:\Projects\FreeImage\SOURCE\FreeImage\WuQuantizer.cpp"
 "C:\Projects\FreeImage\SOURCE\FreeImage\BitmapAccess.cpp"
 "C:\Projects\FreeImage\SOURCE\FreeImage\FreeImage.cpp"
+"C:\Projects\FreeImage\Source\FreeImage\FreeImageC.c"
 "C:\Projects\FreeImage\SOURCE\FreeImage\FreeImageIO.cpp"
 "C:\Projects\FreeImage\SOURCE\FreeImage\GetType.cpp"
 "C:\Projects\FreeImage\SOURCE\FreeImage\LoadFunctions.cpp"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA6.tmp" 
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA7.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP133.tmp" 
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP134.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"Release/FreeImage.pdb" /machine:I386 /out:"Release/FreeImage.dll" /implib:"Release/FreeImage.lib" 
 .\Release\Plugin.obj
@@ -539,6 +537,7 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 .\Release\WuQuantizer.obj
 .\Release\BitmapAccess.obj
 .\Release\FreeImage.obj
+.\Release\FreeImageC.obj
 .\Release\FreeImageIO.obj
 .\Release\GetType.obj
 .\Release\LoadFunctions.obj
@@ -548,7 +547,7 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 .\Source\ZLib\Release\ZLib.lib
 .\Source\LibMNG\Release\LibMNG.lib
 ]
-Creating command line "link.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPA7.tmp"
+Creating command line "link.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP134.tmp"
 <h3>Output Window</h3>
 Compiling...
 Plugin.cpp
@@ -579,20 +578,25 @@ NNQuantizer.cpp
 WuQuantizer.cpp
 BitmapAccess.cpp
 FreeImage.cpp
+Generating Code...
+Compiling...
+FreeImageC.c
+Generating Code...
+Compiling...
 FreeImageIO.cpp
 GetType.cpp
 LoadFunctions.cpp
 Generating Code...
 Linking...
    Creating library Release/FreeImage.lib and object Release/FreeImage.exp
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPAB.bat" with contents
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP138.bat" with contents
 [
 @echo off
 copy Release\FreeImage.dll Dist
 copy Release\FreeImage.lib Dist
 copy Source\FreeImage.h Dist
 ]
-Creating command line "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSPAB.bat"
+Creating command line "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP138.bat"
 
         1 bestand(en) gekopieerd.
         1 bestand(en) gekopieerd.

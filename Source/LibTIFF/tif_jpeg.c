@@ -48,8 +48,8 @@
 #undef FAR
 #endif
 
-#include "jpeglib.h"
-#include "jerror.h"
+#include "../libjpeg/jpeglib.h"
+#include "../libjpeg/jerror.h"
 
 /*
  * On some machines it may be worthwhile to use _setjmp or sigsetjmp

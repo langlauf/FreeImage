@@ -2,6 +2,8 @@ rd Release /s
 rd Debug /s
 rd Source\FreeImageQt\Release /s
 rd Source\FreeImageQt\Debug /s
+rd Source\FreeImageLib\Debug /s
+rd Source\FreeImageLib\Release /s
 rd Source\Source\Release /s
 rd Source\Source\Debug /s
 rd Source\LibJPEG\Debug /s
@@ -41,3 +43,5 @@ del *.jpg /s
 del *.koa /s
 del *.fip /s
 del *.pyd /s
+del *.png /s
+del *.wbmp /s

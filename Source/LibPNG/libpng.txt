@@ -1,6 +1,6 @@
 libpng.txt - A description on how to use and modify libpng
 
- libpng version 1.0.12 - June 8, 2001
+ libpng version 1.2.0 - September 1, 2001
  Updated and distributed by Glenn Randers-Pehrson
  <randeg@alum.rpi.edu>
  Copyright (c) 1998-2001 Glenn Randers-Pehrson
@@ -78,7 +78,9 @@ Libpng is thread safe, provided the threads are using different
 instances of the structures.  Each thread should have its own
 png_struct and png_info instances, and thus its own image.
 Libpng does not protect itself against two threads using the
-same instance of a structure.
+same instance of a structure.  Note: thread safety may be defeated
+by use of some of the MMX assembler code in pnggccrd.c, which is only
+compiled when the user defines PNG_THREAD_UNSAFE_OK.
 
 
 II. Structures
@@ -790,7 +792,7 @@ higher possible bit depth (e.g. from 5 bits/sample in the range [0,31] to
 convert the PNG pixel data back to the original bit depth of the image.
 This call reduces the pixels back down to the original bit depth:
 
-    png_color_16p sig_bit;
+    png_color_8p sig_bit;
 
     if (png_get_sBIT(png_ptr, info_ptr, &sig_bit))
         png_set_shift(png_ptr, sig_bit);
@@ -802,17 +804,18 @@ changes the storage of the pixels to blue, green, red:
         color_type == PNG_COLOR_TYPE_RGB_ALPHA)
         png_set_bgr(png_ptr);
 
-PNG files store RGB pixels packed into 3 bytes. This code expands them
-into 4 bytes for windowing systems that need them in this format:
+PNG files store RGB pixels packed into 3 or 6 bytes. This code expands them
+into 4 or 8 bytes for windowing systems that need them in this format:
 
-    if (bit_depth == 8 && color_type ==
-        PNG_COLOR_TYPE_RGB) png_set_filler(png_ptr,
-        filler, PNG_FILLER_BEFORE);
+    if (color_type == PNG_COLOR_TYPE_RGB)
+        png_set_filler(png_ptr, filler, PNG_FILLER_BEFORE);
 
 where "filler" is the 8 or 16-bit number to fill with, and the location is
 either PNG_FILLER_BEFORE or PNG_FILLER_AFTER, depending upon whether
 you want the filler before the RGB or after.  This transformation
-does not affect images that already have full alpha channels.
+does not affect images that already have full alpha channels.  To add an
+opaque alpha channel, use filler=0xff or 0xffff and PNG_FILLER_AFTER which
+will generate RGBA pixels.
 
 If you are reading an image with an alpha channel, and you need the
 data as ARGB instead of the normal PNG format RGBA:
@@ -1002,7 +1005,13 @@ PNG files describe monochrome as black being zero and white being one.
 The following code will reverse this (make black be one and white be
 zero):
 
-   if (bit_depth == 1 && color_type == PNG_COLOR_GRAY)
+   if (bit_depth == 1 && color_type == PNG_COLOR_TYPE_GRAY)
+      png_set_invert_mono(png_ptr);
+
+This function can also be used to invert grayscale and gray-alpha images:
+
+   if (color_type == PNG_COLOR_TYPE_GRAY ||
+        color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
       png_set_invert_mono(png_ptr);
 
 PNG files store 16 bit pixels in network byte order (big-endian,
@@ -1395,7 +1404,6 @@ png_infop info_ptr;
 
  /* This function is called when each row of image
     data is complete */
-
  void
  row_callback(png_structp png_ptr, png_bytep new_row,
     png_uint_32 row_num, int pass)
@@ -2644,8 +2652,127 @@ When PNG_DEBUG = 1, the macros are defined, but only png_debug statements
 having level = 0 will be printed.  There aren't any such statements in
 this version of libpng, but if you insert some they will be printed.
 
+VI.  Runtime optimization
 
-VI.  MNG support
+A new feature in libpng 1.2.0 is the ability to dynamically switch between
+standard and optimized versions of some routines.  Currently these are
+limited to three computationally intensive tasks when reading PNG files:
+decoding row filters, expanding interlacing, and combining interlaced or
+transparent row data with previous row data.  Currently the optimized
+versions are available only for x86 (Intel, AMD, etc.) platforms with
+MMX support, though this may change in future versions.  (For example,
+the non-MMX assembler optimizations for zlib might become similarly
+runtime-selectable in future releases, in which case libpng could be
+extended to support them.  Alternatively, the compile-time choice of
+floating-point versus integer routines for gamma correction might become
+runtime-selectable.)
+
+Because such optimizations tend to be very platform- and compiler-dependent,
+both in how they are written and in how they perform, the new runtime code
+in libpng has been written to allow programs to query, enable, and disable
+either specific optimizations or all such optimizations.  For example, to
+enable all possible optimizations (bearing in mind that some "optimizations"
+may actually run more slowly in rare cases):
+
+    #if defined(PNG_LIBPNG_VER) && (PNG_LIBPNG_VER >= 10200)
+       png_uint_32 mask, flags;
+
+       flags = png_get_asm_flags(png_ptr);
+       mask = png_get_asm_flagmask(PNG_SELECT_READ | PNG_SELECT_WRITE);
+       png_set_asm_flags(png_ptr, flags | mask);
+    #endif
+
+To enable only optimizations relevant to reading PNGs, use PNG_SELECT_READ
+by itself when calling png_get_asm_flagmask(); similarly for optimizing
+only writing.  To disable all optimizations:
+
+    #if defined(PNG_LIBPNG_VER) && (PNG_LIBPNG_VER >= 10200)
+       flags = png_get_asm_flags(png_ptr);
+       mask = png_get_asm_flagmask(PNG_SELECT_READ | PNG_SELECT_WRITE);
+       png_set_asm_flags(png_ptr, flags & ~mask);
+    #endif
+
+To enable or disable only MMX-related features, use png_get_mmx_flagmask()
+in place of png_get_asm_flagmask().  The mmx version takes one additional
+parameter:
+
+    #if defined(PNG_LIBPNG_VER) && (PNG_LIBPNG_VER >= 10200)
+       int selection = PNG_SELECT_READ | PNG_SELECT_WRITE;
+       int compilerID;
+
+       mask = png_get_mmx_flagmask(selection, &compilerID);
+    #endif
+
+On return, compilerID will indicate which version of the MMX assembler
+optimizations was compiled.  Currently two flavors exist:  Microsoft
+Visual C++ (compilerID == 1) and GNU C (a.k.a. gcc/gas, compilerID == 2).
+On non-x86 platforms or on systems compiled without MMX optimizations, a
+value of -1 is used.
+
+Note that both png_get_asm_flagmask() and png_get_mmx_flagmask() return
+all valid, settable optimization bits for the version of the library that's
+currently in use.  In the case of shared (dynamically linked) libraries,
+this may include optimizations that did not exist at the time the code was
+written and compiled.  It is also possible, of course, to enable only known,
+specific optimizations; for example:
+
+    #if defined(PNG_LIBPNG_VER) && (PNG_LIBPNG_VER >= 10200)
+       flags = PNG_ASM_FLAG_MMX_READ_COMBINE_ROW  \
+             | PNG_ASM_FLAG_MMX_READ_INTERLACE    \
+             | PNG_ASM_FLAG_MMX_READ_FILTER_SUB   \
+             | PNG_ASM_FLAG_MMX_READ_FILTER_UP    \
+             | PNG_ASM_FLAG_MMX_READ_FILTER_AVG   \
+             | PNG_ASM_FLAG_MMX_READ_FILTER_PAETH ;
+       png_set_asm_flags(png_ptr, flags);
+    #endif
+
+This method would enable only the MMX read-optimizations available at the
+time of libpng 1.2.0's release, regardless of whether a later version of
+the DLL were actually being used.  (Also note that these functions did not
+exist in versions older than 1.2.0, so any attempt to run a dynamically
+linked app on such an older version would fail.)
+
+To determine whether the processor supports MMX instructions at all, use
+the png_mmx_support() function:
+
+    #if defined(PNG_LIBPNG_VER) && (PNG_LIBPNG_VER >= 10200)
+       mmxsupport = png_mmx_support();
+    #endif
+
+It returns -1 if MMX support is not compiled into libpng, 0 if MMX code
+is compiled but MMX is not supported by the processor, or 1 if MMX support
+is fully available.  Note that png_mmx_support(), png_get_mmx_flagmask(),
+and png_get_asm_flagmask() all may be called without allocating and ini-
+tializing any PNG structures (for example, as part of a usage screen or
+"about" box).
+
+The following code can be used to prevent an application from using the
+thread_unsafe features, even if libpng was built with PNG_THREAD_UNSAFE_OK
+defined:
+
+#if defined(PNG_USE_PNGGCCRD) && defined(PNG_ASSEMBLER_CODE_SUPPORTED) \
+  && defined(PNG_THREAD_UNSAFE_OK)
+    /* Disable thread-unsafe features of pnggccrd */
+    if (png_access_version() >= 10200)
+    {
+      png_uint_32 mmx_disable_mask = 0;
+      png_uint_32 asm_flags;
+
+      mmx_disable_mask |= ( PNG_ASM_FLAG_MMX_READ_COMBINE_ROW  \
+                          | PNG_ASM_FLAG_MMX_READ_FILTER_SUB   \
+                          | PNG_ASM_FLAG_MMX_READ_FILTER_AVG   \
+                          | PNG_ASM_FLAG_MMX_READ_FILTER_PAETH );
+      asm_flags = png_get_asm_flags(png_ptr);
+      png_set_asm_flags(png_ptr, asm_flags & ~mmx_disable_mask);
+    }
+#endif
+
+For more extensive examples of runtime querying, enabling and disabling
+of optimized features, see contrib/gregbook/readpng2.c in the libpng
+source-code distribution.
+
+
+VII.  MNG support
 
 The MNG specification (available at http://www.libpng.org/pub/mng) allows
 certain extensions to PNG for PNG images that are embedded in MNG datastreams.
@@ -2670,7 +2797,7 @@ or any other MNG chunks; your application must provide its own support for
 them.  You may wish to consider using libmng (available at
 http://www.libmng.com) instead.
 
-VII.  Changes to Libpng from version 0.88
+VIII.  Changes to Libpng from version 0.88
 
 It should be noted that versions of libpng later than 0.96 are not
 distributed by the original libpng author, Guy Schalnat, nor by
@@ -2719,15 +2846,15 @@ application:
 
    png_uint_32 application_vn = PNG_LIBPNG_VER;
 
-VIII. Y2K Compliance in libpng
+IX. Y2K Compliance in libpng
 
-June 8, 2001
+September 1, 2001
 
 Since the PNG Development group is an ad-hoc body, we can't make
 an official declaration.
 
 This is your unofficial assurance that libpng from version 0.71 and
-upward through 1.0.12 are Y2K compliant.  It is my belief that earlier
+upward through 1.2.0 are Y2K compliant.  It is my belief that earlier
 versions were also Y2K compliant.
 
 Libpng only has three year fields.  One is a 2-byte unsigned integer that

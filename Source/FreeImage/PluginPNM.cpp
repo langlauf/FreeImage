@@ -31,7 +31,7 @@
 // ==========================================================
 
 static int
-GetInt(FreeImageIO &io, fi_handle handle) {
+GetInt(FreeImageIO *io, fi_handle handle) {
 	// get an integer value from the actual position pointed by handle
 
     char c = 0;
@@ -39,7 +39,7 @@ GetInt(FreeImageIO &io, fi_handle handle) {
 
     // skip forward to start of next number
 
-    io.read_proc(&c, 1, 1, handle);
+    io->read_proc(&c, 1, 1, handle);
 
     while (1) {
         // eat comments
@@ -50,7 +50,7 @@ GetInt(FreeImageIO &io, fi_handle handle) {
             firstchar = TRUE;
 
             while (1) {
-				io.read_proc(&c, 1, 1, handle);
+				io->read_proc(&c, 1, 1, handle);
 
 				if (firstchar && c == ' ') {
 					// loop off 1 sp after #
@@ -68,7 +68,7 @@ GetInt(FreeImageIO &io, fi_handle handle) {
             break;
 		}
 
-        io.read_proc(&c, 1, 1, handle);
+        io->read_proc(&c, 1, 1, handle);
     }
 
     // we're at the start of a number, continue until we hit a non-number
@@ -78,7 +78,7 @@ GetInt(FreeImageIO &io, fi_handle handle) {
     while (1) {
         i = (i*10) + (c - '0');
 
-        io.read_proc(&c, 1, 1, handle);
+        io->read_proc(&c, 1, 1, handle);
 
         if (c < '0' || c > '9')
             break;
@@ -118,7 +118,7 @@ RegExpr() {
 }
 
 static BOOL DLL_CALLCONV
-Validate(FreeImageIO &io, fi_handle handle) {
+Validate(FreeImageIO *io, fi_handle handle) {
 	BYTE pbm_id1[] = { 0x50, 0x31 };
 	BYTE pbm_id2[] = { 0x50, 0x34 };
 	BYTE pgm_id1[] = { 0x50, 0x32 };
@@ -127,7 +127,7 @@ Validate(FreeImageIO &io, fi_handle handle) {
 	BYTE ppm_id2[] = { 0x50, 0x36 };
 	BYTE signature[2] = { 0, 0 };
 
-	io.read_proc(signature, 1, sizeof(pbm_id1), handle);
+	io->read_proc(signature, 1, sizeof(pbm_id1), handle);
 
 	if (memcmp(pbm_id1, signature, sizeof(pbm_id1)) == 0)
 		return TRUE;
@@ -150,10 +150,20 @@ Validate(FreeImageIO &io, fi_handle handle) {
 	return FALSE;
 }
 
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return (
+			(depth == 1) ||
+			(depth == 8) ||
+			(depth == 24)
+		);
+}
+
+
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	char id_one, id_two;
 	WORD x, y;
 	FIBITMAP *dib;
@@ -169,8 +179,8 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 		// "P1" = ascii bitmap, "P2" = ascii greymap, "P3" = ascii pixmap,
 		// "P4" = raw bitmap, "P5" = raw greymap, "P6" = raw pixmap
 
-		io.read_proc(&id_one, 1, 1, handle);
-		io.read_proc(&id_two, 1, 1, handle);
+		io->read_proc(&id_one, 1, 1, handle);
+		io->read_proc(&id_two, 1, 1, handle);
 
 		if (id_one != 'P' || id_two < '1' || id_two > '6') {
 			throw "Invalid magic number";
@@ -186,17 +196,17 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 		switch (id_two) {
 			case '1':
 			case '4':
-				dib = freeimage.allocate_proc(width, height, 1);
+				dib = freeimage->allocate_proc(width, height, 1);
 				break;
 
 			case '2':
 			case '5':
-				dib = freeimage.allocate_proc(width, height, 8);
+				dib = freeimage->allocate_proc(width, height, 8);
 				break;
 
 			case '3':
 			case '6':
-				dib = freeimage.allocate_proc(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+				dib = freeimage->allocate_proc(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
 				break;
 		}
 
@@ -205,14 +215,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 		// Read the image...
 
-		int pitch = freeimage.get_pitch_proc(dib);
+		int pitch = freeimage->get_pitch_proc(dib);
 
 		switch(id_two)  {
 			case '1':
 			case '4':
 				// write the palette data
 
-				pal = freeimage.get_palette_proc(dib);
+				pal = freeimage->get_palette_proc(dib);
 				pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 0;
 				pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255;
 
@@ -220,7 +230,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				if (id_two == '1') {	// ASCII bitmap
 					for (y = 0; y < height; y++) {				
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 
 						for (x = 0; x < width; x++) {
 							if (GetInt(io, handle) == 0)
@@ -233,10 +243,10 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					int line = CalculateLine(width, 1);
 
 					for (y = 0; y < height; y++) {				
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 
 						for (x = 0; x < line; x++) {
-							io.read_proc(&bits[x], 1, 1, handle);
+							io->read_proc(&bits[x], 1, 1, handle);
 
 							bits[x] = ~bits[x];
 						}
@@ -249,7 +259,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			case '5':
 				// Build a greyscale palette
 				
-				pal = freeimage.get_palette_proc(dib);
+				pal = freeimage->get_palette_proc(dib);
 
 				for (i = 0; i < 256; i++) {
 					pal[i].rgbRed	=
@@ -263,7 +273,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				if(id_two == '2') {		// ASCII greymap
 					for (y = 0; y < height; y++) {				
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 						for (x = 0; x < width; x++) {
 							level = GetInt(io, handle);
 							bits[x] = (BYTE)((255 * level) / max);
@@ -273,10 +283,10 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					level = 0;
 
 					for (y = 0; y < height; y++) {				
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 
 						for (x = 0; x < width; x++) {
-							io.read_proc(&level, 1, 1, handle);
+							io->read_proc(&level, 1, 1, handle);
 							bits[x] = (BYTE)((255 * level) / max);
 						}
 					}
@@ -292,7 +302,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				if (id_two == '3') {		// ASCII pixmap
 					for (y = 0; y < height; y++) {				
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 
 						for (x = 0; x < width; x++) {
 							bits[2] = (BYTE)((255 * GetInt(io, handle)) / max);	// R
@@ -306,16 +316,16 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					level = 0;
 
 					for (y = 0; y < height; y++) {				
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 
 						for (x = 0; x < width; x++) {
-							io.read_proc(&level, 1, 1, handle); 
+							io->read_proc(&level, 1, 1, handle); 
 							bits[2] = (BYTE)((255 * level) / max);	// R
 
-							io.read_proc(&level, 1, 1, handle);
+							io->read_proc(&level, 1, 1, handle);
 							bits[1] = (BYTE)((255 * level) / max);	// G
 
-							io.read_proc(&level, 1, 1, handle);
+							io->read_proc(&level, 1, 1, handle);
 							bits[0] = (BYTE)((255 * level) / max);	// B
 
 							bits += 3;
@@ -330,15 +340,15 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 		switch(id_two)  {
 			case '1':
 			case '4':
-				freeimage.output_message_proc(s_format_id, text);
+				freeimage->output_message_proc(s_format_id, text);
 				break;
 			case '2':
 			case '5':
-				freeimage.output_message_proc(s_format_id, text);
+				freeimage->output_message_proc(s_format_id, text);
 				break;
 			case '3':
 			case '6':
-				freeimage.output_message_proc(s_format_id, text);
+				freeimage->output_message_proc(s_format_id, text);
 				break;
 		}
 
@@ -349,7 +359,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 }
 
 static BOOL DLL_CALLCONV
-Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
+Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
 	// ----------------------------------------------------------
 	//   PNM Saving
 	// ----------------------------------------------------------
@@ -371,9 +381,9 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
     BYTE *bits;		// pointer to dib data
 	
 	if ((dib) && (handle)) {
-		bpp = freeimage.get_bpp_proc(dib);
-		width = freeimage.get_width_proc(dib);
-		height = freeimage.get_height_proc(dib);
+		bpp = freeimage->get_bpp_proc(dib);
+		width = freeimage->get_width_proc(dib);
+		height = freeimage->get_height_proc(dib);
 
 		// Find the appropriate magic number for this file type
 
@@ -391,14 +401,6 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 				magic = 3;	// PPM file (RGB)
 				break;
 
-			case 32 :
-				if (!freeimage.is_transparent_proc(dib))
-					magic = 3;
-				else
-					throw "PNM does not support alpha channels";
-
-				break;
-
 			default:
 				return FALSE;	// Invalid bit depth
 		}
@@ -410,20 +412,19 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 
 		char buffer[20];
 		sprintf(buffer, "P%d\n%d %d\n", magic, width, height);
-		io.write_proc(&buffer, strlen(buffer), 1, handle);
+		io->write_proc(&buffer, strlen(buffer), 1, handle);
 
 		if (bpp != 1) {
 			sprintf(buffer, "255\n");
-			io.write_proc(&buffer, strlen(buffer), 1, handle);
+			io->write_proc(&buffer, strlen(buffer), 1, handle);
 		}
 
 		// Write the image data
 		///////////////////////
 
-		int pitch = (bpp == 32) ? CalculatePitch(CalculateLine(width, 24)) : freeimage.get_pitch_proc(dib);
+		int pitch = (bpp == 32) ? CalculatePitch(CalculateLine(width, 24)) : freeimage->get_pitch_proc(dib);
 
 		switch(bpp)  {
-			case 32 :
 			case 24 :            // 24-bit RGB, 3 bytes per pixel
 			{
 				if (flags == PNM_SAVE_RAW)  {
@@ -433,18 +434,18 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 						// get a pointer to the (converted) scanline
 
 						if (bpp == 32)
-							freeimage.convert_line_32to24_proc(buffer, freeimage.get_scanline_proc(dib, height - y - 1), width);
+							freeimage->convert_line_32to24_proc(buffer, freeimage->get_scanline_proc(dib, height - y - 1), width);
 						else
-							memcpy(buffer, freeimage.get_scanline_proc(dib, height - 1 - y), pitch);
+							memcpy(buffer, freeimage->get_scanline_proc(dib, height - 1 - y), pitch);
 
 						// write the scanline to disc
 
 						BYTE *bits = buffer;
 
 						for (x = 0; x < width; x++) {
-							io.write_proc(&bits[2], 1, 1, handle);	// R
-							io.write_proc(&bits[1], 1, 1, handle);	// G
-							io.write_proc(&bits[0], 1, 1, handle);	// B
+							io->write_proc(&bits[2], 1, 1, handle);	// R
+							io->write_proc(&bits[1], 1, 1, handle);	// G
+							io->write_proc(&bits[0], 1, 1, handle);	// B
 
 							bits += 3;
 						}
@@ -460,9 +461,9 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 						// get a pointer to the (converted) scanline
 
 						if (bpp == 32)
-							freeimage.convert_line_32to24_proc(buffer, freeimage.get_scanline_proc(dib, height - 1 - y), width);
+							freeimage->convert_line_32to24_proc(buffer, freeimage->get_scanline_proc(dib, height - 1 - y), width);
 						else
-							memcpy(buffer, freeimage.get_scanline_proc(dib, height - 1 - y), pitch);
+							memcpy(buffer, freeimage->get_scanline_proc(dib, height - 1 - y), pitch);
 
 						// write the scanline to disc
 
@@ -473,14 +474,14 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 
 							sprintf(buffer, "%3d %3d %3d ", bits[2], bits[1], bits[0]);
 
-							io.write_proc(&buffer, strlen(buffer), 1, handle);
+							io->write_proc(&buffer, strlen(buffer), 1, handle);
 
 							length += 12;
 
 							if(length > 58) {
 								sprintf(buffer, "\n");
 
-								io.write_proc(&buffer, strlen(buffer), 1, handle);
+								io->write_proc(&buffer, strlen(buffer), 1, handle);
 
 								length = 0;
 							}
@@ -499,29 +500,29 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 			{
 				if (flags == PNM_SAVE_RAW)  {
 					for (y = 0; y < height; y++) {
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 
 						for (x = 0; x < width; x++) {
-							io.write_proc(&bits[x], 1, 1, handle);
+							io->write_proc(&bits[x], 1, 1, handle);
 						}
 					}
 				} else {
 					int length = 0;
 
 					for (y = 0; y < height; y++) {
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 
 						for (x = 0; x < width; x++) {
 							sprintf(buffer, "%3d ", bits[x]);
 
-							io.write_proc(&buffer, strlen(buffer), 1, handle);
+							io->write_proc(&buffer, strlen(buffer), 1, handle);
 
 							length += 4;
 
 							if (length > 66)	{
 								sprintf(buffer, "\n");
 
-								io.write_proc(&buffer, strlen(buffer), 1, handle);
+								io->write_proc(&buffer, strlen(buffer), 1, handle);
 
 								length = 0;
 							}
@@ -534,35 +535,35 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 
 			case 1:		// 1-bit B & W
 			{
-				RGBQUAD *pal = freeimage.get_palette_proc(dib);
+				RGBQUAD *pal = freeimage->get_palette_proc(dib);
 				int color;
 
 				if (flags == PNM_SAVE_RAW)  {
 					for(y = 0; y < height; y++) {
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 
-						for(x = 0; x < freeimage.get_line_proc(dib); x++)
-							io.write_proc(&bits[x], 1, 1, handle);
+						for(x = 0; x < freeimage->get_line_proc(dib); x++)
+							io->write_proc(&bits[x], 1, 1, handle);
 					}
 				} else  {
 					int length = 0;
 
 					for (y = 0; y < height; y++) {
-						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (height - 1 - y) * pitch;
 
-						for (x = 0; x < freeimage.get_line_proc(dib) * 8; x++)	{
+						for (x = 0; x < freeimage->get_line_proc(dib) * 8; x++)	{
 							color = (bits[x>>3] & (0x80 >> (x & 0x07))) != 0;
 
 							sprintf(buffer, "%c ", color ? '1':'0');
 
-							io.write_proc(&buffer, strlen(buffer), 1, handle);
+							io->write_proc(&buffer, strlen(buffer), 1, handle);
 
 							length += 2;
 
 							if (length > 68) {
 								sprintf(buffer, "\n");
 
-								io.write_proc(&buffer, strlen(buffer), 1, handle);
+								io->write_proc(&buffer, strlen(buffer), 1, handle);
 
 								length = 0;
 							}
@@ -585,15 +586,15 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 // ==========================================================
 
 void DLL_CALLCONV
-InitPNM(Plugin &plugin, int format_id) {
+InitPNM(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.load_proc = Load;
-	plugin.save_proc = Save;
-	plugin.validate_proc = Validate;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->load_proc = Load;
+	plugin->save_proc = Save;
+	plugin->validate_proc = Validate;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }
-

@@ -78,13 +78,13 @@ struct tagTGAHEADER {
 // ==========================================================
 
 static BYTE *
-Internal_GetScanLine(FreeImage &freeimage, FIBITMAP *dib, int scanline, int flipvert) {
-	//assert ((scanline >= 0) && (scanline < (int)freeimage.get_height_proc(dib)));
+Internal_GetScanLine(FreeImage *freeimage, FIBITMAP *dib, int scanline, int flipvert) {
+	//assert ((scanline >= 0) && (scanline < (int)freeimage->get_height_proc(dib)));
 
 	if (flipvert) {
-		return freeimage.get_scanline_proc(dib, scanline);
+		return freeimage->get_scanline_proc(dib, scanline);
 	} else {
-		return freeimage.get_scanline_proc(dib, freeimage.get_height_proc(dib) - scanline - 1);
+		return freeimage->get_scanline_proc(dib, freeimage->get_height_proc(dib) - scanline - 1);
 	}
 }
 
@@ -118,22 +118,27 @@ RegExpr() {
 	return NULL;
 }
 
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return FALSE;
+}
+
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle) {
 		try {
 			// remember the start offset
 
-			long start_offset = io.tell_proc(handle);
+			long start_offset = io->tell_proc(handle);
 
 			// read and process the bitmap's header
 
 			FIBITMAP *dib = NULL;
 			tagTGAHEADER header;
 
-			io.read_proc(&header, sizeof(tagTGAHEADER), 1, handle);
+			io->read_proc(&header, sizeof(tagTGAHEADER), 1, handle);
 
 			int line = CalculateLine(header.is_width, header.is_pixel_depth);
 			int pitch = CalculatePitch(line);
@@ -141,11 +146,11 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			int fliphoriz = (header.is_image_descriptor & 0x10) ? 0 : 1;
 			int flipvert = (header.is_image_descriptor & 0x20) ? 1 : 0;
 
-			io.seek_proc(handle, header.id_length, SEEK_CUR);
+			io->seek_proc(handle, header.id_length, SEEK_CUR);
 			switch (header.is_pixel_depth) {
 				case 8 :
 				{
-					dib = freeimage.allocate_proc(header.is_width, header.is_height, 8);
+					dib = freeimage->allocate_proc(header.is_width, header.is_height, 8);
 
 					if (dib == NULL) {
 						throw "DIB allocation failed";
@@ -153,7 +158,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 					// read the palette
 
-					RGBQUAD *palette = freeimage.get_palette_proc(dib);
+					RGBQUAD *palette = freeimage->get_palette_proc(dib);
 
 					if (header.color_map_type == 0)
 						for (unsigned i = 0; i < 256; i++) {
@@ -165,7 +170,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						for (unsigned count = header.cm_first_entry; count < header.cm_length; count++) {
 							BGRAQUAD quad;
 
-							io.read_proc(&quad, sizeof(RGBTRIPLE), 1, handle);
+							io->read_proc(&quad, sizeof(RGBTRIPLE), 1, handle);
 						
 							palette[count].rgbBlue = quad.bgraBlue;
 							palette[count].rgbRed = quad.bgraRed;
@@ -177,7 +182,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						for (unsigned count = header.cm_first_entry; count < header.cm_length; count++) {
 							RGBTRIPLE triple;
 
-							io.read_proc(&triple, sizeof(RGBTRIPLE), 1, handle);
+							io->read_proc(&triple, sizeof(RGBTRIPLE), 1, handle);
 						
 							palette[count].rgbRed = triple.rgbtRed;
 							palette[count].rgbGreen = triple.rgbtGreen;
@@ -192,12 +197,12 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						{
 							if (fliphoriz) {
 								for (unsigned count = header.is_height; count > 0; count--)
-									io.read_proc(Internal_GetScanLine(freeimage, dib, count - 1, flipvert), line, 1, handle);
+									io->read_proc(Internal_GetScanLine(freeimage, dib, count - 1, flipvert), line, 1, handle);
 
 							}
 							else {
 								for (unsigned count = 0; count < header.is_height; count++)
-									io.read_proc(Internal_GetScanLine(freeimage, dib, count, flipvert), line, 1, handle);
+									io->read_proc(Internal_GetScanLine(freeimage, dib, count, flipvert), line, 1, handle);
 
 							}
 							
@@ -219,14 +224,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 							BYTE rle;
 							
 							while(1) {
-								io.read_proc(&rle,1, 1, handle);
+								io->read_proc(&rle,1, 1, handle);
 								
 								if (rle>127) {
 									rle -= 127;
 
 									BYTE triple;
 
-									io.read_proc(&triple, 1, 1, handle);
+									io->read_proc(&triple, 1, 1, handle);
 
 									for (int ix = 0; ix < rle; ix++) {
 										bits[x++] = triple;
@@ -251,7 +256,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 									for (int ix = 0; ix < rle; ix++) {
 										BYTE triple;		
 
-										io.read_proc(&triple, 1, 1, handle);
+										io->read_proc(&triple, 1, 1, handle);
 
 										bits[x++] = triple;
 										
@@ -276,7 +281,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						}
 						
 						default :
-							freeimage.free_proc(dib);
+							freeimage->free_proc(dib);
 							return NULL;
 					}
 
@@ -293,11 +298,11 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					if (TARGA_LOAD_RGB888 & flags) {
 						pixel_bits = 24;
 
-						dib = freeimage.allocate_proc(header.is_width, header.is_height, pixel_bits, 0xFF, 0xFF00, 0xFF0000);
+						dib = freeimage->allocate_proc(header.is_width, header.is_height, pixel_bits, 0xFF, 0xFF00, 0xFF0000);
 					} else {			
 						pixel_bits = 16;
 
-						dib = freeimage.allocate_proc(header.is_width, header.is_height, pixel_bits, 0x1F, 0x3E0, 0x7C00);
+						dib = freeimage->allocate_proc(header.is_width, header.is_height, pixel_bits, 0x1F, 0x3E0, 0x7C00);
 					}
 
 					if (dib == NULL)
@@ -318,8 +323,8 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					else
 						garblen = 0;
 
-					io.seek_proc(handle, start_offset, SEEK_SET);
-					io.seek_proc(handle, sizeof(tagTGAHEADER) + header.id_length + garblen, SEEK_SET);
+					io->seek_proc(handle, start_offset, SEEK_SET);
+					io->seek_proc(handle, sizeof(tagTGAHEADER) + header.id_length + garblen, SEEK_SET);
 
 					// read in the bitmap bits
 
@@ -336,7 +341,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 									bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 
 								for (int x = 0; x < line; ) {
-									io.read_proc(&pixel, sizeof(WORD), 1, handle);
+									io->read_proc(&pixel, sizeof(WORD), 1, handle);
 								
 									if (TARGA_LOAD_RGB888 & flags) {
 										bits[x + 0] = ((pixel & 0x1F) * 0xFF) / 0x1F;
@@ -368,14 +373,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 								else
 									bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 		
-								io.read_proc(&rle,1, 1, handle);
+								io->read_proc(&rle,1, 1, handle);
 								
 								// compressed block
 								
 								if (rle > 127) {
 									rle -= 127;
 
-									io.read_proc(&pixel, sizeof(WORD), 1, handle);
+									io->read_proc(&pixel, sizeof(WORD), 1, handle);
 								
 									for (int ix = 0; ix < rle; ix++) {
 										if (TARGA_LOAD_RGB888 & flags) {
@@ -400,7 +405,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 									rle++;
 
 									for (int ix = 0; ix < rle; ix++) {
-										io.read_proc(&pixel, sizeof(WORD), 1, handle);
+										io->read_proc(&pixel, sizeof(WORD), 1, handle);
 
 										if (TARGA_LOAD_RGB888 & flags) {
 											bits[x + 0] = ((pixel & 0x1F) * 0xFF) / 0x1F;
@@ -428,7 +433,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						}
 
 						default :
-							freeimage.free_proc(dib);
+							freeimage->free_proc(dib);
 							return NULL;
 					}
 
@@ -437,7 +442,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				case 24 :
 				{
-					dib = freeimage.allocate_proc(header.is_width, header.is_height, 24, 0xFF, 0xFF00, 0xFF0000);
+					dib = freeimage->allocate_proc(header.is_width, header.is_height, 24, 0xFF, 0xFF00, 0xFF0000);
 
 					if (dib == 0)
 						throw "DIB allocation failed";					
@@ -451,7 +456,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 								for (unsigned count = header.is_height; count > 0; count--) {
 									BYTE *bits = bits = Internal_GetScanLine(freeimage, dib, count-1, flipvert);
 
-									io.read_proc(bits, line, 1, handle);
+									io->read_proc(bits, line, 1, handle);
 
 									bits += pitch;
 								}
@@ -459,7 +464,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 								for (unsigned count = 0; count < header.is_height; count++) {
 									BYTE *bits = bits = Internal_GetScanLine(freeimage, dib, count, flipvert);
 
-									io.read_proc(bits, line, 1, handle);
+									io->read_proc(bits, line, 1, handle);
 
 									bits += pitch;
 								}
@@ -481,14 +486,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 							
 							if (alphabits) {
 								while(1) {
-									io.read_proc(&rle,1, 1, handle);
+									io->read_proc(&rle,1, 1, handle);
 									
 									if (rle>127) {
 										rle -= 127;
 
 										BGRAQUAD quad;
 
-										io.read_proc(&quad, sizeof(BGRAQUAD), 1, handle);
+										io->read_proc(&quad, sizeof(BGRAQUAD), 1, handle);
 
 										for (int ix = 0; ix < rle; ix++) {
 											bits[x++] = quad.bgraBlue;
@@ -515,7 +520,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 										for (int ix = 0; ix < rle; ix++) {
 											BGRAQUAD quad;
 
-											io.read_proc(&quad, sizeof(BGRAQUAD), 1, handle);
+											io->read_proc(&quad, sizeof(BGRAQUAD), 1, handle);
 
 											bits[x++] = quad.bgraBlue;
 											bits[x++] = quad.bgraGreen;
@@ -539,14 +544,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 								}
 							} else {
 								while (1) {
-									io.read_proc(&rle,1, 1, handle);
+									io->read_proc(&rle,1, 1, handle);
 									
 									if (rle>127) {
 										rle -= 127;
 
 										RGBTRIPLE triple;
 
-										io.read_proc(&triple, sizeof(RGBTRIPLE), 1, handle);
+										io->read_proc(&triple, sizeof(RGBTRIPLE), 1, handle);
 
 										for (int ix = 0; ix < rle; ix++) {
 											bits[x++] = triple.rgbtBlue;
@@ -572,7 +577,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 										for (int ix = 0; ix < rle; ix++) {
 											RGBTRIPLE triple;		
 
-											io.read_proc(&triple, sizeof(RGBTRIPLE), 1, handle);
+											io->read_proc(&triple, sizeof(RGBTRIPLE), 1, handle);
 
 											bits[x++] = triple.rgbtBlue;
 											bits[x++] = triple.rgbtGreen;
@@ -599,7 +604,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						}
 
 						default :
-							freeimage.free_proc(dib);
+							freeimage->free_proc(dib);
 							return NULL;
 					}
 
@@ -623,7 +628,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 					// Allocate the DIB
 
-					dib = freeimage.allocate_proc(header.is_width, header.is_height, pixel_bits, 0xFF, 0xFF00, 0xFF0000);
+					dib = freeimage->allocate_proc(header.is_width, header.is_height, pixel_bits, 0xFF, 0xFF00, 0xFF0000);
 					
 					if (dib == 0)
 						throw "DIB allocation failed";					
@@ -643,7 +648,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 										for (unsigned cols = 0; cols < header.is_width; cols++) {
 											RGBQUAD rgb;
 
-											io.read_proc(&rgb, sizeof(RGBQUAD), 1, handle);
+											io->read_proc(&rgb, sizeof(RGBQUAD), 1, handle);
 
 											bits[0] = rgb.rgbBlue;
 											bits[1] = rgb.rgbGreen;
@@ -662,7 +667,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 										for (unsigned cols = 0; cols < header.is_width; cols++) {
 											RGBQUAD rgb;
 
-											io.read_proc(&rgb, sizeof(RGBQUAD), 1, handle);
+											io->read_proc(&rgb, sizeof(RGBQUAD), 1, handle);
 
 											bits[0] = rgb.rgbBlue;
 											bits[1] = rgb.rgbGreen;
@@ -688,7 +693,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 										for (unsigned cols = 0; cols < header.is_width; cols++) {
 											RGBQUAD rgb;
 
-											io.read_proc(&rgb, sizeof(RGBQUAD), 1, handle);
+											io->read_proc(&rgb, sizeof(RGBQUAD), 1, handle);
 
 											bits[0] = rgb.rgbBlue;
 											bits[1] = rgb.rgbGreen;
@@ -712,7 +717,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 										for (unsigned cols = 0; cols < header.is_width; cols++) {
 											RGBQUAD rgb;
 
-											io.read_proc(&rgb, sizeof(RGBQUAD), 1, handle);
+											io->read_proc(&rgb, sizeof(RGBQUAD), 1, handle);
 
 											bits[0] = rgb.rgbBlue;
 											bits[1] = rgb.rgbGreen;
@@ -741,14 +746,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 								bits = Internal_GetScanLine(freeimage, dib, y, flipvert);
 							
 							while(1) {
-								io.read_proc(&rle,1, 1, handle);
+								io->read_proc(&rle,1, 1, handle);
 									
 								if (rle>127) {
 									rle -= 127;
 
 									BGRAQUAD quad;
 
-									io.read_proc(&quad, sizeof(BGRAQUAD), 1, handle);
+									io->read_proc(&quad, sizeof(BGRAQUAD), 1, handle);
 
 									for (int ix = 0; ix < rle; ix++) {
 										bits[x++] = quad.bgraBlue;
@@ -775,7 +780,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 									for (int ix = 0; ix < rle; ix++) {
 										BGRAQUAD quad;
 
-										io.read_proc(&quad, sizeof(BGRAQUAD), 1, handle);
+										io->read_proc(&quad, sizeof(BGRAQUAD), 1, handle);
 
 										bits[x++] = quad.bgraBlue;
 										bits[x++] = quad.bgraGreen;
@@ -803,7 +808,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						}
 
 						default :
-							freeimage.free_proc(dib);
+							freeimage->free_proc(dib);
 							return NULL;
 					}
 
@@ -814,7 +819,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			return (FIBITMAP *)dib;
 
 		} catch(char *message) {
-			freeimage.output_message_proc(s_format_id, message);
+			freeimage->output_message_proc(s_format_id, message);
 
 			return NULL;
 		}
@@ -828,12 +833,13 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 // ==========================================================
 
 void DLL_CALLCONV
-InitTARGA(Plugin &plugin, int format_id) {
+InitTARGA(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.load_proc = Load;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->load_proc = Load;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

@@ -26,7 +26,7 @@
 
 // ----------------------------------------------------------
 
-#define RGB555(r, g, b) (((r) >> 3) | (((g) >> 3) << 5) | (((b) >> 3) << 10))
+#define RGB555(b, g, r) (((b) >> 3) | (((g) >> 3) << 5) | (((r) >> 3) << 10))
 
 // ----------------------------------------------------------
 //  internal conversions X to 16 bits (555)
@@ -81,9 +81,9 @@ FreeImage_ConvertLine16_565_To16_555(BYTE *target, BYTE *source, int width_in_pi
 	WORD *new_bits = (WORD *)target;
 
 	for (int cols = 0; cols < width_in_pixels; cols++) {
-		new_bits[cols] = RGB555((((src_bits[cols] & 0x7C00) >> 10) * 0xFF) / 0x1F,
-			                    (((src_bits[cols] & 0x3E0) >> 5) * 0xFF) / 0x1F,
-								((src_bits[cols] & 0x1F) * 0xFF) / 0x1F);
+		new_bits[cols] = RGB555(((src_bits[cols] & 0x1F) * 0xFF) / 0x1F,
+			                    (((src_bits[cols] & 0x7E0) >> 5) * 0xFF) / 0x3F,
+								(((src_bits[cols] & 0xF800) >> 11) * 0xFF) / 0x1F);
 	}
 }
 

@@ -33,8 +33,8 @@
 
 typedef struct {
 	FIBITMAP    *bitmap;    // pointer to the bitmap data
-	FreeImage   &freeimage; // pointer to the freeimage access functions
-	FreeImageIO &io;        // pointer to the io functions
+	FreeImage   *freeimage; // pointer to the freeimage access functions
+	FreeImageIO *io;        // pointer to the io functions
 	fi_handle   file;	    // pointer to the file we're decoding
 } mngstuff;
 
@@ -72,7 +72,7 @@ mng_bool
 mymngreadstream(mng_handle mng, mng_ptr buffer, mng_uint32 size, mng_uint32 *bytesread) {
 	mngstuff *mymng = (mngstuff *)mng_get_userdata(mng);
 
-	*bytesread = mymng->io.read_proc(buffer, 1, size, mymng->file);
+	*bytesread = mymng->io->read_proc(buffer, 1, size, mymng->file);
 
 	return MNG_TRUE;
 }
@@ -81,9 +81,9 @@ mng_bool
 mymngprocessheader(mng_handle mng, mng_uint32 width, mng_uint32 height) {
 	// allocate a bitmap with the given dimensions
 
-	FreeImage &freeimage = ((mngstuff *)mng_get_userdata(mng))->freeimage;
+	FreeImage *freeimage = ((mngstuff *)mng_get_userdata(mng))->freeimage;
 
-	((mngstuff *)mng_get_userdata(mng))->bitmap = freeimage.allocate_proc(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+	((mngstuff *)mng_get_userdata(mng))->bitmap = freeimage->allocate_proc(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
 
 	// tell the mng decoder about our bit-depth choice
 
@@ -94,11 +94,11 @@ mymngprocessheader(mng_handle mng, mng_uint32 width, mng_uint32 height) {
 
 mng_ptr
 mymnggetcanvasline(mng_handle mng, mng_uint32 line) {
-	FreeImage &freeimage = ((mngstuff *)mng_get_userdata(mng))->freeimage;
+	FreeImage *freeimage = ((mngstuff *)mng_get_userdata(mng))->freeimage;
 
 	FIBITMAP *bitmap = ((mngstuff *)mng_get_userdata(mng))->bitmap;
 
-	return freeimage.get_scanline_proc(bitmap, freeimage.get_height_proc(bitmap) - line - 1);
+	return freeimage->get_scanline_proc(bitmap, freeimage->get_height_proc(bitmap) - line - 1);
 }
 
 mng_bool
@@ -151,10 +151,15 @@ RegExpr() {
 	return NULL;
 }
 
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return FALSE;
+}
+
 // ----------------------------------------------------------
 
 static void * DLL_CALLCONV
-Open(FreeImageIO &io, fi_handle handle, BOOL read) {
+Open(FreeImageIO *io, fi_handle handle, BOOL read) {
 	mngstuff *mymng = (mngstuff *)calloc(1, sizeof(*mymng));
 	mymng->io = io;
 	mymng->file = handle;
@@ -163,14 +168,14 @@ Open(FreeImageIO &io, fi_handle handle, BOOL read) {
 }
 
 static void DLL_CALLCONV
-Close(FreeImageIO &io, fi_handle handle, void *data) {
+Close(FreeImageIO *io, fi_handle handle, void *data) {
 	free((mngstuff *)data);
 }
 
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle != NULL) {
 		try {
 			// allocate our stream data structure
@@ -210,7 +215,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			return bitmap;
 		} catch (const char *message) {
-			freeimage.output_message_proc(s_format_id, message);
+			freeimage->output_message_proc(s_format_id, message);
 		}
 	}
 
@@ -222,14 +227,15 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 // ==========================================================
 
 void DLL_CALLCONV
-InitMNG(Plugin &plugin, int format_id) {
+InitMNG(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.open_proc = Open;
-	plugin.close_proc = Close;
-	plugin.load_proc = Load;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->open_proc = Open;
+	plugin->close_proc = Close;
+	plugin->load_proc = Load;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

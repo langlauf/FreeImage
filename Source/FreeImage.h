@@ -5,12 +5,13 @@
 // - Floris van den Berg (flvdberg@wxs.nl)
 //
 // Contributors:
-// - Adam Gates (adam.gates@str.com.au)
+// - Adam Gates (radad@xoasis.com)
 // - Alex Kwak
 // - Alexander Dymerets (sashad@te.net.ua)
 // - Hervé Drolon (drolon@iut.univ-lehavre.fr)
 // - Jan L. Nauta (jln@magentammt.com)
 // - Jani Kajala (janik@remedy.fi)
+// - Juergen Riecker (j.riecker@gmx.de)
 // - Luca Piergentili (l.pierge@terra.es)
 // - Machiel ten Brinke (brinkem@uni-one.nl)
 // - Markus Loibl (markus.loibl@epost.de)
@@ -89,11 +90,6 @@ typedef long LONG;
 #define SEEK_CUR  1
 #define SEEK_END  2
 #endif
-
-#define BI_RGB        0L
-#define BI_RLE8       1L
-#define BI_RLE4       2L
-#define BI_BITFIELDS  3L
 
 typedef struct tagRGBQUAD {
   BYTE    rgbBlue; 
@@ -200,6 +196,8 @@ FI_STRUCT(FreeImageIO) {
 #ifndef PLUGINS
 #define PLUGINS
 
+// These two lines will need to be changed. I will do that when you I get a new version without the references.
+
 FI_STRUCT (Plugin);
 FI_STRUCT (FreeImage);
 
@@ -261,7 +259,7 @@ typedef void (DLL_CALLCONV *FI_ConvertLine8To32Proc)(BYTE *target, BYTE *source,
 typedef void (DLL_CALLCONV *FI_ConvertLine16To32_555Proc)(BYTE *target, BYTE *source, int width_in_pixels);
 typedef void (DLL_CALLCONV *FI_ConvertLine16To32_565Proc)(BYTE *target, BYTE *source, int width_in_pixels);
 typedef void (DLL_CALLCONV *FI_ConvertLine24To32Proc)(BYTE *target, BYTE *source, int width_in_pixels);
-typedef void (DLL_CALLCONV *FI_InitProc)(Plugin &plugin, int format_id);
+typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
 
 typedef unsigned (*FI_ReadProc) (void *buffer, unsigned size, unsigned count, fi_handle handle);
 typedef unsigned (*FI_WriteProc) (void *buffer, unsigned size, unsigned count, fi_handle handle);
@@ -272,14 +270,15 @@ typedef const char *(DLL_CALLCONV *FI_FormatProc) ();
 typedef const char *(DLL_CALLCONV *FI_DescriptionProc) ();
 typedef const char *(DLL_CALLCONV *FI_ExtensionListProc) ();
 typedef const char *(DLL_CALLCONV *FI_RegExprProc) ();
-typedef void *(DLL_CALLCONV *FI_OpenProc)(FreeImageIO &io, fi_handle handle, BOOL read);
-typedef void (DLL_CALLCONV *FI_CloseProc)(FreeImageIO &io, fi_handle handle, void *data);
-typedef int (DLL_CALLCONV *FI_PageCountProc)(FreeImageIO &io, fi_handle handle, void *data);
-typedef int (DLL_CALLCONV *FI_PageCapabilityProc)(FreeImageIO &io, fi_handle handle, void *data);
-typedef FIBITMAP *(DLL_CALLCONV *FI_LoadProc)(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data);
-typedef BOOL (DLL_CALLCONV *FI_SaveProc)(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data);
-typedef BOOL (DLL_CALLCONV *FI_ValidateProc)(FreeImageIO &io, fi_handle handle);
+typedef void *(DLL_CALLCONV *FI_OpenProc)(FreeImageIO *io, fi_handle handle, BOOL read);
+typedef void (DLL_CALLCONV *FI_CloseProc)(FreeImageIO *io, fi_handle handle, void *data);
+typedef int (DLL_CALLCONV *FI_PageCountProc)(FreeImageIO *io, fi_handle handle, void *data);
+typedef int (DLL_CALLCONV *FI_PageCapabilityProc)(FreeImageIO *io, fi_handle handle, void *data);
+typedef FIBITMAP *(DLL_CALLCONV *FI_LoadProc)(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data);
+typedef BOOL (DLL_CALLCONV *FI_SaveProc)(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data);
+typedef BOOL (DLL_CALLCONV *FI_ValidateProc)(FreeImageIO *io, fi_handle handle);
 typedef const char *(DLL_CALLCONV *FI_MimeProc) ();
+typedef BOOL (DLL_CALLCONV *FI_SupportsExportBPPProc)(int bpp);
 
 FI_STRUCT(FreeImage) {
 	FI_AllocateProc allocate_proc;
@@ -339,7 +338,7 @@ FI_STRUCT(FreeImage) {
 	FI_ConvertLine8To32Proc convert_line_8to32_proc;
 	FI_ConvertLine16To32_555Proc convert_line_16to32_555_proc;
 	FI_ConvertLine16To32_565Proc convert_line_16to32_565_proc;
-	FI_ConvertLine24To32Proc convert_line_24to32_proc;
+	FI_ConvertLine24To32Proc convert_line_24to32_proc;	
 };
 
 FI_STRUCT (Plugin) {
@@ -355,6 +354,7 @@ FI_STRUCT (Plugin) {
 	FI_SaveProc save_proc;
 	FI_ValidateProc validate_proc;
 	FI_MimeProc mime_proc;
+	FI_SupportsExportBPPProc supports_export_bpp_proc;
 };
 
 #endif
@@ -385,6 +385,7 @@ FI_STRUCT (Plugin) {
 #define PCD_BASEDIV16       3
 #define PCX_DEFAULT         0
 #define PNG_DEFAULT         0
+#define PNG_IGNOREGAMMA		1		// avoid gamma correction
 #define PNM_DEFAULT         0
 #define PNM_SAVE_RAW        0       // If set the writer saves in RAW format (i.e. P4, P5 or P6)
 #define PNM_SAVE_ASCII      1       // If set the writer saves in ASCII format (i.e. P1, P2 or P3)
@@ -402,7 +403,7 @@ extern "C" {
 
 // Init/Error routines ------------------------------------------------------
 
-DLL_API void DLL_CALLCONV FreeImage_Initialise(BOOL load_local_plugins_only = FALSE);
+DLL_API void DLL_CALLCONV FreeImage_Initialise(BOOL load_local_plugins_only FI_DEFAULT(FALSE));
 DLL_API void DLL_CALLCONV FreeImage_DeInitialise();
 
 // Version routines ---------------------------------------------------------
@@ -423,8 +424,8 @@ DLL_API void DLL_CALLCONV FreeImage_Unload(FIBITMAP *dib);
 
 // Plugin Interface --------------------------------------------------------
 
-DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterLocalPlugin(FI_InitProc proc_address, const char *format = 0, const char *description = 0, const char *extension = 0, const char *regexpr = 0);
-DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterExternalPlugin(const char *path, const char *format = 0, const char *description = 0, const char *extension = 0, const char *regexpr = 0);
+DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterLocalPlugin(FI_InitProc proc_address, const char *format FI_DEFAULT(0), const char *description FI_DEFAULT(0), const char *extension FI_DEFAULT(0), const char *regexpr FI_DEFAULT(0));
+DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterExternalPlugin(const char *path, const char *format FI_DEFAULT(0), const char *description FI_DEFAULT(0), const char *extension FI_DEFAULT(0), const char *regexpr FI_DEFAULT(0));
 DLL_API int DLL_CALLCONV FreeImage_SetPluginEnabled(FREE_IMAGE_FORMAT fif, BOOL enable);
 DLL_API int DLL_CALLCONV FreeImage_IsPluginEnabled(FREE_IMAGE_FORMAT fif);
 DLL_API int DLL_CALLCONV FreeImage_GetFIFCount();
@@ -437,6 +438,7 @@ DLL_API const char * DLL_CALLCONV FreeImage_GetFIFRegExpr(FREE_IMAGE_FORMAT fif)
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFilename(const char *filename);
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsReading(FREE_IMAGE_FORMAT fif);
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsWriting(FREE_IMAGE_FORMAT fif);
+DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsExportBPP(FREE_IMAGE_FORMAT fif, int bpp);
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Load(FREE_IMAGE_FORMAT fif, const char *filename, int flags FI_DEFAULT(0));
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle, int flags FI_DEFAULT(0));
 DLL_API BOOL DLL_CALLCONV FreeImage_Save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, const char *filename, int flags FI_DEFAULT(0));

@@ -86,7 +86,7 @@ typedef struct {
 // ==========================================================
 
 static DWORD
-multiByteRead(FreeImageIO &io, fi_handle handle) {
+multiByteRead(FreeImageIO *io, fi_handle handle) {
 	// Multi-byte encoding / decoding
 	// -------------------------------
 	// A multi-byte integer consists of a series of octets, where the most significant bit
@@ -97,7 +97,7 @@ multiByteRead(FreeImageIO &io, fi_handle handle) {
 	DWORD Out = 0;
 	BYTE In = 0;
 
-	while (io.read_proc(&In, 1, 1, handle)) {
+	while (io->read_proc(&In, 1, 1, handle)) {
 		Out += (In & 0x7F);
 
 		if ((In & 0x80) == 0x00) {
@@ -113,7 +113,7 @@ multiByteRead(FreeImageIO &io, fi_handle handle) {
 }
 
 static void
-multiByteWrite(FreeImageIO &io, fi_handle handle, DWORD In) {
+multiByteWrite(FreeImageIO *io, fi_handle handle, DWORD In) {
   BYTE Out, k = 1;
   
   while(In & (0x7F << 7*k))
@@ -122,18 +122,18 @@ multiByteWrite(FreeImageIO &io, fi_handle handle, DWORD In) {
   while(k > 1) {
 	  k--;
 	  Out = (BYTE)(0x80 | (In >> 7*k) & 0xFF);
-	  io.write_proc(&Out, 1, 1, handle);
+	  io->write_proc(&Out, 1, 1, handle);
   }
 
   // Last byte to write
 
   Out = (BYTE)(In & 0x7F);
 
-  io.write_proc(&Out, 1, 1, handle);
+  io->write_proc(&Out, 1, 1, handle);
 }
 
 static void
-readExtHeader(FreeImageIO &io, fi_handle handle, BYTE b) {
+readExtHeader(FreeImageIO *io, fi_handle handle, BYTE b) {
     // Extension header fields
     // ------------------------
     // Read the extension header fields
@@ -158,8 +158,8 @@ readExtHeader(FreeImageIO &io, fi_handle handle, BYTE b) {
 			BYTE *Ident = (BYTE*)malloc(sizeParamIdent * sizeof(BYTE));
 			BYTE *Value = (BYTE*)malloc(sizeParamValue * sizeof(BYTE));
 		
-			io.read_proc(Ident, sizeParamIdent, 1, handle);
-			io.read_proc(Value, sizeParamValue, 1, handle);
+			io->read_proc(Ident, sizeParamIdent, 1, handle);
+			io->read_proc(Value, sizeParamValue, 1, handle);
 			
 			free(Ident);
 			free(Value);
@@ -209,10 +209,18 @@ MimeType() {
 	return "image/vnd.wap.wbmp";
 }
 
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return (
+			(depth == 1)
+		);
+}
+
+
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *dataa) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *dataa) {
 	WORD x, y, width, height;
 	FIBITMAP *dib;
     BYTE *bits;		// pointer to dib data
@@ -234,7 +242,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			// FixHeaderField
 
-			io.read_proc(&header.FixHeaderField, 1, 1, handle);
+			io->read_proc(&header.FixHeaderField, 1, 1, handle);
 
 			// ExtHeaderFields
 			// 1 = More will follow, 0 = Last octet
@@ -243,7 +251,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 				header.ExtHeaderFields = 0x80;
 
 				while(header.ExtHeaderFields & 0x80) {
-					io.read_proc(&header.ExtHeaderFields, 1, 1, handle);
+					io->read_proc(&header.ExtHeaderFields, 1, 1, handle);
 
 					readExtHeader(io, handle, header.ExtHeaderFields);
 				}
@@ -256,7 +264,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			// Allocate a new dib
 
-			dib = freeimage.allocate_proc(width, height, 1);
+			dib = freeimage->allocate_proc(width, height, 1);
 
 			if (!dib) {
 				throw "DIB allocation failed";
@@ -264,27 +272,27 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			// write the palette data
 
-			pal = freeimage.get_palette_proc(dib);
+			pal = freeimage->get_palette_proc(dib);
 			pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 0;
 			pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255;
 
 			// read the bitmap data
 			
-			int pitch = freeimage.get_pitch_proc(dib);
-			int line = freeimage.get_line_proc(dib);
+			int pitch = freeimage->get_pitch_proc(dib);
+			int line = freeimage->get_line_proc(dib);
 
 			for (y = 0; y < height; y++) {
-				bits = freeimage.get_scanline_proc(dib, height - 1 - y);
+				bits = freeimage->get_scanline_proc(dib, height - 1 - y);
 
 				for (x = 0; x < line; x++) {
-					io.read_proc(&bits[x], 1, 1, handle);
+					io->read_proc(&bits[x], 1, 1, handle);
 				}
 			}
 
 			return dib;
 
 		} catch(char *text)  {
-			freeimage.output_message_proc(s_format_id, text);
+			freeimage->output_message_proc(s_format_id, text);
 
 			return NULL;
 		}
@@ -295,12 +303,12 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 }
 
 static BOOL DLL_CALLCONV
-Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
+Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
     BYTE *bits;	// pointer to dib data
 
 	if ((dib) && (handle)) {
 		try {
-			if (freeimage.get_bpp_proc(dib) != 1)
+			if (freeimage->get_bpp_proc(dib) != 1)
 				throw "Only 1-bit depth bitmaps can be saved as WBMP";
 
 			// Write the header
@@ -308,30 +316,30 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 			WBMPHEADER header;
 			header.TypeField = 0;						// Type 0: B/W, no compression
 			header.FixHeaderField = 0;					// No ExtHeaderField
-			header.Width = freeimage.get_width_proc(dib);		// Image width
-			header.Height = freeimage.get_height_proc(dib);	// Image height
+			header.Width = freeimage->get_width_proc(dib);		// Image width
+			header.Height = freeimage->get_height_proc(dib);	// Image height
 
 			multiByteWrite(io, handle, header.TypeField);
 			
-			io.write_proc(&header.FixHeaderField, 1, 1, handle);
+			io->write_proc(&header.FixHeaderField, 1, 1, handle);
 
 			multiByteWrite(io, handle, header.Width);
 			multiByteWrite(io, handle, header.Height);
 
 			// write the bitmap data
 
-			WORD linelength = freeimage.get_line_proc(dib);
+			WORD linelength = freeimage->get_line_proc(dib);
 
 			for (WORD y = 0; y < header.Height; y++) {
-				bits = freeimage.get_scanline_proc(dib, header.Height - 1 - y);
+				bits = freeimage->get_scanline_proc(dib, header.Height - 1 - y);
 
-				io.write_proc(&bits[0], linelength, 1, handle);
+				io->write_proc(&bits[0], linelength, 1, handle);
 			}
 
 			return TRUE;
 
 		} catch (char* text) {
-			freeimage.output_message_proc(s_format_id, text);
+			freeimage->output_message_proc(s_format_id, text);
 		}
 	}
 
@@ -343,14 +351,15 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 // ==========================================================
 
 void DLL_CALLCONV
-InitWBMP(Plugin &plugin, int format_id) {
+InitWBMP(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.load_proc = Load;
-	plugin.save_proc = Save;
-	plugin.mime_proc = MimeType;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->load_proc = Load;
+	plugin->save_proc = Save;
+	plugin->mime_proc = MimeType;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

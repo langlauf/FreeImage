@@ -29,6 +29,21 @@
 // ----------------------------------------------------------
 
 FREE_IMAGE_FORMAT DLL_CALLCONV
+FreeImage_GetFileTypeFromHandle(FreeImageIO *io, fi_handle handle, int size) {
+	if (handle != NULL) {
+		int fif_count = FreeImage_GetFIFCount();
+
+		for (int i = 0; i < fif_count; ++i) {
+			if (FreeImage_Validate((FREE_IMAGE_FORMAT)i, io, handle)) {
+				return (FREE_IMAGE_FORMAT)i;
+			}
+		}
+	}
+
+	return FIF_UNKNOWN;
+}
+
+FREE_IMAGE_FORMAT DLL_CALLCONV
 FreeImage_GetFileType(const char *filename, int size) {
 	FreeImageIO io;
 	SetDefaultIO(&io);
@@ -44,21 +59,6 @@ FreeImage_GetFileType(const char *filename, int size) {
 	} else {
 		return FIF_UNKNOWN;
 	}
-}
-
-// ----------------------------------------------------------
-
-FREE_IMAGE_FORMAT DLL_CALLCONV
-FreeImage_GetFileTypeFromHandle(FreeImageIO *io, fi_handle handle, int size) {
-	if (handle != NULL) {
-		for (int i = FreeImage_GetFIFCount() - 1; i >= 0; --i) {
-			if (FreeImage_Validate((FREE_IMAGE_FORMAT)i, *io, handle)) {
-				return (FREE_IMAGE_FORMAT)i;
-			}
-		}
-	}
-
-	return FIF_UNKNOWN;
 }
 
 // ALIASES FOR BACKWARDS COMPATIBILITY ----------------------

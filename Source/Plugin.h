@@ -40,27 +40,27 @@ void DLL_CALLCONV FreeImage_OutputMessage(int fif, const char *message);
 //   Plugin validation
 // ==========================================================
 
-extern "C" { BOOL DLL_CALLCONV FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO &io, fi_handle handle); }
+extern "C" { BOOL DLL_CALLCONV FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle); }
 
 // ==========================================================
 //   Internal plugins
 // ==========================================================
 
-void DLL_CALLCONV InitBMP(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitICO(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitIFF(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitJPEG(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitKOALA(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitLBM(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitMNG(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitPCD(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitPCX(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitPNG(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitPNM(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitPSD(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitRAS(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitTARGA(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitTIFF(Plugin &plugin, int format_id);
-void DLL_CALLCONV InitWBMP(Plugin &plugin, int format_id);
+void DLL_CALLCONV InitBMP(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitICO(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitIFF(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitJPEG(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitKOALA(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitLBM(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitMNG(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitPCD(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitPCX(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitPNG(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitPNM(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitPSD(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitRAS(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitTARGA(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitTIFF(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitWBMP(Plugin *plugin, int format_id);
 
 #endif //!PLUGIN_H

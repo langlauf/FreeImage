@@ -3,26 +3,75 @@
 <pre>
 <h1>Build Log</h1>
 <h3>
+--------------------Configuration: FreeImage - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11C.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /I "Source" /I "Source\ZLib" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\Projects\FreeImage\SOURCE\FreeImage\PluginTIFF.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11C.tmp" 
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11D.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"Debug/FreeImaged.pdb" /debug /machine:I386 /out:"Debug/FreeImaged.dll" /implib:"Debug/FreeImaged.lib" /pdbtype:sept 
+.\Debug\Plugin.obj
+.\Debug\PluginBMP.obj
+.\Debug\PluginICO.obj
+.\Debug\PluginIFF.obj
+.\Debug\PluginJPEG.obj
+.\Debug\PluginKOALA.obj
+.\Debug\PluginMNG.obj
+.\Debug\PluginPCD.obj
+.\Debug\PluginPCX.obj
+.\Debug\PluginPNG.obj
+.\Debug\PluginPNM.obj
+.\Debug\PluginPSD.obj
+.\Debug\PluginRAS.obj
+.\Debug\PluginTARGA.obj
+.\Debug\PluginTIFF.obj
+.\Debug\PluginWBMP.obj
+.\Debug\Conversion.obj
+.\Debug\Conversion16_555.obj
+.\Debug\Conversion16_565.obj
+.\Debug\Conversion24.obj
+.\Debug\Conversion32.obj
+.\Debug\Conversion8.obj
+.\Debug\NNQuantizer.obj
+.\Debug\WuQuantizer.obj
+.\Debug\BitmapAccess.obj
+.\Debug\FreeImage.obj
+.\Debug\FreeImageC.obj
+.\Debug\FreeImageIO.obj
+.\Debug\GetType.obj
+.\Debug\LoadFunctions.obj
+.\Source\LibJPEG\Debug\LibJPEG.lib
+.\Source\LibPNG\Debug\LibPNG.lib
+.\Source\LibTIFF\Debug\LibTIFF.lib
+.\Source\ZLib\Debug\ZLib.lib
+.\Source\LibMNG\Debug\LibMNG.lib
+]
+Creating command line "link.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11D.tmp"
+<h3>Output Window</h3>
+Compiling...
+PluginTIFF.cpp
+Linking...
+Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11E.bat" with contents
+[
+@echo off
+copy Debug\FreeImaged.dll Dist
+copy Debug\FreeImaged.lib Dist
+copy Source\FreeImage.h Dist
+]
+Creating command line "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11E.bat"
+
+        1 bestand(en) gekopieerd.
+        1 bestand(en) gekopieerd.
+        1 bestand(en) gekopieerd.
+<h3>
 --------------------Configuration: Test - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP90.tmp" with contents
-[
-/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\\" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
-"C:\Projects\FreeImage\Source\Test\Test.cpp"
-]
-Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP90.tmp" 
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP91.tmp" with contents
-[
-kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib Imm32.lib Ws2_32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/Test.pdb" /debug /machine:I386 /out:"Debug/Test.exe" /pdbtype:sept 
-.\Debug\Test.obj
-\Projects\FreeImage\Debug\FreeImaged.lib
-]
-Creating command line "link.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP91.tmp"
-<h3>Output Window</h3>
-Compiling...
-Test.cpp
-Linking...
 
 
 

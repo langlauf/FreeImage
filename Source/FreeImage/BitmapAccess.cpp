@@ -36,8 +36,10 @@ FI_STRUCT (FREEIMAGEHEADER) {
 	unsigned blue_mask;
 	BOOL transparent;
 	BYTE transparency_count;
-	BYTE transparent_table[256];
-	BYTE filler[3];
+	BYTE transparent_table[256]; // why another table? for easy transparency table retrieval!
+	BYTE filler[3];              // transparency could be stored in the palette, which is better
+	                             // overall, but it requires quite some changes and it will render
+	                             // FreeImage_GetTransparencyTable obsolete in its current form;
 };
 
 // ----------------------------------------------------------
@@ -50,7 +52,7 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 		height = abs(height);
 
 		int dib_size = sizeof(FREEIMAGEHEADER) + sizeof(BITMAPINFOHEADER);
-		dib_size += sizeof(RGBQUAD) * CalculateUsedColors(bpp);
+		dib_size += sizeof(RGBQUAD) * CalculateUsedPaletteEntries(bpp);
 		dib_size += CalculatePitch(CalculateLine(width, bpp)) * height;
 
 		bitmap->data = (BYTE *)malloc(dib_size);
@@ -76,7 +78,7 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 			bih->biPlanes           = 1;
 			bih->biCompression      = 0;
 			bih->biBitCount         = bpp;
-			bih->biClrUsed          = CalculateUsedColors(bpp);
+			bih->biClrUsed          = CalculateUsedPaletteEntries(bpp);
 			bih->biClrImportant     = bih->biClrUsed;
 
 			return bitmap;
@@ -268,12 +270,14 @@ FreeImage_GetColorsUsed(FIBITMAP *dib) {
 
 BYTE * DLL_CALLCONV
 FreeImage_GetBits(FIBITMAP *dib) {
-	return dib ? ((BYTE *)FreeImage_GetInfoHeader(dib) + sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * FreeImage_GetInfoHeader(dib)->biClrUsed) : NULL;
+	return dib ? ((BYTE *)FreeImage_GetInfoHeader(dib) + sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * FreeImage_GetColorsUsed(dib)) : NULL;
 }
 
 BYTE * DLL_CALLCONV
 FreeImage_GetBitsRowCol(FIBITMAP *dib, int col, int row) {
 	if (dib) {
+		// why do i calculate this width? it's not used anywhere else!
+
 		int width = FreeImage_GetWidth(dib);
 
 		if (FreeImage_GetBPP(dib) == 4)

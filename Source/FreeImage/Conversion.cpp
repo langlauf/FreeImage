@@ -114,14 +114,14 @@ FreeImage_ConvertToRawBits(BYTE *bits, FIBITMAP *dib, int pitch, unsigned bpp, u
 				// convert 555 to 565 or vice versa
 
 				if ((red_mask == 0x7C00) && (green_mask == 0x3E0) && (blue_mask == 0x1F)) {
-					if ((FreeImage_GetRedMask(dib) == 0xF800) && (FreeImage_GetGreenMask(dib) == 0x7E0) && (FreeImage_GetBlueMask(dib) == 0x1F)) {
-						FreeImage_ConvertLine16_555_To16_565(bits, scanline, FreeImage_GetWidth(dib));
+					if ((FreeImage_GetRedMask(dib) == 0x1F) && (FreeImage_GetGreenMask(dib) == 0x7E0) && (FreeImage_GetBlueMask(dib) == 0xF800)) {
+						FreeImage_ConvertLine16_565_To16_555(bits, scanline, FreeImage_GetWidth(dib));
 					} else {
 						memcpy(bits, scanline, FreeImage_GetLine(dib));
 					}
 				} else {
-					if ((FreeImage_GetRedMask(dib) == 0x7C00) && (FreeImage_GetGreenMask(dib) == 0x3E0) && (FreeImage_GetBlueMask(dib) == 0x1F)) {
-						FreeImage_ConvertLine16_565_To16_555(bits, scanline, FreeImage_GetWidth(dib));
+					if ((FreeImage_GetRedMask(dib) == 0x1F) && (FreeImage_GetGreenMask(dib) == 0x3E0) && (FreeImage_GetBlueMask(dib) == 0x7C00)) {
+						FreeImage_ConvertLine16_555_To16_565(bits, scanline, FreeImage_GetWidth(dib));
 					} else {
 						memcpy(bits, scanline, FreeImage_GetLine(dib));
 					}

@@ -108,26 +108,32 @@ RegExpr() {
 }
 
 static BOOL DLL_CALLCONV
-Validate(FreeImageIO &io, fi_handle handle) {
+Validate(FreeImageIO *io, fi_handle handle) {
 	BYTE koala_signature[] = { 0x00, 0x60 };
 	BYTE signature[2] = { 0, 0 };
 
-	int items_read = io.read_proc(signature, 1, sizeof(koala_signature), handle);
+	io->read_proc(signature, 1, sizeof(koala_signature), handle);
 
 	return (memcmp(koala_signature, signature, sizeof(koala_signature)) == 0);
+}
+
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return FALSE;
 }
 
 // ----------------------------------------------------------
 
 FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle) {
 		koala_t image;
 
 		// read the load address
 
 		unsigned char load_address[2];  // highbit, lowbit
-		io.read_proc(&load_address, 1, 2, handle);
+
+		io->read_proc(&load_address, 1, 2, handle);
 
 		// if the load address is correct, skip it. otherwise ignore the load address
 
@@ -135,19 +141,19 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			((BYTE *)&image)[0] = load_address[0];
 			((BYTE *)&image)[1] = load_address[1];
 
-			io.read_proc((BYTE *)&image + 2, 1, 10001 - 2, handle);
+			io->read_proc((BYTE *)&image + 2, 1, 10001 - 2, handle);
 		} else {
-			io.read_proc(&image, 1, 10001, handle);
+			io->read_proc(&image, 1, 10001, handle);
 		}		
 
 		// build DIB in memory
 
-		FIBITMAP *dib = freeimage.allocate_proc(CBM_WIDTH, CBM_HEIGHT, 4);
+		FIBITMAP *dib = freeimage->allocate_proc(CBM_WIDTH, CBM_HEIGHT, 4);
 
 		if (dib) {
 			// write out the commodore 64 color palette
 
-			RGBQUAD *palette = freeimage.get_palette_proc(dib);
+			RGBQUAD *palette = freeimage->get_palette_proc(dib);
 
 			for (int i = 0; i < 16; i++) {
 				palette[i].rgbBlue = c64colours[i].b;
@@ -190,7 +196,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 							break;
 					};
 
-					*(freeimage.get_scanline_proc(dib, CBM_HEIGHT - y - 1) + x) = (found_color << 4) | found_color;
+					*(freeimage->get_scanline_proc(dib, CBM_HEIGHT - y - 1) + x) = (found_color << 4) | found_color;
 				}
 			}
 
@@ -206,13 +212,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 // ==========================================================
 
 void DLL_CALLCONV
-InitKOALA(Plugin &plugin, int format_id) {
+InitKOALA(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.load_proc = Load;
-	plugin.validate_proc = Validate;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->load_proc = Load;
+	plugin->validate_proc = Validate;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

@@ -6,6 +6,7 @@
 // - Jani Kajala (janik@remedy.fi)
 // - Markus Loibl (markus.loibl@epost.de)
 // - Hervé Drolon (drolon@infonie.fr)
+// - Juergen Riecker (j.riecker@gmx.de)
 //
 // This file is part of FreeImage 2
 //
@@ -28,6 +29,8 @@
 // ----------------------------------------------------------
 //   Constants + headers
 // ----------------------------------------------------------
+
+#define IO_BUF_SIZE	2048
 
 #ifdef WIN32
 #pragma pack(push, 1)
@@ -67,7 +70,7 @@ typedef struct tagPCXHEADER {
 // ==========================================================
 
 static WORD
-readline(FreeImageIO &io, fi_handle handle, BYTE *buffer, WORD length, BOOL rle) {
+readline(FreeImageIO &io, fi_handle handle, BYTE *buffer, WORD length, BOOL rle, BYTE * ReadBuf, int * ReadPos) {
 	// -----------------------------------------------------------//
 	// Read either run-length encoded or normal image data        //
 	//                                                            //
@@ -90,11 +93,28 @@ readline(FreeImageIO &io, fi_handle handle, BYTE *buffer, WORD length, BOOL rle)
 
 		while (length--) {
 			if (count == 0) {
-				io.read_proc(&value, 1, 1, handle);
+				if (*ReadPos >= IO_BUF_SIZE - 1 ) {
+					if (*ReadPos == IO_BUF_SIZE - 1) {
+						// we still have one BYTE, copy it to the start pos
+
+						*ReadBuf = ReadBuf[IO_BUF_SIZE - 1];
+
+						io.read_proc(ReadBuf + 1, 1, IO_BUF_SIZE - 1, handle);
+					} else {
+						// read the complete buffer
+
+						io.read_proc(ReadBuf, 1, IO_BUF_SIZE, handle);
+					}
+
+					*ReadPos = 0;
+				}
+
+				value = *(ReadBuf + (*ReadPos)++);
 
 				if ((value & 0xC0) == 0xC0) {
 					count = value & 0x3F;
-					io.read_proc(&value, 1, 1, handle);
+
+					value = *(ReadBuf + (*ReadPos)++);		// $JR
 				} else {
 					count = 1;
 				}
@@ -104,6 +124,7 @@ readline(FreeImageIO &io, fi_handle handle, BYTE *buffer, WORD length, BOOL rle)
 
 			*(buffer + written++) = value;
 		}
+
 	} else {
 		// normal read
 
@@ -144,19 +165,24 @@ RegExpr() {
 }
 
 static BOOL DLL_CALLCONV
-Validate(FreeImageIO &io, fi_handle handle) {
+Validate(FreeImageIO *io, fi_handle handle) {
 	BYTE pcx_signature = 0x0A;
 	BYTE signature = 0;
 
-	io.read_proc(&signature, 1, 1, handle);
+	io->read_proc(&signature, 1, 1, handle);
 
 	return (pcx_signature == signature);
+}
+
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return FALSE;
 }
 
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	FIBITMAP *dib = NULL;
 	BYTE *bits;			// Pointer to dib data
 	RGBQUAD *pal;		// Pointer to dib palette
@@ -171,7 +197,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			PCXHEADER header;
 
-			io.read_proc(&header, sizeof(PCXHEADER), 1, handle);
+			io->read_proc(&header, sizeof(PCXHEADER), 1, handle);
 
 			// check PCX identifier
 
@@ -185,9 +211,9 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			WORD bitcount = header.bpp * header.planes;
 
 			if (bitcount == 24)
-				dib = freeimage.allocate_proc(width, height, bitcount, 0xFF, 0xFF00, 0xFF0000);
+				dib = freeimage->allocate_proc(width, height, bitcount, 0xFF, 0xFF00, 0xFF0000);
 			else
-				dib = freeimage.allocate_proc(width, height, bitcount);			
+				dib = freeimage->allocate_proc(width, height, bitcount);			
 
 			// if the dib couldn't be allocated, throw an error
 
@@ -196,7 +222,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			// metrics handling code
 
-			BITMAPINFOHEADER *pInfoHeader = freeimage.get_info_header_proc(dib);
+			BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 			pInfoHeader->biXPelsPerMeter = (int) (((float)header.hdpi) / 0.0254000 + 0.5);
 			pInfoHeader->biYPelsPerMeter = (int) (((float)header.vdpi) / 0.0254000 + 0.5);
 
@@ -206,7 +232,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			switch(bitcount) {
 				case 1:
 				{
-					pal = freeimage.get_palette_proc(dib);
+					pal = freeimage->get_palette_proc(dib);
 					pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 0;
 					pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255;
 					break;
@@ -214,7 +240,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				case 4:
 				{
-					pal = freeimage.get_palette_proc(dib);
+					pal = freeimage->get_palette_proc(dib);
 
 					BYTE *pColormap = &header.color_map[0];
 
@@ -232,14 +258,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 				{
 					BYTE palette_id;
 
-					io.seek_proc(handle, -769L, SEEK_END);
-					io.read_proc(&palette_id, 1, 1, handle);
+					io->seek_proc(handle, -769L, SEEK_END);
+					io->read_proc(&palette_id, 1, 1, handle);
 
 					if (palette_id == 0x0C) {
 						BYTE *cmap = (BYTE*)malloc(768 * sizeof(BYTE));
-						io.read_proc(cmap, 768, 1, handle);
+						io->read_proc(cmap, 768, 1, handle);
 
-						pal = freeimage.get_palette_proc(dib);
+						pal = freeimage->get_palette_proc(dib);
 						BYTE *pColormap = &cmap[0];
 
 						for(int i = 0; i < 256; i++) {
@@ -255,7 +281,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					// wrong palette ID, perhaps a gray scale is needed ?
 
 					else if (header.palette_info == 2) {
-						pal = freeimage.get_palette_proc(dib);
+						pal = freeimage->get_palette_proc(dib);
 
 						for(int i = 0; i < 256; i++) {
 							pal[i].rgbRed   = i;
@@ -264,7 +290,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						}
 					}
 
-					io.seek_proc(handle, (long)sizeof(PCXHEADER), SEEK_SET);
+					io->seek_proc(handle, (long)sizeof(PCXHEADER), SEEK_SET);
 				}
 				break;
 			}
@@ -272,7 +298,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			// calculate the line length for the PCX and the DIB
 
 			linelength = header.bytes_per_line * header.planes;
-			pitch = freeimage.get_pitch_proc(dib);
+			pitch = freeimage->get_pitch_proc(dib);
 
 			// run-length encoding ?
 
@@ -282,32 +308,39 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			// ---------------
 
 			line = (BYTE*) malloc(linelength * sizeof(BYTE));
-			bits = freeimage.get_scanline_proc(dib, height - 1);
+			bits = freeimage->get_scanline_proc(dib, height - 1);
+
+			BYTE * ReadBuf = (BYTE*) malloc( IO_BUF_SIZE * sizeof(BYTE));
+			int ReadPos = IO_BUF_SIZE;
 
 			if ((header.planes == 1) && ((header.bpp == 1) || (header.bpp == 8))) {
 				BYTE skip;
 				WORD written;
 
 				for (WORD y = 0; y < height; y++) {
-					written = readline(io, handle, line, linelength, rle);
-					memcpy(bits, line, linelength);
+					written = readline(*io, handle, bits, linelength, rle, ReadBuf, &ReadPos);
 
 					// skip trailing garbage at the end of the scanline
 
-					for (int count = written; count < linelength; count++)
-						io.read_proc(&skip, sizeof(BYTE), 1, handle);					
+					for (int count = written; count < linelength; count++) {
+						if (ReadPos < IO_BUF_SIZE) {
+							ReadPos++;
+						} else {
+							io->read_proc(&skip, sizeof(BYTE), 1, handle);
+						}
+					}
 
 					bits -= pitch;
 				}
-			}
-			else if ((header.planes == 4) && (header.bpp == 1)) {
+			} else if ((header.planes == 4) && (header.bpp == 1)) {
 				BYTE bit, index, mask, skip;
 				BYTE *buffer;
 				WORD x, y, written;
+
 				buffer = (BYTE*)malloc(width * sizeof(BYTE));
 
 				for (y = 0; y < height; y++) {
-					written = readline(io, handle, line, linelength, rle);
+					written = readline(*io, handle, line, linelength, rle, ReadBuf, &ReadPos);
 
 					// build a nibble using the 4 planes
 
@@ -316,7 +349,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					for(int plane = 0; plane < 4; plane++) {
 						bit = 1 << plane;
 
-						for(x = 0; x < width; x++) {
+						for (x = 0; x < width; x++) {
 							index = (x / 8) + plane * header.bytes_per_line;
 							mask = 0x80 >> (x & 0x07);
 							buffer[x] |= (line[index] & mask) ? bit : 0;
@@ -330,8 +363,13 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 					// skip trailing garbage at the end of the scanline
 
-					for (int count = written; count < linelength; count++)
-						io.read_proc(&skip, sizeof(BYTE), 1, handle);
+					for (int count = written; count < linelength; count++) {
+						if( ReadPos < IO_BUF_SIZE ) {
+							ReadPos++;
+						} else {
+							io->read_proc(&skip, sizeof(BYTE), 1, handle);
+						}
+					}
 
 					bits -= pitch;
 				}
@@ -341,7 +379,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 				BYTE *pline;
 
 				for (WORD y = 0; y < height; y++) {
-					readline(io, handle, line, linelength, rle);
+					readline(*io, handle, line, linelength, rle, ReadBuf, &ReadPos);
 
 					// convert the plane stream to BGR (RRRRGGGGBBBB -> BGRBGRBGRBGR)
 
@@ -361,18 +399,19 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			}
 
 			free(line);
+			free(ReadBuf);
 			return dib;
 
 		} catch (char *text) {
 			// free allocated memory
 
 			if (dib != NULL)
-				freeimage.free_proc(dib);
+				freeimage->free_proc(dib);
 
 			if (line != NULL)
 				free(line);
 
-			freeimage.output_message_proc(s_format_id, text);
+			freeimage->output_message_proc(s_format_id, text);
 
 			return NULL;
 		}
@@ -386,13 +425,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 // ==========================================================
 
 void DLL_CALLCONV
-InitPCX(Plugin &plugin, int format_id) {
+InitPCX(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.validate_proc = Validate;
-	plugin.regexpr_proc = RegExpr;
-	plugin.load_proc = Load;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->validate_proc = Validate;
+	plugin->regexpr_proc = RegExpr;
+	plugin->load_proc = Load;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

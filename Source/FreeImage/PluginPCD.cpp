@@ -58,10 +58,10 @@ YUV2RGB(int y, int cb, int cr, int &r, int &g, int &b) {
 }
 
 static BOOL
-VerticalOrientation(FreeImageIO &io, fi_handle handle) {
+VerticalOrientation(FreeImageIO *io, fi_handle handle) {
 	char buffer[128];
 
-	io.read_proc(buffer, 128, 1, handle);
+	io->read_proc(buffer, 128, 1, handle);
 
 	return (buffer[72] & 63) == 8;
 }
@@ -96,10 +96,15 @@ RegExpr() {
 	return NULL;
 }
 
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return FALSE;
+}
+
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	int width;
 	int height;
 	int line;
@@ -110,7 +115,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 	// to make absolute seeks possible we store the current position in the file
 	
-	long offset_in_file = io.tell_proc(handle);
+	long offset_in_file = io->tell_proc(handle);
 	long seek;
 
 	switch (flags) {
@@ -141,7 +146,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 	// allocate the dib and write out the header
 
-	FIBITMAP *dib = freeimage.allocate_proc(width, height, bpp, 0xFF, 0xFF00, 0xFF0000);
+	FIBITMAP *dib = freeimage->allocate_proc(width, height, bpp, 0xFF, 0xFF00, 0xFF0000);
 	
 	// check if the PCD is bottom-up
 
@@ -159,15 +164,15 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 	// seek to the part where the bitmap data begins
 
-	io.seek_proc(handle, offset_in_file, SEEK_SET);
-	io.seek_proc(handle, seek, SEEK_CUR);
+	io->seek_proc(handle, offset_in_file, SEEK_SET);
+	io->seek_proc(handle, seek, SEEK_CUR);
 
 	// read the data
 
 	for (int y = 0; y < height / 2; ++y) {
-		io.read_proc(y1, width, 1, handle);
-		io.read_proc(y2, width, 1, handle);
-		io.read_proc(cbcr, width, 1, handle);
+		io->read_proc(y1, width, 1, handle);
+		io->read_proc(y2, width, 1, handle);
+		io->read_proc(cbcr, width, 1, handle);
 
 		for (int i = 0; i < 2; ++i) {
 			for (int x = 0; x < width; ++x) {
@@ -175,9 +180,9 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				YUV2RGB(yl[i][x], cbcr[x / 2], cbcr[(width / 2) + (x / 2)], r, g, b);
 
-				*(freeimage.get_scanline_proc(dib, start_scan_line) + (x * 3) + 0) = b;
-				*(freeimage.get_scanline_proc(dib, start_scan_line) + (x * 3) + 1) = g;
-				*(freeimage.get_scanline_proc(dib, start_scan_line) + (x * 3) + 2) = r;
+				*(freeimage->get_scanline_proc(dib, start_scan_line) + (x * 3) + 0) = b;
+				*(freeimage->get_scanline_proc(dib, start_scan_line) + (x * 3) + 1) = g;
+				*(freeimage->get_scanline_proc(dib, start_scan_line) + (x * 3) + 2) = r;
 			}
 
 			start_scan_line += scan_line_add;
@@ -196,12 +201,13 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 // ==========================================================
 
 void DLL_CALLCONV
-InitPCD(Plugin &plugin, int format_id) {
+InitPCD(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.load_proc = Load;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->load_proc = Load;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

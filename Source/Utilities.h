@@ -84,10 +84,11 @@ CalculatePitch(int line) {
 }
 
 inline int
-CalculateUsedColors(int bitcount) {
-	int c = 1 << bitcount;
+CalculateUsedPaletteEntries(int bit_count) {
+	if ((bit_count >= 1) && (bit_count <= 8))
+		return 1 << bit_count;
 
-	return ((c <= 256) && (c > 1)) ? c : 0;
+	return 0;
 }
 
 inline unsigned char *

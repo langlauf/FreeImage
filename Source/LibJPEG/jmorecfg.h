@@ -10,6 +10,7 @@
  * optimizations.  Most users will not need to touch this file.
  */
 
+#pragma warning (disable : 4142)
 
 /*
  * Define BITS_IN_JSAMPLE as either

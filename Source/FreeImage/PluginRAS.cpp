@@ -106,7 +106,7 @@ SwapLong(DWORD *lp) {
 }
 
 static void
-ReadData(FreeImageIO &io, fi_handle handle, BYTE *buf, DWORD length, BOOL rle) {
+ReadData(FreeImageIO *io, fi_handle handle, BYTE *buf, DWORD length, BOOL rle) {
 	// Read either Run-Length Encoded or normal image data
 
 	static BYTE repchar, remaining= 0;
@@ -119,15 +119,15 @@ ReadData(FreeImageIO &io, fi_handle handle, BYTE *buf, DWORD length, BOOL rle) {
 				remaining--;
 				*(buf++)= repchar;
 			} else {
-				io.read_proc(&repchar, 1, 1, handle);
+				io->read_proc(&repchar, 1, 1, handle);
 
 				if (repchar == RESC) {
-					io.read_proc(&remaining, 1, 1, handle);
+					io->read_proc(&remaining, 1, 1, handle);
 
 					if (remaining == 0) {
 						*(buf++)= RESC;
 					} else {
-						io.read_proc(&repchar, 1, 1, handle);
+						io->read_proc(&repchar, 1, 1, handle);
 
 						*(buf++)= repchar;
 					}
@@ -139,7 +139,7 @@ ReadData(FreeImageIO &io, fi_handle handle, BYTE *buf, DWORD length, BOOL rle) {
 	} else {
 		// Normal read
 	
-		io.read_proc(buf, length, 1, handle);
+		io->read_proc(buf, length, 1, handle);
 	}
 }
 
@@ -174,19 +174,24 @@ RegExpr() {
 }
 
 static BOOL DLL_CALLCONV
-Validate(FreeImageIO &io, fi_handle handle) {
+Validate(FreeImageIO *io, fi_handle handle) {
 	BYTE ras_signature[] = { 0x59, 0xA6, 0x6A, 0x95 };
 	BYTE signature[4] = { 0, 0, 0, 0 };
 
-	io.read_proc(signature, 1, sizeof(ras_signature), handle);
+	io->read_proc(signature, 1, sizeof(ras_signature), handle);
 
 	return (memcmp(ras_signature, signature, sizeof(ras_signature)) == 0);
+}
+
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return FALSE;
 }
 
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	Sun_Header header;	// Sun file header
 	WORD linelength;	// Length of raster line in bytes
 	WORD fill;			// Number of fill bytes per raster line
@@ -202,7 +207,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 		try {
 			// Read SUN raster header
 
-			io.read_proc(&header, sizeof(Sun_Header), 1, handle);
+			io->read_proc(&header, sizeof(Sun_Header), 1, handle);
 
 			// SUN rasterfiles are big endian only
 
@@ -225,12 +230,12 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			switch(header.depth) {
 				case 1:
 				case 8:
-					dib = freeimage.allocate_proc(header.width, header.height, header.depth);
+					dib = freeimage->allocate_proc(header.width, header.height, header.depth);
 					break;
 
 				case 24:
 				case 32:
-					dib = freeimage.allocate_proc(header.width, header.height, header.depth, 0xFF, 0xFF00, 0xFF0000);
+					dib = freeimage->allocate_proc(header.width, header.height, header.depth, 0xFF, 0xFF00, 0xFF0000);
 					break;
 			}
 
@@ -270,7 +275,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					if (header.depth < 24) {
 						// Create linear color ramp
 
-						RGBQUAD *pal = freeimage.get_palette_proc(dib);
+						RGBQUAD *pal = freeimage->get_palette_proc(dib);
 
 						int numcolors = 1 << header.depth;
 
@@ -296,9 +301,9 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					g = r + numcolors;
 					b = g + numcolors;
 
-					RGBQUAD *pal = freeimage.get_palette_proc(dib);
+					RGBQUAD *pal = freeimage->get_palette_proc(dib);
 
-					io.read_proc(r, 3 * numcolors, 1, handle);
+					io->read_proc(r, 3 * numcolors, 1, handle);
 
 					for (int i = 0; i < numcolors; i++) {
 						pal[i].rgbRed	= r[i];
@@ -318,7 +323,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 					colormap = (BYTE *)malloc(header.maplength * sizeof(BYTE));
 
-					io.read_proc(colormap, header.maplength, 1, handle);
+					io->read_proc(colormap, header.maplength, 1, handle);
 
 					free(colormap);
 					break;
@@ -335,7 +340,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			fill = (linelength % 2) ? 1 : 0;
 
-			int pitch = freeimage.get_pitch_proc(dib);
+			int pitch = freeimage->get_pitch_proc(dib);
 
 			// Read the image data
 			
@@ -343,7 +348,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 				case 1:
 				case 8:
 				{
-					bits = freeimage.get_bits_proc(dib) + (header.height - 1) * pitch;
+					bits = freeimage->get_bits_proc(dib) + (header.height - 1) * pitch;
 
 					for (y = 0; y < header.height; y++) {
 						ReadData(io, handle, bits, linelength, rle);
@@ -364,7 +369,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					buf = (BYTE*)malloc(header.width * 3);
 
 					for (y = 0; y < header.height; y++) {
-						bits = freeimage.get_bits_proc(dib) + (header.height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (header.height - 1 - y) * pitch;
 
 						ReadData(io, handle, buf, header.width * 3, rle);
 
@@ -403,7 +408,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					buf = (BYTE*)malloc(header.width * 4);
 
 					for (y = 0; y < header.height; y++) {
-						bits = freeimage.get_bits_proc(dib) + (header.height - 1 - y) * pitch;
+						bits = freeimage->get_bits_proc(dib) + (header.height - 1 - y) * pitch;
 
 						ReadData(io, handle, buf, header.width * 4, rle);
 
@@ -443,7 +448,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			return dib;
 
 		} catch (char *text) {
-			freeimage.output_message_proc(s_format_id, text);
+			freeimage->output_message_proc(s_format_id, text);
 	
 			return NULL;
 		}
@@ -458,13 +463,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 // ==========================================================
 
 void DLL_CALLCONV
-InitRAS(Plugin &plugin, int format_id) {
+InitRAS(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.load_proc = Load;
-	plugin.validate_proc = Validate;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->load_proc = Load;
+	plugin->validate_proc = Validate;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

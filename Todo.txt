@@ -1,4 +1,19 @@
 What's there to do for FreeImage
 
+Short term development:
 * add a movie plugin (DirectShow based)
 * start using c++ (stl) instead of c, since most things are now c++ anyway
+* add paint shop pro support
+* add support for more bpps (e.g. 64-bit)
+* add support for bitmap paging
+* add meta data (e.g. EXIF) import/export support
+
+Long term development (3.0):
+* streamline the current API and make it more OO-like
+* reconsider the internal memory layout of FIBITMAPS
+* come up with a 'feature abstraction framework' to be able to plug
+  new features in without having to deal with the internals of those
+  features. features should be mixable and batchable.
+* re-add FreeEffects as part of the feature abstraction framework
+* add low level drawing routines (circle, line, etc) and truetype
+  font support as part of the feature abstraction framework

@@ -26,7 +26,7 @@
 
 // ----------------------------------------------------------
 
-#define RGB565(r, g, b) (((r) >> 3) | (((g) >> 2) << 5) | (((b) >> 3) << 11))
+#define RGB565(b, g, r) (((b) >> 3) | (((g) >> 2) << 5) | (((r) >> 3) << 11))
 
 // ----------------------------------------------------------
 //  internal conversions X to 16 bits (565)
@@ -77,16 +77,13 @@ FreeImage_ConvertLine8To16_565(BYTE *target, BYTE *source, int width_in_pixels, 
 
 void DLL_CALLCONV
 FreeImage_ConvertLine16_555_To16_565(BYTE *target, BYTE *source, int width_in_pixels) {
+	WORD *src_bits = (WORD *)source;
 	WORD *new_bits = (WORD *)target;
 
 	for (int cols = 0; cols < width_in_pixels; cols++) {
-		RGBQUAD quad;
-
-		quad.rgbBlue = (((source[cols] & 0xF800) >> 11) * 0xFF) / 0x1F;
-		quad.rgbGreen = (((source[cols] & 0x7E0) >> 5) * 0xFF) / 0x3F;
-		quad.rgbRed = ((source[cols] & 0x1F) * 0xFF) / 0x1F;
-
-		new_bits[cols] = RGB565(quad.rgbBlue, quad.rgbGreen, quad.rgbRed);
+		new_bits[cols] = RGB565(((src_bits[cols] & 0x1F) * 0xFF) / 0x1F,
+			                    (((src_bits[cols] & 0x3E0) >> 5) * 0xFF) / 0x1F,
+								(((src_bits[cols] & 0x7C00) >> 10) * 0xFF) / 0x1F);
 	}
 }
 

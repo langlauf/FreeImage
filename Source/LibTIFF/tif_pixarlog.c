@@ -22,6 +22,10 @@
  * OF THIS SOFTWARE.
  */
 
+#pragma warning (disable : 4018)
+#pragma warning (disable : 4101)
+#pragma warning (disable : 4244)
+
 #include "tiffiop.h"
 #ifdef PIXARLOG_SUPPORT
 
@@ -85,8 +89,8 @@
  */
 
 #include "tif_predict.h"
-#include "zlib.h"
-#include "zutil.h"
+#include "../zlib/zlib.h"
+#include "../zlib/zutil.h"
 
 #include <stdio.h>
 #include <assert.h>

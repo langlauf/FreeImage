@@ -125,11 +125,12 @@ PluginList::AddNode(FI_InitProc init_proc, void *instance, const char *format, c
 	if (init_proc != NULL) {
 		PluginNode *node = new PluginNode;
 		Plugin *plugin = new Plugin;
+
 		memset(plugin, 0, sizeof(Plugin));
 
 		// fill-in the plugin structure
 
-		init_proc(*plugin, m_plugin_map.size());
+		init_proc(plugin, m_plugin_map.size());
 
 		// get the format string (two possible ways)
 
@@ -227,7 +228,7 @@ PluginList::~PluginList() {
 		if ((*i).second->m_instance != NULL)
 			FreeLibrary((HINSTANCE)(*i).second->m_instance);
 #endif
-		delete (*i).second->m_plugin; /*CORRECTED*/
+		delete (*i).second->m_plugin;
 		delete ((*i).second);
 	}
 }
@@ -394,16 +395,16 @@ FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handl
 				FIBITMAP *bitmap = NULL;
 
 				if (node->m_plugin->open_proc != NULL) {
-					void *data = node->m_plugin->open_proc(*io, handle, TRUE);
+					void *data = node->m_plugin->open_proc(io, handle, TRUE);
 
-					bitmap = node->m_plugin->load_proc(s_freeimage, *io, handle, -1, flags, data);
+					bitmap = node->m_plugin->load_proc(&s_freeimage, io, handle, -1, flags, data);
 
 					if (node->m_plugin->close_proc != NULL)
-						node->m_plugin->close_proc(*io, handle, data);
+						node->m_plugin->close_proc(io, handle, data);
 
 					return bitmap;
 				} else {
-					return node->m_plugin->load_proc(s_freeimage, *io, handle, -1, flags, NULL);
+					return node->m_plugin->load_proc(&s_freeimage, io, handle, -1, flags, NULL);
 				}
 			}
 		}
@@ -440,14 +441,14 @@ FreeImage_SaveToHandle(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, FreeImageIO *io, fi
 				BOOL result = FALSE;
 
 				if (node->m_plugin->open_proc != NULL) {
-					void *data = node->m_plugin->open_proc(*io, handle, FALSE);
+					void *data = node->m_plugin->open_proc(io, handle, FALSE);
 
-					result = node->m_plugin->save_proc(s_freeimage, *io, dib, handle, -1, flags, data);
+					result = node->m_plugin->save_proc(&s_freeimage, io, dib, handle, -1, flags, data);
 
 					if (node->m_plugin->close_proc != NULL)
-						node->m_plugin->close_proc(*io, handle, data);				
+						node->m_plugin->close_proc(io, handle, data);				
 				} else {
-					result = node->m_plugin->save_proc(s_freeimage, *io, dib, handle, -1, flags, NULL);
+					result = node->m_plugin->save_proc(&s_freeimage, io, dib, handle, -1, flags, NULL);
 				}
 
 				return result;
@@ -464,7 +465,7 @@ FreeImage_Save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, const char *filename, int f
 	FreeImageIO io;
 	SetDefaultIO(&io);
 	
-	FILE *handle = fopen(filename, "wb");
+	FILE *handle = fopen(filename, "w+b");
 	
 	if (handle) {
 		BOOL success = FreeImage_SaveToHandle(fif, dib, &io, (fi_handle)handle, flags);
@@ -614,7 +615,7 @@ FreeImage_FIFSupportsReading(FREE_IMAGE_FORMAT fif) {
 	if (s_plugins != NULL) {
 		PluginNode *node = s_plugins->FindNodeFromFIF(fif);
 
-		return (node != NULL) ? (node->m_enabled) ? node->m_plugin->load_proc != NULL : FALSE : FALSE;
+		return (node != NULL) ? node->m_plugin->load_proc != NULL : FALSE;
 	}
 
 	return FALSE;
@@ -625,7 +626,18 @@ FreeImage_FIFSupportsWriting(FREE_IMAGE_FORMAT fif) {
 	if (s_plugins != NULL) {
 		PluginNode *node = s_plugins->FindNodeFromFIF(fif);
 
-		return (node != NULL) ? (node->m_enabled) ? node->m_plugin->save_proc != NULL : FALSE : FALSE;
+		return (node != NULL) ? node->m_plugin->save_proc != NULL : FALSE ;
+	}
+
+	return FALSE;
+}
+
+BOOL DLL_CALLCONV
+FreeImage_FIFSupportsExportBPP(FREE_IMAGE_FORMAT fif, int depth) {
+	if (s_plugins != NULL) {
+		PluginNode *node = s_plugins->FindNodeFromFIF(fif);
+
+		return (node != NULL) ? (node->m_plugin->supports_export_bpp_proc != NULL) ? node->m_plugin->supports_export_bpp_proc(depth) : FALSE : FALSE;
 	}
 
 	return FALSE;
@@ -692,18 +704,18 @@ FreeImage_GetFIFFromFilename(const char *filename) {
 }
 
 BOOL DLL_CALLCONV
-FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO &io, fi_handle handle) {
+FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle) {
 	if (s_plugins != NULL) {
 		BOOL validated = FALSE;
 
 		PluginNode *node = s_plugins->FindNodeFromFIF(fif);
 
 		if (node) {
-			long tell = io.tell_proc(handle);
+			long tell = io->tell_proc(handle);
 
 			validated = (node != NULL) ? (node->m_enabled) ? (node->m_plugin->validate_proc != NULL) ? node->m_plugin->validate_proc(io, handle) : FALSE : FALSE : FALSE;
 
-			io.seek_proc(handle, tell, SEEK_SET);
+			io->seek_proc(handle, tell, SEEK_SET);
 		}
 
 		return validated;

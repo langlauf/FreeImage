@@ -30,14 +30,14 @@
 
 #define BP_START(DIB, WIDTH, HEIGHT) \
 	int scanline = 0; \
-	unsigned *bits = (unsigned *)freeimage.get_scanline_proc(DIB, HEIGHT - 1 - scanline); \
+	unsigned *bits = (unsigned *)freeimage->get_scanline_proc(DIB, HEIGHT - 1 - scanline); \
 	unsigned *p = bits;
 
 #define BP_NEXT(DIB, WIDTH, HEIGHT) \
 	p++; \
 	if (p - bits == width) { \
 		scanline++; \
-		bits = (unsigned *)freeimage.get_scanline_proc(DIB, HEIGHT - 1 - scanline); \
+		bits = (unsigned *)freeimage->get_scanline_proc(DIB, HEIGHT - 1 - scanline); \
 		p = bits; \
 	}
 
@@ -49,14 +49,14 @@
 // ==========================================================
 
 static unsigned
-Read8(FreeImageIO &io, fi_handle handle) {
+Read8(FreeImageIO *io, fi_handle handle) {
 	unsigned i = 0;
-	io.read_proc(&i, 1, 1, handle);
+	io->read_proc(&i, 1, 1, handle);
 	return i;
 }
 
 static unsigned
-Read16(FreeImageIO &io, fi_handle handle) {
+Read16(FreeImageIO *io, fi_handle handle) {
 	// reads a two-byte big-endian integer from the given file and returns its value.
 	// assumes unsigned.
 
@@ -66,7 +66,7 @@ Read16(FreeImageIO &io, fi_handle handle) {
 }
 
 static unsigned
-Read32(FreeImageIO &io, fi_handle handle) {
+Read32(FreeImageIO *io, fi_handle handle) {
 	// reads a four-byte big-endian integer from the given file and returns its value.
 	// assumes unsigned.
 
@@ -80,7 +80,7 @@ Read32(FreeImageIO &io, fi_handle handle) {
 // ----------------------------------------------------------
 
 static void
-ScanForResolution(float* hres, float* vres, FreeImageIO &io, fi_handle handle, int width, int height, int channel_count, int byte_count) {
+ScanForResolution(float* hres, float* vres, FreeImageIO *io, fi_handle handle, int width, int height, int channel_count, int byte_count) {
 	// scans through the next byte_count bytes of the file, looking for an
 	// image resource block encoding the image's resolution.  Returns the resolution(s),
 	// if found, in the pointed-to floats.  Units are in pixels/meter.
@@ -97,7 +97,7 @@ ScanForResolution(float* hres, float* vres, FreeImageIO &io, fi_handle handle, i
 
 		int	name_length = Read8(io, handle) | 1;	// name_length must be odd, so that total including size byte is even.
 
-		io.seek_proc(handle, name_length, SEEK_CUR);
+		io->seek_proc(handle, name_length, SEEK_CUR);
 
 		// get the size of the data block.
 
@@ -129,7 +129,7 @@ ScanForResolution(float* hres, float* vres, FreeImageIO &io, fi_handle handle, i
 			// skip any extra bytes at the end of this block...
 
 			if (data_size > 0)
-				io.seek_proc(handle, data_size, SEEK_CUR);			
+				io->seek_proc(handle, data_size, SEEK_CUR);			
 
 			// need to convert resolution figures from fixed point, pixels/inch
 			// to floating point, pixels/meter.
@@ -139,7 +139,7 @@ ScanForResolution(float* hres, float* vres, FreeImageIO &io, fi_handle handle, i
 		} else {
 			// skip the rest of this block.
 
-			io.seek_proc(handle, data_size, SEEK_CUR);
+			io->seek_proc(handle, data_size, SEEK_CUR);
 
 			byte_count -= data_size;
 		}
@@ -149,27 +149,27 @@ ScanForResolution(float* hres, float* vres, FreeImageIO &io, fi_handle handle, i
 // ----------------------------------------------------------
 
 static FIBITMAP *
-LoadPSDRGB(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int width, int height, int channel_count) {
+LoadPSDRGB(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int width, int height, int channel_count) {
 	// skip the mode data.  (it's the palette for indexed color; other info for other modes.)
 
 	int	mode_data_count = Read32(io, handle);
 
 	if (mode_data_count)
-		io.seek_proc(handle, mode_data_count, SEEK_CUR);	
+		io->seek_proc(handle, mode_data_count, SEEK_CUR);	
 
 	// skip the image resources.  (resolution, pen tool paths, alpha channel names, etc)
 
 	int	resource_data_count = Read32(io, handle);
 
 	if (resource_data_count)
-		io.seek_proc(handle, resource_data_count, SEEK_CUR);	
+		io->seek_proc(handle, resource_data_count, SEEK_CUR);	
 
 	// skip the reserved data
 
 	int	reserved_data_count = Read32(io, handle);
 
 	if (reserved_data_count)
-		io.seek_proc(handle, reserved_data_count, SEEK_CUR);
+		io->seek_proc(handle, reserved_data_count, SEEK_CUR);
 
 	// find out if the data is compressed
 	//   0: no compressiod
@@ -193,14 +193,14 @@ LoadPSDRGB(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int width, i
 
 	// Create the destination bitmap
 
-	FIBITMAP *dib = freeimage.allocate_proc(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
+	FIBITMAP *dib = freeimage->allocate_proc(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
 
 	// finally, read the image data.
 
 	if (compression) {
 		// the RLE-compressed data is preceeded by a 2-byte data count for each row in the data
 
-		io.seek_proc(handle, height * channel_count * 2, SEEK_CUR);
+		io->seek_proc(handle, height * channel_count * 2, SEEK_CUR);
 
 		// read the RLE data by channel
 
@@ -318,14 +318,19 @@ Extension() {
 }
 
 static BOOL DLL_CALLCONV
-Validate(FreeImageIO &io, fi_handle handle) {
+Validate(FreeImageIO *io, fi_handle handle) {
 	return (Read32(io, handle) == 0x38425053);
+}
+
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return FALSE;
 }
 
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	try {
 		if (Read32(io, handle) == 0x38425053) {
 			if (Read16(io, handle) == 1) {
@@ -367,7 +372,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			}
 		}
 	} catch(const char *message) {
-		freeimage.output_message_proc(s_format_id, message);
+		freeimage->output_message_proc(s_format_id, message);
 	}
 
 	return NULL;
@@ -378,12 +383,13 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 // ==========================================================
 
 void DLL_CALLCONV
-InitPSD(Plugin &plugin, int format_id) {
+InitPSD(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.validate_proc = Validate;
-	plugin.load_proc = Load;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->validate_proc = Validate;
+	plugin->load_proc = Load;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

@@ -5,6 +5,27 @@ Whats New for FreeImage
 ! : changed
 + : added
 
+October 3rd 2001 - 2.4.2
+* fixed missing BI_BITFIELDS support for 32-bit BMPs
+* fixed bug in FreeImage_ConvertLine16_555_To16_565 and vice versa
+* fixed bug in FreeImage_ConvertToRawBits
+* fixed PluginTIFF behaving incorrectly on PHOTOMETRIC_MASK images
+* fixed 16 bit TIFFs not loading correctly
+* fixed incorrect handling of CCITTFAX3 and CCITTFAX4 TIFFs
+* fixed JPEG encoded TIFFs not being supported
+! [Yours Detlev] patched libTIFF to handle EXTRASAMPLE_UNSPECIFIED
+! [Juergen Riecker] improved speed of PCX loading a lot
+! rewrote parts of FreeImage to improve support for c
+! the internal RGB555 and RGB565 macros now read BGR instead of RGB
+! FreeImage now uses libMNG 1.0.3
+! FreeImage now uses libPNG 1.2.0
+! FreeImage_Save now opens files with the "w+b" flag
+! renamed internal macro CalculateUsedColors to CalculateUsedPaletteEntries
+! enabling/disabling plugins no longer has effect on FIFSupportsReading
+! enabling/disabling plugins no longer has effect on FIFSupportsWriting
++ added flag PNG_IGNOREGAMMA
++ added function FreeImage_FIFSupportsExportBPP
+
 July 30th 2001 - 2.4.1
 * [Jan Nauta] fixed some plugin ids not being passed to plugins
 * [Jan Nauta] fixed some functions being natively called instead of indirect

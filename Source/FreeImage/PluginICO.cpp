@@ -88,18 +88,23 @@ RegExpr() {
 }
 
 static BOOL DLL_CALLCONV
-Validate(FreeImageIO &io, fi_handle handle) {
+Validate(FreeImageIO *io, fi_handle handle) {
 	ICONHEADER icon_header;
 
-	long read = io.read_proc(&icon_header, 1, sizeof(ICONHEADER), handle);
+	io->read_proc(&icon_header, 1, sizeof(ICONHEADER), handle);
 
 	return ((icon_header.idReserved == 0) && (icon_header.idType == 1));
+}
+
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return FALSE;
 }
 
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (page == -1)
 		page = 0;
 
@@ -108,33 +113,33 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 		// we use this offset value to make seemingly absolute seeks relative in the file
 	
-		long start_of_file = io.tell_proc(handle);
+		long start_of_file = io->tell_proc(handle);
 
 		// read the icon header
 
 		ICONHEADER icon_header;
 
-		io.read_proc(&icon_header, sizeof(ICONHEADER), 1, handle);
+		io->read_proc(&icon_header, sizeof(ICONHEADER), 1, handle);
 
 		if ((icon_header.idReserved == 0) && (icon_header.idType == 1)) {
 			// load the icon descriptions
 
 			ICONDIRENTRY *icon_list = (ICONDIRENTRY *)malloc(icon_header.idCount * sizeof(ICONDIRENTRY));
 
-			io.read_proc(icon_list, icon_header.idCount * sizeof(ICONDIRENTRY), 1, handle);
+			io->read_proc(icon_list, icon_header.idCount * sizeof(ICONDIRENTRY), 1, handle);
 
 			// load the specified icon
 			
 			if (page < icon_header.idCount) {
 				// seek to the start of the bitmap data for the icon
 
-				io.seek_proc(handle, start_of_file, SEEK_SET);
-				io.seek_proc(handle, icon_list[(int)flags].dwImageOffset, SEEK_CUR);
+				io->seek_proc(handle, start_of_file, SEEK_SET);
+				io->seek_proc(handle, icon_list[(int)flags].dwImageOffset, SEEK_CUR);
 
 				// load the BITMAPINFOHEADER
 
 				BITMAPINFOHEADER header;
-				io.read_proc(&header, sizeof(BITMAPINFOHEADER), 1, handle);
+				io->read_proc(&header, sizeof(BITMAPINFOHEADER), 1, handle);
 
 				// allocate the bitmap
 
@@ -146,7 +151,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				// allocate memory for one icon
 
-				dib = freeimage.allocate_proc(width, height, bit_count);
+				dib = freeimage->allocate_proc(width, height, bit_count);
 
 				if (dib == NULL) {
 					free(icon_list);
@@ -162,7 +167,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				// read the palette data
 
-				io.read_proc(freeimage.get_palette_proc(dib), CalculateUsedColors(bit_count) * sizeof(RGBQUAD), 1, handle);				
+				io->read_proc(freeimage->get_palette_proc(dib), CalculateUsedPaletteEntries(bit_count) * sizeof(RGBQUAD), 1, handle);
 
 				// apply the AND and XOR masks
 
@@ -171,13 +176,13 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 				BYTE *copy_xor_mask = xor_mask;
 				BYTE *copy_and_mask = and_mask;
 
-				io.read_proc(xor_mask, pitch * height, 1, handle);
-				io.read_proc(and_mask, pitch * height, 1, handle);
+				io->read_proc(xor_mask, pitch * height, 1, handle);
+				io->read_proc(and_mask, pitch * height, 1, handle);
 
 				for (int row = 0; row < height; row++) {
 					for (int column = 0; column < line; column++) {
-						*(freeimage.get_scanline_proc(dib, row) + column) &= copy_and_mask[column];
-						*(freeimage.get_scanline_proc(dib, row) + column) ^= copy_xor_mask[column];
+						*(freeimage->get_scanline_proc(dib, row) + column) &= copy_and_mask[column];
+						*(freeimage->get_scanline_proc(dib, row) + column) ^= copy_xor_mask[column];
 					}
 
 					copy_xor_mask += pitch;
@@ -193,7 +198,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 				return (FIBITMAP *)dib;
 			}
 		} else {
-			freeimage.output_message_proc(s_format_id, "file is not an ICO file");
+			freeimage->output_message_proc(s_format_id, "file is not an ICO file");
 		}
 	}
 
@@ -205,13 +210,14 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 // ==========================================================
 
 void DLL_CALLCONV
-InitICO(Plugin &plugin, int format_id) {
+InitICO(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.load_proc = Load;
-	plugin.validate_proc = Validate;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->load_proc = Load;
+	plugin->validate_proc = Validate;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }

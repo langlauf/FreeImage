@@ -90,6 +90,16 @@ Validate(FreeImageIO &io, fi_handle handle) {
 	return FALSE;
 }
 
+// SupportsExportDepth is the first in a possible range of new plugin functions
+// to ask specific information to that plugin. This function returns TRUE if it
+// can save a bitmap in the required bitdepth. If it can't the bitmap has to be
+// converted by the user or another plugin has to be chosen.
+
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return FALSE;
+}
+
 // ----------------------------------------------------------
 
 // NEVER EVER use direct function calls to FreeImage when writing
@@ -103,12 +113,12 @@ Validate(FreeImageIO &io, fi_handle handle) {
 // allocate memory for  a bitmap.
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	return NULL;
 }
 
 static BOOL DLL_CALLCONV
-Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
+Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
 	return FALSE;
 }
 
@@ -127,4 +137,5 @@ Init(Plugin &plugin, int format_id) {
 	plugin.load_proc = Load;
 	plugin.save_proc = Save;
 	plugin.validate_proc = Validate;
+	plugin.supports_export_bpp_proc = SupportsExportDepth;
 }

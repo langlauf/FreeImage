@@ -290,7 +290,7 @@ term_destination (j_compress_ptr cinfo) {
  */
 
 GLOBAL(void)
-jpeg_freeimage_src (j_decompress_ptr cinfo, fi_handle infile, FreeImageIO &io) {
+jpeg_freeimage_src (j_decompress_ptr cinfo, fi_handle infile, FreeImageIO *io) {
 	freeimage_src_ptr src;
 
 	// allocate memory for the buffer. is released automatically in the end
@@ -314,13 +314,13 @@ jpeg_freeimage_src (j_decompress_ptr cinfo, fi_handle infile, FreeImageIO &io) {
 	src->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
 	src->pub.term_source = term_source;
 	src->infile = infile;
-	src->m_io = &io;
+	src->m_io = io;
 	src->pub.bytes_in_buffer = 0; /* forces fill_input_buffer on first read */
 	src->pub.next_input_byte = NULL; /* until buffer loaded */
 }
 
 GLOBAL(void)
-jpeg_freeimage_dst (j_compress_ptr cinfo, fi_handle outfile, FreeImageIO &io) {
+jpeg_freeimage_dst (j_compress_ptr cinfo, fi_handle outfile, FreeImageIO *io) {
 	freeimage_dst_ptr dest;
 
 	if (cinfo->dest == NULL) {
@@ -333,7 +333,7 @@ jpeg_freeimage_dst (j_compress_ptr cinfo, fi_handle outfile, FreeImageIO &io) {
 	dest->pub.empty_output_buffer = empty_output_buffer;
 	dest->pub.term_destination = term_destination;
 	dest->outfile = outfile;
-	dest->m_io = &io;
+	dest->m_io = io;
 }
 
 // ==========================================================
@@ -372,19 +372,27 @@ MimeType() {
 }
 
 static BOOL DLL_CALLCONV
-Validate(FreeImageIO &io, fi_handle handle) {
+Validate(FreeImageIO *io, fi_handle handle) {
 	BYTE jpeg_signature[] = { 0xFF, 0xD8 };
 	BYTE signature[2] = { 0, 0 };
 
-	io.read_proc(signature, 1, sizeof(jpeg_signature), handle);
+	io->read_proc(signature, 1, sizeof(jpeg_signature), handle);
 
 	return (memcmp(jpeg_signature, signature, sizeof(jpeg_signature)) == 0);
+}
+
+static BOOL DLL_CALLCONV
+SupportsExportDepth(int depth) {
+	return (
+			(depth == 8) ||
+			(depth == 24)
+		);
 }
 
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
-Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flags, void *data) {
+Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle) {
 		FIBITMAP *dib = NULL;
 	
@@ -418,10 +426,10 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			// Step 4b: allocate dib and init header
 
-			dib = freeimage.allocate_proc(cinfo.image_width, cinfo.image_height, 8 * cinfo.num_components, 0xFF00, 0xFF, 0xFF0000);
+			dib = freeimage->allocate_proc(cinfo.image_width, cinfo.image_height, 8 * cinfo.num_components, 0xFF, 0xFF00, 0xFF0000);
 
 			if (cinfo.num_components == 1) {
-				RGBQUAD *colors = freeimage.get_palette_proc(dib);
+				RGBQUAD *colors = freeimage->get_palette_proc(dib);
 
 				for (int i = 0; i < 256; i++) {
 					colors[i].rgbRed   = i;
@@ -432,7 +440,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			// Step 4c: handle metrices
 
-			BITMAPINFOHEADER *pInfoHeader = freeimage.get_info_header_proc(dib);
+			BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 
 			if (cinfo.density_unit == 1) {
 				// dots/inch
@@ -453,7 +461,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			// Step 6: while (scan lines remain to be read) jpeg_read_scanlines(...);
 
 			while (cinfo.output_scanline < cinfo.output_height) {
-				JSAMPROW b = freeimage.get_scanline_proc(dib, cinfo.output_height - cinfo.output_scanline - 1);
+				JSAMPROW b = freeimage->get_scanline_proc(dib, cinfo.output_height - cinfo.output_scanline - 1);
 
 				jpeg_read_scanlines(&cinfo, &b, 1);
 			}
@@ -468,7 +476,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			return (FIBITMAP *)dib;
 		} catch (...) {
-			freeimage.unload_proc(dib);
+			freeimage->unload_proc(dib);
 		}		
 	}
 
@@ -476,18 +484,19 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 }
 
 static BOOL DLL_CALLCONV
-Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
+Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
 	if ((dib) && (handle)) {
 		try {
 			// Check dib format
 
-			WORD bpp = freeimage.get_bpp_proc(dib);
+			WORD bpp = freeimage->get_bpp_proc(dib);
 
-			if ((bpp == 32) && (freeimage.is_transparent_proc(dib)))
-				throw "JPEG does not support alpha channels";
-			else if (((bpp != 24) && (bpp != 32)) && (!((bpp == 8) && (FreeImage_GetColorType(dib) == FIC_MINISBLACK))))
+			if ((bpp != 32) && (bpp != 8))
 				throw "only 24-bit highcolor or 8-bit greyscale bitmaps can be saved as JPEG";
 
+			if ((bpp == 8) && (FreeImage_GetColorType(dib) != FIC_MINISBLACK))
+				throw "only 24-bit highcolor or 8-bit greyscale bitmaps can be saved as JPEG";
+				
 			struct jpeg_compress_struct cinfo;
 			struct jpeg_error_mgr jerr;
 
@@ -508,8 +517,8 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 			
 			/* Step 3: set parameters for compression */											    
 
-			cinfo.image_width = freeimage.get_width_proc(dib);
-			cinfo.image_height = freeimage.get_height_proc(dib);
+			cinfo.image_width = freeimage->get_width_proc(dib);
+			cinfo.image_height = freeimage->get_height_proc(dib);
 
 			switch(FreeImage_GetColorType(dib)) {
 				case FIC_MINISBLACK :
@@ -527,7 +536,7 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 
 			// Set JFIF density parameters from the DIB data
 
-			BITMAPINFOHEADER *pInfoHeader = freeimage.get_info_header_proc(dib);
+			BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 			cinfo.X_density = (WORD)(pInfoHeader->biXPelsPerMeter / 100.0F + 0.5);
 			cinfo.Y_density = (WORD)(pInfoHeader->biYPelsPerMeter / 100.0F + 0.5);
 			cinfo.density_unit = 2;	// dots / cm
@@ -564,24 +573,10 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 
 			/* Step 6: while (scan lines remain to be written) */
 
-			if (freeimage.get_bpp_proc(dib) == 32) {
-				int pitch = CalculatePitch(CalculateLine(freeimage.get_width_proc(dib), 24));
+			while (cinfo.next_scanline < cinfo.image_height) {
+				JSAMPROW b = freeimage->get_scanline_proc(dib, freeimage->get_height_proc(dib) - cinfo.next_scanline - 1);
 
-				JSAMPROW b = (BYTE *)malloc(pitch);
-
-				for (unsigned i = 0; i < freeimage.get_height_proc(dib); ++i) {
-					freeimage.convert_line_32to24_proc(b, freeimage.get_scanline_proc(dib, freeimage.get_height_proc(dib) - cinfo.next_scanline - 1), freeimage.get_width_proc(dib));
-
-					jpeg_write_scanlines(&cinfo, &b, 1);
-				}
-
-				free(b);
-			} else {
-				while (cinfo.next_scanline < cinfo.image_height) {
-					JSAMPROW b = freeimage.get_scanline_proc(dib, freeimage.get_height_proc(dib) - cinfo.next_scanline - 1);
-
-					jpeg_write_scanlines(&cinfo, &b, 1);
-				}
+				jpeg_write_scanlines(&cinfo, &b, 1);
 			}
 
 			/* Step 7: Finish compression */
@@ -595,7 +590,7 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 			return TRUE;
 
 		} catch (char *text) {
-			freeimage.output_message_proc(s_format_id, text);
+			freeimage->output_message_proc(s_format_id, text);
 
 			return FALSE;
 		} catch (FREE_IMAGE_FORMAT) {
@@ -611,15 +606,16 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 // ==========================================================
 
 void DLL_CALLCONV
-InitJPEG(Plugin &plugin, int format_id) {
+InitJPEG(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
-	plugin.format_proc = Format;
-	plugin.description_proc = Description;
-	plugin.extension_proc = Extension;
-	plugin.regexpr_proc = RegExpr;
-	plugin.load_proc = Load;
-	plugin.save_proc = Save;
-	plugin.validate_proc = Validate;
-	plugin.mime_proc = MimeType;
+	plugin->format_proc = Format;
+	plugin->description_proc = Description;
+	plugin->extension_proc = Extension;
+	plugin->regexpr_proc = RegExpr;
+	plugin->load_proc = Load;
+	plugin->save_proc = Save;
+	plugin->validate_proc = Validate;
+	plugin->mime_proc = MimeType;
+	plugin->supports_export_bpp_proc = SupportsExportDepth;
 }
