@@ -3,9 +3,10 @@
 //
 // Design and implementation by 
 // - Floris van den Berg (flvdberg@wxs.nl)
-// - Hervé Drolon (drolon@iut.univ-lehavre.fr)
+// - Hervé Drolon (drolon@infonie.fr)
 // - Markus Loibl (markus.loibl@epost.de)
 // - Luca Piergentili (l.pierge@terra.es)
+// - Detlev Vendt (detlev.vendt@brillit.de)
 //
 // This file is part of FreeImage 2
 //
@@ -219,6 +220,7 @@ CheckPhotometric(FreeImage *freeimage, FIBITMAP *dib, uint16 bitspersample) {
 			return PHOTOMETRIC_MINISBLACK;
 			
 		case 24:
+		case 32:
 			return PHOTOMETRIC_RGB;			
 	}
 
@@ -280,10 +282,11 @@ Validate(FreeImageIO *io, fi_handle handle) {
 static BOOL DLL_CALLCONV
 SupportsExportDepth(int depth) {
 	return (
-			(depth == 1) ||
-			(depth == 4) ||
-			(depth == 8) ||
-			(depth == 24)
+			(depth == 1)  ||
+			(depth == 4)  ||
+			(depth == 8)  ||
+			(depth == 24) ||
+			(depth == 32)
 		);
 }
 
@@ -644,24 +647,41 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 		uint16 photometric;
 		uint16 compression;
 		uint16 pitch;
-		int32 x, y;
+		uint32 x, y;
 
 		width = freeimage->get_width_proc(dib);
 		height = freeimage->get_height_proc(dib);
 		bitspersample = freeimage->get_bpp_proc(dib);
-		samplesperpixel = ((bitspersample == 24) || (bitspersample == 32)) ? 3 : 1;
-		photometric = CheckPhotometric(freeimage, dib, (bitspersample == 32) ? 24 : bitspersample);
+		samplesperpixel = ((bitspersample == 24) ? 3 : ((bitspersample == 32) ? 4 : 1));
+		photometric = CheckPhotometric(freeimage, dib, bitspersample);
+
+		// CMYK support
+		if (((flags & TIFF_CMYK) == TIFF_CMYK) && (bitspersample == 32)) {
+			photometric = PHOTOMETRIC_SEPARATED;
+		}
 
 		// handle standard width/height/bpp stuff
 
 		TIFFSetField(out, TIFFTAG_IMAGEWIDTH, width);
 		TIFFSetField(out, TIFFTAG_IMAGELENGTH, height);
 		TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, samplesperpixel);
-		TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, ((bitspersample == 32) ? 24 : bitspersample) / samplesperpixel);
+		TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, bitspersample / samplesperpixel);
 		TIFFSetField(out, TIFFTAG_PHOTOMETRIC, photometric);
 		TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);	// single image plane 
 		TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 		TIFFSetField(out, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(out, rowsperstrip));
+
+		if ((bitspersample == 32) && (photometric == PHOTOMETRIC_SEPARATED)) {
+			// CMYK support (see TIFF 6 specifications [section 16])
+			TIFFSetField(out, TIFFTAG_INKSET, INKSET_CMYK);
+			TIFFSetField(out, TIFFTAG_NUMBEROFINKS, 4);
+		} else if ((bitspersample == 32) && (photometric == PHOTOMETRIC_RGB)) {
+			// transparency mask support (see TIFF 6 specifications [section 8 & 18])
+			uint16 sampleinfo[1]; 
+			// unassociated alpha data is transparency information
+			sampleinfo[0] = EXTRASAMPLE_UNASSALPHA;
+			TIFFSetField(out, TIFFTAG_EXTRASAMPLES, 1, sampleinfo);
+		}
 
 		// handle metrics
 
@@ -721,13 +741,13 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			case 32 :
 				compression = COMPRESSION_PACKBITS;
 
-				if (flags & TIFF_PACKBITS)
+				if ((flags & TIFF_PACKBITS) == TIFF_PACKBITS)
 					compression = COMPRESSION_PACKBITS;
-				else if (flags & TIFF_DEFLATE)
+				else if ((flags & TIFF_DEFLATE) == TIFF_DEFLATE)
 					compression = COMPRESSION_DEFLATE;
-				else if (flags & TIFF_ADOBE_DEFLATE)
+				else if ((flags & TIFF_ADOBE_DEFLATE) == TIFF_ADOBE_DEFLATE)
 					compression = COMPRESSION_ADOBE_DEFLATE;
-				else if (flags & TIFF_NONE)
+				else if ((flags & TIFF_NONE) == TIFF_NONE)
 					compression = COMPRESSION_NONE;
 
 				break;
@@ -762,26 +782,23 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			case 24:
 			case 32:
 			{
-				BYTE *buffer = new BYTE[CalculatePitch(CalculateLine(width, 24))];
+				BYTE *buffer = (BYTE *)malloc(pitch);
 
-				for (y = 0; y < (int32)height; y++) {
-					// get a pointer to the (converted) scanline
+				for (y = 0; y < height; y++) {
+					// get a copy of the scanline
 
-					if (bitspersample == 32)
-						freeimage->convert_line_32to24_proc(buffer, freeimage->get_scanline_proc(dib, height - y - 1), width);
-					else
-						memcpy(buffer, freeimage->get_scanline_proc(dib, height - y - 1), pitch);
+					memcpy(buffer, freeimage->get_scanline_proc(dib, height - y - 1), pitch);
 
-					// TIFFs store color data RGB instead of BGR
+					// TIFFs store color data RGB(A) instead of BGR(A)
 
 					BYTE *pBuf = buffer;
 
-					for (x = 0; x < (int32)width; x++) {
+					for (x = 0; x < width; x++) {
 						BYTE tmp = pBuf[0];
-						pBuf[0] = pBuf[2];
-						pBuf[2] = tmp;
+						pBuf[0]  = pBuf[2];
+						pBuf[2]  = tmp;
 
-						pBuf += 3;
+						pBuf += samplesperpixel;
 					}
 
 					// write the scanline to disc
@@ -789,7 +806,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 					TIFFWriteScanline(out, buffer, y, 0);
 				}
 
-				delete [] buffer;
+				free(buffer);
 
 				break;
 			}

@@ -25,7 +25,7 @@
 // -------
 // July 2000: C++ Implementation of Wu's Color Quantizer
 //            and adaptation for the FreeImage 2 Library
-//            Author: Hervé Drolon (drolon@iut.univ-lehavre.fr)
+//            Author: Hervé Drolon (drolon@infonie.fr)
 ///////////////////////////////////////////////////////////////////////
 
 #include <stdlib.h>

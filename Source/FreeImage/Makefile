@@ -5,12 +5,13 @@ CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
 
 TARGET  = freeimage
 VER_MAJOR = 2
-VER_MINOR = 0.0
-MODULES = BitmapAccess.o Conversion.o Conversion16_555.o Conversion16_565.o \
-	Conversion24.o Conversion32.o Conversion8.o FreeImage.o GetType.o Plugin.o \
-	PluginBMP.o PluginICO.o PluginJPEG.o PluginKOALA.o PluginMNG.o PluginPCD.o \
-	PluginPCX.o PluginPNG.o PluginPNM.o PluginRAS.o PluginTARGA.o PluginTIFF.o \
-        PluginWBMP.o PluginLBM.o OldLoadFunctions.o NNQuantizer.o WuQuantizer.o Combine.o
+VER_MINOR = 6.0
+MODULES = BitmapAccess.o CacheFile.o Conversion.o Conversion16_555.o Conversion16_565.o \
+Conversion24.o Conversion32.o Conversion8.o Deprecated.o FreeImage.o FreeImageIO.o GetType.o \
+Halftoning.o MultiPage.o NNQuantizer.o Plugin.o PluginBMP.o PluginCUT.o PluginICO.o PluginIFF.o \
+PluginJPEG.o PluginKOALA.o PluginMNG.o PluginPCD.o PluginPCX.o PluginPNG.o PluginPNM.o PluginPSD.o \
+PluginRAS.o PluginTARGA.o PluginTIFF.o PluginWBMP.o WuQuantizer.o
+
 
 STATICLIB = lib$(TARGET).a
 SHAREDLIB = lib$(TARGET)-$(VER_MAJOR).$(VER_MINOR).so

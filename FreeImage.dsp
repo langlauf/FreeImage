@@ -200,6 +200,10 @@ SOURCE=.\Source\FreeImage\Conversion32.cpp
 
 SOURCE=.\Source\FreeImage\Conversion8.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\Halftoning.cpp
+# End Source File
 # End Group
 # Begin Group "Quantizers"
 
@@ -239,6 +243,10 @@ SOURCE=.\Source\FreeImage\BitmapAccess.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Source\FreeImage\Deprecated.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Source\FreeImage\FreeImage.cpp
 # End Source File
 # Begin Source File
@@ -252,10 +260,6 @@ SOURCE=.\Source\FreeImage\FreeImageIO.cpp
 # Begin Source File
 
 SOURCE=.\Source\FreeImage\GetType.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Source\FreeImage\LoadFunctions.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"

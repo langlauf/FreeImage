@@ -91,7 +91,7 @@ FI_STRUCT (MULTIBITMAPHEADER) {
 };
 
 // =====================================================================
-// Interal Multipage functions
+// Internal Multipage functions
 // =====================================================================
 
 inline MULTIBITMAPHEADER *
@@ -705,7 +705,7 @@ FreeImage_UnlockPage(FIMULTIBITMAP *bitmap, FIBITMAP *page, BOOL changed) {
 
 			// reset the locked page so that another page can be locked
 
-			FreeImage_Free(page);
+			FreeImage_Unload(page);
 
 			header->locked_pages.erase(page);
 		}

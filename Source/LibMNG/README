@@ -1,10 +1,10 @@
-libmng 1.0.4
+libmng 1.0.5
 ------------
 
-Fourth maintenance release!
+Final release.
 
-Small bug fixes.
-The standard DLL now compiled with zlib 1.1.4 and lcms 1.0.8!
+This is the long-awaited final release for the new 'dynamic MNG' feature, and
+brings MNG compliance to near 100%.
 
 Gerard
 
@@ -12,14 +12,14 @@ Gerard
 For more information please visit:
 
 The official libmng web-site:
-  http://www.libmng.com
+  http://www.libmng.com/
 
 Libmng's community on SourceForge:
   https://sourceforge.net/project/?group_id=5635
 
 The official MNG homepage:
-  http://www.libpng.org/pub/mng
+  http://www.libpng.org/pub/mng/
 
 The official PNG homepage:
-  http://www.libpng.org/pub/png
+  http://www.libpng.org/pub/png/
 

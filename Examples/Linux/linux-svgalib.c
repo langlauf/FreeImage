@@ -7,7 +7,7 @@ int main(void)
 	vga_modeinfo *inf;
 	int length,height,bpp,y;
 
-	dib = FreeImage_LoadPNG("freeimage.png",PNG_DEFAULT);
+	dib = FreeImage_Load(FIF_PNG, "freeimage.png", PNG_DEFAULT);
 
 	vga_init();
 	vga_setmode(vga_getdefaultmode());
@@ -64,7 +64,7 @@ int main(void)
 			break;
 		}
 
-		FreeImage_Free(dib);
+		FreeImage_Unload(dib);
 		dib = ptr;
 	}
 
@@ -82,7 +82,7 @@ int main(void)
 				    0,y,length);
 	}
 
-	FreeImage_Free(dib);
+	FreeImage_Unload(dib);
 
 	vga_getch();
 	vga_setmode(TEXT);

@@ -5,6 +5,23 @@ Whats New for FreeImage
 ! : changed
 + : added
 
+May 5th, 2003 - 2.6.0
+! FreeImage now uses libPNG 1.2.5
+! FreeImage now uses libMNG 1.0.5
+! [Markus Loibl] ActiveX wrapper is now distributed in a separate release (since 2.5.5)
+! [Herve Drolon] the function FreeImage_Free is now deprecated : use FreeImage_Unload instead
+! [Herve Drolon] updated the generic samples and removed deprecated functions
++ [Detlev Vendt] added CMYK support to TIFF save function
++ [Detlev Vendt] added TIFF_SAVE_CMYK flag constant
++ [Detlev Vendt] added 32-bit support (with transparency handling) to TIFF plugin
++ [Herve Drolon] added FreeImage_Threshold
++ [Herve Drolon] added FreeImage_Dither
++ [Herve Drolon] added FREE_IMAGE_DITHER parameter to FreeImage_Dither
+* [Herve Drolon] improved error handling in PluginMNG
+* [Herve Drolon] improved TIFF flags handling in TIFF save function
+* [Herve Drolon] fixed a potential crash-problem in FreeImage_OutputMessage (in case of a null message)
+* [Detlev Vendt] fixed a bug with the deprecated FreeImage_GetBitsRowCol (trailling backslash behind the DEPRECATE macro)
+
 July 24th, 2002 - 2.5.5
 ! FreeImage now uses libPNG 1.2.4
 ! FreeImage now uses libMNG 1.0.4

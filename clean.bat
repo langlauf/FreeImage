@@ -1,48 +1,49 @@
-rd Release /s
-rd Debug /s
-rd Source\FreeImageQt\Release /s
-rd Source\FreeImageQt\Debug /s
-rd Source\FreeImageLib\Debug /s
-rd Source\FreeImageLib\Release /s
-rd Source\Source\Release /s
-rd Source\Source\Debug /s
-rd Source\LibJPEG\Debug /s
-rd Source\LibJPEG\Release /s
-rd Source\LibPNG\Debug /s
-rd Source\LibPNG\Release /s
-rd Source\LibMNG\Debug /s
-rd Source\LibMNG\Release /s
-rd Source\LibTIFF\Debug /s
-rd Source\LibTIFF\Release /s
-rd Source\Zlib\Debug /s
-rd Source\Zlib\Release /s
-rd Source\Test\Debug /s
-rd Source\Test\Release /s
+rd Release /s /q
+rd Debug /s /q
+rd Source\FreeImageQt\Release /s /q
+rd Source\FreeImageQt\Debug /s /q
+rd Source\FreeImageLib\Debug /s /q
+rd Source\FreeImageLib\Release /s /q
+rd Source\Source\Release /s /q
+rd Source\Source\Debug /s /q
+rd Source\LibJPEG\Debug /s /q
+rd Source\LibJPEG\Release /s /q
+rd Source\LibPNG\Debug /s /q
+rd Source\LibPNG\Release /s /q
+rd Source\LibMNG\Debug /s /q
+rd Source\LibMNG\Release /s /q
+rd Source\LibTIFF\Debug /s /q
+rd Source\LibTIFF\Release /s /q
+rd Source\Zlib\Debug /s /q
+rd Source\Zlib\Release /s /q
+rd Source\Test\Debug /s /q
+rd Source\Test\Release /s /q
 del Source\Test\FreeImage*.*
 del Source\Test\*.txt
 del Dist\*.*
-del *.pch /s
-del *.ncb /s
-del *.obj /s
-del *.dll /s
-del *.exe /s
-del *.bsc /s
-del *.bak /s
-del *.pdb /s
-del *.sql /s
-del *.mdb /s
-del *.lib /s
-del *.exp /s
-del *.ilk /s
-del *.bmp /s
-del *.tga /s
-del *.tif /s
-del *.tiff /s
-del *.ras /s
-del *.jpg /s
-del *.koa /s
-del *.fip /s
-del *.pyd /s
-del *.png /s
-del *.wbmp /s
-del .inslog2 /s
+del *.pch /s /q
+del *.ncb /s /q
+del *.plg /s /q
+del *.obj /s /q
+del *.dll /s /q
+del *.exe /s /q
+del *.bsc /s /q
+del *.bak /s /q
+del *.pdb /s /q
+del *.sql /s /q
+del *.mdb /s /q
+del *.lib /s /q
+del *.exp /s /q
+del *.ilk /s /q
+del *.bmp /s /q
+del *.tga /s /q
+del *.tif /s /q
+del *.tiff /s /q
+del *.ras /s /q
+del *.jpg /s /q
+del *.koa /s /q
+del *.fip /s /q
+del *.pyd /s /q
+del *.png /s /q
+del *.wbmp /s /q
+del .inslog2 /s /q

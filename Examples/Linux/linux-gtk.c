@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	FIBITMAP *dib;
 	int y;
 
-	dib = FreeImage_LoadPNG("freeimage.png",PNG_DEFAULT);
+	dib = FreeImage_Load(FIF_PNG, "freeimage.png", PNG_DEFAULT);
 
 	gtk_init(&argc, &argv);
 
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 				break;
 		}
 
-		FreeImage_Free(dib);
+		FreeImage_Unload(dib);
 		dib = ptr;
 	}
 
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 			image->bpl);
 	}
 
-	FreeImage_Free(dib);
+	FreeImage_Unload(dib);
 
 	imagebox = gtk_image_new(image, NULL);
 	gtk_container_add(GTK_CONTAINER(window), imagebox);

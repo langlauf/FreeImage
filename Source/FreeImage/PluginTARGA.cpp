@@ -285,7 +285,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 						}
 						
 						default :
-							freeimage->free_proc(dib);
+							freeimage->unload_proc(dib);
 							return NULL;
 					}
 
@@ -438,7 +438,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 						}
 
 						default :
-							freeimage->free_proc(dib);
+							freeimage->unload_proc(dib);
 							return NULL;
 					}
 
@@ -609,7 +609,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 						}
 
 						default :
-							freeimage->free_proc(dib);
+							freeimage->unload_proc(dib);
 							return NULL;
 					}
 
@@ -813,7 +813,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 						}
 
 						default :
-							freeimage->free_proc(dib);
+							freeimage->unload_proc(dib);
 							return NULL;
 					}
 

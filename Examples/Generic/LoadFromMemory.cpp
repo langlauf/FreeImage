@@ -10,7 +10,7 @@
 //
 //  This example shows how to load a bitmap from memory
 //  rather than from a file. To do this we make use of the
-//  FreeImage_LoadXXXFromHandle functions where we override
+//  FreeImage_LoadFromHandle functions where we override
 //  the i/o functions to simulate FILE* access in memory.
 //
 //  For seeking purposes the fi_handle passed to the i/o
@@ -101,9 +101,10 @@ main(int argc, char *argv[]) {
 
 		// convert the bitmap
 		
-		FIBITMAP *dib = FreeImage_LoadTIFFFromHandle(&io, (fi_handle)test);
+		FIBITMAP *dib = FreeImage_LoadFromHandle(FIF_TIFF, &io, (fi_handle)test);
 
-		FreeImage_Free(dib);
+		// don't forget to free the dib !
+		FreeImage_Unload(dib);
 
 		delete [] test;
 	}

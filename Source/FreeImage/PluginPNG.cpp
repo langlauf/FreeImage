@@ -356,7 +356,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 				png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
-				freeimage->free_proc(dib);
+				freeimage->unload_proc(dib);
 				free(row_pointers);
 				return NULL;
 			}
@@ -395,7 +395,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				free(row_pointers);
 
 			if (dib)
-				freeimage->free_proc(dib);			
+				freeimage->unload_proc(dib);			
 
 			freeimage->output_message_proc(s_format_id, text);
 			

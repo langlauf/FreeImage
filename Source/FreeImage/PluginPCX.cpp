@@ -510,7 +510,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			// free allocated memory
 
 			if (dib != NULL)
-				freeimage->free_proc(dib);
+				freeimage->unload_proc(dib);
 
 			if (line != NULL)
 				delete [] line;

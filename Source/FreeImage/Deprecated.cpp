@@ -1,8 +1,9 @@
 // ==========================================================
-// Simplified load functions
+// Deprecated functions
 //
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
+// - Hervé Drolon (drolon@infonie.fr)
 //
 // This file is part of FreeImage 2
 //
@@ -52,6 +53,8 @@ FreeImage_Save##what##ToHandle(FIBITMAP *dib, FreeImageIO *io, fi_handle handle,
 }
 
 // ----------------------------------------------------------
+// ALIASES FOR BACKWARDS COMPATIBILITY ----------------------
+// ----------------------------------------------------------
 
 LOAD(BMP, BMP)
 LOAD(CUT, CUT)
@@ -77,3 +80,30 @@ SAVE(PNG, PNG)
 SAVE(PNM, PPM)
 SAVE(TIFF, TIFF)
 SAVE(WBMP, WBMP)
+
+// ----------------------------------------------------------
+
+const char * DLL_CALLCONV
+FreeImage_GetFileTypeFromFormat(FREE_IMAGE_FORMAT fif) {
+	DEPRECATE("FreeImage_GetFileTypeFromFormat()", "FreeImage_GetFormatFromFIF()")
+	return FreeImage_GetFormatFromFIF(fif);
+}
+
+FREE_IMAGE_FORMAT DLL_CALLCONV
+FreeImage_GetFileTypeFromExt(const char *filename) {
+	DEPRECATE("FreeImage_GetFileTypeFromExt()", "FreeImage_GetFIFFromFilename()")
+	return FreeImage_GetFIFFromFilename(filename);
+}
+
+BYTE * DLL_CALLCONV
+FreeImage_GetBitsRowCol(FIBITMAP *dib, int col, int row) {
+	DEPRECATE("FreeImage_GetBitsRowCol()", "FreeImage_GetScanLine()") 
+	return (dib) ? FreeImage_GetBits(dib) + ((FreeImage_GetHeight(dib) - row - 1) * FreeImage_GetPitch(dib)) + (col * FreeImage_GetBPP(dib) / 8) : NULL;
+}
+
+void DLL_CALLCONV 
+FreeImage_Free(FIBITMAP *dib) { 
+	DEPRECATE("FreeImage_Free()", "FreeImage_Unload()")
+	FreeImage_Unload(dib);
+}
+

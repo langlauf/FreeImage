@@ -55,9 +55,12 @@ main(int argc, char *argv[]) {
 	FILE *file = fopen("d:\\images\\money-256.bmp", "rb");
 
 	if (file != NULL) {
-		FIBITMAP *dib = FreeImage_LoadBMPFromHandle(&io, (fi_handle)file);
-
-		FreeImage_Free(dib);
+		// find the buffer format (say its a bmp file)
+		FREE_IMAGE_FORMAT fif = FIF_BMP;
+		// load from the file handle
+		FIBITMAP *dib = FreeImage_LoadFromHandle(fif, &io, (fi_handle)file, BMP_DEFAULT);
+		// free the loaded FIBITMAP
+		FreeImage_Unload(dib);
 
 		fclose(file);
 	}

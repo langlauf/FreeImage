@@ -3,7 +3,7 @@
 //
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
-// - Hervé Drolon (drolon@iut.univ-lehavre.fr)
+// - Hervé Drolon (drolon@infonie.fr)
 //
 // This file is part of FreeImage 2
 //
@@ -105,7 +105,7 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 }
 
 void DLL_CALLCONV
-FreeImage_Free(FIBITMAP *dib) {
+FreeImage_Unload(FIBITMAP *dib) {
 	if (dib != NULL) {
 		if (dib->data != NULL)
 			free(dib->data);
@@ -116,10 +116,6 @@ FreeImage_Free(FIBITMAP *dib) {
 	}
 }
 
-void DLL_CALLCONV
-FreeImage_Unload(FIBITMAP *dib) {
-	FreeImage_Free(dib);
-}
 
 // ----------------------------------------------------------
 
@@ -302,12 +298,6 @@ FreeImage_GetColorsUsed(FIBITMAP *dib) {
 BYTE * DLL_CALLCONV
 FreeImage_GetBits(FIBITMAP *dib) {
 	return dib ? ((BYTE *)FreeImage_GetInfoHeader(dib) + sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * FreeImage_GetColorsUsed(dib)) : NULL;
-}
-
-BYTE * DLL_CALLCONV
-FreeImage_GetBitsRowCol(FIBITMAP *dib, int col, int row) {
-	DEPRECATE("FreeImage_GetBitsRowCol()", "FreeImage_GetScanLine()") \
-	return (dib) ? FreeImage_GetBits(dib) + ((FreeImage_GetHeight(dib) - row - 1) * FreeImage_GetPitch(dib)) + (col * FreeImage_GetBPP(dib) / 8) : NULL;
 }
 
 BYTE * DLL_CALLCONV

@@ -1,8 +1,8 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_conf.h             copyright (c) 2000 G.Juyn        * */
-/* * version   : 1.0.4                                                      * */
+/* * file      : libmng_conf.h             copyright (c) G.Juyn             * */
+/* * version   : 1.0.5                                                      * */
 /* *                                                                        * */
 /* * purpose   : main configuration file                                    * */
 /* *                                                                        * */
@@ -34,6 +34,10 @@
 /* *             1.0.4 - 06/22/2002 - G.Juyn                                * */
 /* *             - B526138 - returned IJGSRC6B calling convention to        * */
 /* *               default for MSVC                                         * */
+/* *                                                                        * */
+/* *             1.0.5 - 09/14/2002 - G.Juyn                                * */
+/* *             - added event handling for dynamic MNG                     * */
+/* *             - added 'supports' call to check function availability     * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -209,6 +213,32 @@
    and 680x0 */
 
 /* #define MNG_BIGENDIAN_SUPPORTED */
+
+/* ************************************************************************** */
+
+/* enable 'supports' function */
+/* use this if you need to query the availability of functions at runtime;
+   useful for apps that dynamically load the library and that need specific
+   functions */
+
+#ifndef MNG_SUPPORT_FUNCQUERY
+#if defined(MNG_BUILD_SO) || defined(MNG_USE_SO) || defined(MNG_BUILD_DLL) || defined(MNG_USE_DLL)
+#define MNG_SUPPORT_FUNCQUERY
+#endif
+#endif
+
+/* ************************************************************************** */
+
+/* enable dynamic MNG features */
+/* use this if you would like to have dynamic support for specifically
+   designed MNGs; eg. this is useful for 'rollover' effects such as common
+   on the world wide web */
+
+#ifndef MNG_SUPPORT_DYNAMICMNG
+#if defined(MNG_BUILD_SO) || defined(MNG_USE_SO) || defined(MNG_BUILD_DLL) || defined(MNG_USE_DLL)
+#define MNG_SUPPORT_DYNAMICMNG
+#endif
+#endif
 
 /* ************************************************************************** */
 /* *                                                                        * */

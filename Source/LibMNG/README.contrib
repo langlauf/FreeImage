@@ -1,5 +1,5 @@
-The contrib directory contains contributions made by fellow enthousiasts.
-(Check the web-sites for the latest versions)
+The contrib directory contains contributions made by fellow
+enthousiasts. (Check the web-sites for the latest versions)
 
 ----------------------------------------------------------------------
 
@@ -62,7 +62,8 @@ Well, look no further. Here it is!
 
 ----------------------------------------------------------------------
 
-MSVC libmng project - A MSVC project to build libmng.dll - by Chad Austin
+MSVC libmng project - An MSVC project to build libmng.dll
+                    - by Chad Austin
 
 Chad has contributed some project-files that you could use to build
 libmng.dll with MSVC. Please be sure to read the README file included.
@@ -77,3 +78,12 @@ animations through the libmng interface.
 (currently for 16-bit buffers only)
 
 ----------------------------------------------------------------------
+
+xmngview - Lesstif/Motif standalone player for MNG files
+         - by Winfried Szukalski
+
+Winfried contributed this MNG player for X-based systems.
+Note that this file is distributed under the GNU GPL.
+
+----------------------------------------------------------------------
+

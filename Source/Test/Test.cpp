@@ -19,6 +19,12 @@
 // Use at your own risk!
 // ==========================================================
 
+
+// NB: This file is used for internal tests.
+// You're not supposed to understand it, nor to 
+// take this as a working sample ...
+// ==========================================================
+
 //#define QT
 #define API
 //#define MULTI
@@ -102,7 +108,8 @@ MessageFunc(FREE_IMAGE_FORMAT fif, const char *message) {
 #ifdef MULTI
 int __cdecl
 TestMulti(int argc, char *argv[]) {
-	FreeImage_Initialise();
+	// Call this ONLY when linking with FreeImage as a static library
+	//FreeImage_Initialise();
 
 	FIMULTIBITMAP *bitmap = FreeImage_OpenMultiBitmap(FIF_TIFF, "Kopie van money-256.tif", FALSE, TRUE, FALSE);
 
@@ -111,13 +118,14 @@ TestMulti(int argc, char *argv[]) {
 	FIBITMAP *lock = FreeImage_LockPage(bitmap, 0);
 	FreeImage_UnlockPage(bitmap, lock, FALSE);
 
-	FIBITMAP *clone = FreeImage_LoadBMP("h:\\programming projects\\test images\\MK50TEMP.BMP");
+	FIBITMAP *clone = FreeImage_Load(FIF_BMP, "h:\\programming projects\\test images\\MK50TEMP.BMP");
 	FreeImage_AppendPage(bitmap, clone);
 	FreeImage_Unload(clone);
 
 	FreeImage_CloseMultiBitmap(bitmap);
 
-	FreeImage_DeInitialise();
+	// Call this ONLY when linking with FreeImage as a static library
+	//FreeImage_DeInitialise();
 
 	return 0;
 }
@@ -138,7 +146,9 @@ static Extensions s_extensions[] = {
 
 int __cdecl
 TestAPI(int argc, char *argv[]) {
-	FreeImage_Initialise();
+	// Call this ONLY when linking with FreeImage as a static library
+	//FreeImage_Initialise();
+
 	FreeImage_SetOutputMessage(MessageFunc);
 
 	FIBITMAP *dib = NULL;
@@ -221,7 +231,7 @@ TestAPI(int argc, char *argv[]) {
 					}
 				}
 
-				FreeImage_Free(dib);
+				FreeImage_Unload(dib);
 
 				fwrite(unique, strlen(unique), 1, log_file);
 				fwrite(" >> ", 4, 1, log_file);
@@ -240,7 +250,8 @@ TestAPI(int argc, char *argv[]) {
 
 	fclose(log_file);
 
-	FreeImage_DeInitialise();
+	// Call this ONLY when linking with FreeImage as a static library
+	//FreeImage_DeInitialise();
 
 	return 0;
 }
