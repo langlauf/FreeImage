@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_write.c,v 1.9 2003/08/05 02:45:58 warmerda Exp $ */
+/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_write.c,v 1.2 2004/05/01 19:05:16 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

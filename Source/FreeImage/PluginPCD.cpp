@@ -151,7 +151,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 	// allocate the dib and write out the header
 
-	FIBITMAP *dib = FreeImage_Allocate(width, height, bpp, 0xFF, 0xFF00, 0xFF0000);
+	FIBITMAP *dib = FreeImage_Allocate(width, height, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 	
 	// check if the PCD is bottom-up
 
@@ -180,14 +180,16 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		io->read_proc(cbcr, width, 1, handle);
 
 		for (int i = 0; i < 2; ++i) {
+			BYTE *img = FreeImage_GetScanLine(dib, start_scan_line);
 			for (int x = 0; x < width; ++x) {
 				int r, g, b;
 
 				YUV2RGB(yl[i][x], cbcr[x / 2], cbcr[(width / 2) + (x / 2)], r, g, b);
 
-				*(FreeImage_GetScanLine(dib, start_scan_line) + (x * 3) + 0) = b;
-				*(FreeImage_GetScanLine(dib, start_scan_line) + (x * 3) + 1) = g;
-				*(FreeImage_GetScanLine(dib, start_scan_line) + (x * 3) + 2) = r;
+				img[FI_RGBA_BLUE] = b;
+				img[FI_RGBA_GREEN] = g;
+				img[FI_RGBA_RED] = r;
+				img += 3;
 			}
 
 			start_scan_line += scan_line_add;

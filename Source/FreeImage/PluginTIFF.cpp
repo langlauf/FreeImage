@@ -368,16 +368,20 @@ static FIBITMAP* CreateImageType(FREE_IMAGE_TYPE fit, int width, int height, uin
 			}
 			else if(samplesperpixel = 3) {
 				// 48-bit RGB -> convert to 24-bit RGB
-				dib = FreeImage_Allocate(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+				dib = FreeImage_Allocate(width, height, 24, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 			}
 		}
 		else if(bpp == 16) {
 			// 16-bit RGB -> expect it to be 565
-			dib = FreeImage_Allocate(width, height, bpp, 0x1F, 0x7E0, 0xF800);
+			dib = FreeImage_Allocate(width, height, bpp, FI16_565_RED_MASK, FI16_565_GREEN_MASK, FI16_565_BLUE_MASK);
 		}
-		else if((bpp == 24) || (bpp == 32)) {
-			// BGR(A)
-			dib = FreeImage_Allocate(width, height, bpp, 0xFF, 0xFF00, 0xFF0000);
+		else if(bpp == 24) {
+			// BGR
+			dib = FreeImage_Allocate(width, height, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+		}
+		else if(bpp == 32) {
+			// BGRA
+			dib = FreeImage_Allocate(width, height, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 		}
 		else {
 			// anything else <= 8-bit
@@ -649,21 +653,21 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 					if (samplesperpixel == 4) {
 						for (x = 0; x < width; x++) {
-							bits[0] = (BYTE)TIFFGetB(row[x]);
-							bits[1] = (BYTE)TIFFGetG(row[x]);
-							bits[2] = (BYTE)TIFFGetR(row[x]);
-							bits[3] = (BYTE)TIFFGetA(row[x]);
+							bits[FI_RGBA_BLUE]	= (BYTE)TIFFGetB(row[x]);
+							bits[FI_RGBA_GREEN] = (BYTE)TIFFGetG(row[x]);
+							bits[FI_RGBA_RED]	= (BYTE)TIFFGetR(row[x]);
+							bits[FI_RGBA_ALPHA] = (BYTE)TIFFGetA(row[x]);
 
-							if (bits[3] != 0)
+							if (bits[FI_RGBA_ALPHA] != 0)
 								has_alpha = TRUE;								
 
 							bits += 4;
 						}
 					} else {
 						for (x = 0; x < width; x++) {
-							bits[0] = (BYTE)TIFFGetB(row[x]);
-							bits[1] = (BYTE)TIFFGetG(row[x]);
-							bits[2] = (BYTE)TIFFGetR(row[x]);
+							bits[FI_RGBA_BLUE]	= (BYTE)TIFFGetB(row[x]);
+							bits[FI_RGBA_GREEN] = (BYTE)TIFFGetG(row[x]);
+							bits[FI_RGBA_RED]	= (BYTE)TIFFGetR(row[x]);
 
 							bits += 3;
 						}
@@ -839,7 +843,10 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		uint16 photometric;
 		uint16 compression;
 		uint16 pitch;
-		int32 x, y;
+#ifndef FREEIMAGE_BIGENDIAN
+		int32 x;
+#endif
+		int32 y;
 
 		FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
 
@@ -1014,6 +1021,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 						memcpy(buffer, FreeImage_GetScanLine(dib, height - y - 1), pitch);
 
+#ifndef FREEIMAGE_BIGENDIAN
 						if (photometric != PHOTOMETRIC_SEPARATED) {
 							// TIFFs store color data RGB(A) instead of BGR(A)
 		
@@ -1024,6 +1032,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 								pBuf += samplesperpixel;
 							}
 						}
+#endif
 						// write the scanline to disc
 
 						TIFFWriteScanline(out, buffer, y, 0);

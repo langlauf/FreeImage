@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/osrs/libtiff/libtiff/tiffconf.h,v 1.8 2003/12/26 10:20:03 dron Exp $ */
+/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tiffconf.h,v 1.2 2004/05/01 19:05:16 drolon Exp $ */
 /*
  * Copyright (c) 1988-1997 Sam Leffler
  * Copyright (c) 1991-1997 Silicon Graphics, Inc.

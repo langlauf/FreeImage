@@ -134,19 +134,19 @@ Validate(FreeImageIO *io, fi_handle handle) {
 	if (memcmp(pbm_id1, signature, sizeof(pbm_id1)) == 0)
 		return TRUE;
 
-	if (memcmp(pbm_id1, signature, sizeof(pbm_id2)) == 0)
+	if (memcmp(pbm_id2, signature, sizeof(pbm_id2)) == 0)
 		return TRUE;
 
-	if (memcmp(pbm_id1, signature, sizeof(pgm_id1)) == 0)
+	if (memcmp(pgm_id1, signature, sizeof(pgm_id1)) == 0)
 		return TRUE;
 
-	if (memcmp(pbm_id1, signature, sizeof(pgm_id2)) == 0)
+	if (memcmp(pgm_id2, signature, sizeof(pgm_id2)) == 0)
 		return TRUE;
 
-	if (memcmp(pbm_id1, signature, sizeof(ppm_id1)) == 0)
+	if (memcmp(ppm_id1, signature, sizeof(ppm_id1)) == 0)
 		return TRUE;
 
-	if (memcmp(pbm_id1, signature, sizeof(ppm_id2)) == 0)
+	if (memcmp(ppm_id2, signature, sizeof(ppm_id2)) == 0)
 		return TRUE;
 
 	return FALSE;
@@ -212,7 +212,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			case '3':
 			case '6':
-				dib = FreeImage_Allocate(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+				dib = FreeImage_Allocate(width, height, 24, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 				break;
 		}
 
@@ -312,9 +312,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 						bits = FreeImage_GetBits(dib) + (height - 1 - y) * pitch;
 
 						for (x = 0; x < width; x++) {
-							bits[2] = (BYTE)((255 * GetInt(io, handle)) / max);	// R
-							bits[1] = (BYTE)((255 * GetInt(io, handle)) / max);	// G
-							bits[0] = (BYTE)((255 * GetInt(io, handle)) / max);	// B
+							bits[FI_RGBA_RED] = (BYTE)((255 * GetInt(io, handle)) / max);	// R
+							bits[FI_RGBA_GREEN] = (BYTE)((255 * GetInt(io, handle)) / max);	// G
+							bits[FI_RGBA_BLUE] = (BYTE)((255 * GetInt(io, handle)) / max);	// B
 
 							bits += 3;
 						}
@@ -327,13 +327,13 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 						for (x = 0; x < width; x++) {
 							io->read_proc(&level, 1, 1, handle); 
-							bits[2] = (BYTE)((255 * level) / max);	// R
+							bits[FI_RGBA_RED] = (BYTE)((255 * level) / max);	// R
 
 							io->read_proc(&level, 1, 1, handle);
-							bits[1] = (BYTE)((255 * level) / max);	// G
+							bits[FI_RGBA_GREEN] = (BYTE)((255 * level) / max);	// G
 
 							io->read_proc(&level, 1, 1, handle);
-							bits[0] = (BYTE)((255 * level) / max);	// B
+							bits[FI_RGBA_BLUE] = (BYTE)((255 * level) / max);	// B
 
 							bits += 3;
 						}
@@ -452,9 +452,9 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 						BYTE *bits = buffer;
 
 						for (x = 0; x < width; x++) {
-							io->write_proc(&bits[2], 1, 1, handle);	// R
-							io->write_proc(&bits[1], 1, 1, handle);	// G
-							io->write_proc(&bits[0], 1, 1, handle);	// B
+							io->write_proc(&bits[FI_RGBA_RED], 1, 1, handle);	// R
+							io->write_proc(&bits[FI_RGBA_GREEN], 1, 1, handle);	// G
+							io->write_proc(&bits[FI_RGBA_BLUE], 1, 1, handle);	// B
 
 							bits += 3;
 						}
@@ -481,7 +481,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 						for (x = 0; x < width; x++) {
 							char buffer[20];
 
-							sprintf(buffer, "%3d %3d %3d ", bits[2], bits[1], bits[0]);
+							sprintf(buffer, "%3d %3d %3d ", bits[FI_RGBA_RED], bits[FI_RGBA_GREEN], bits[FI_RGBA_BLUE]);
 
 							io->write_proc(&buffer, strlen(buffer), 1, handle);
 

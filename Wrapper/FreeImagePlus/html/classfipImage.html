@@ -140,16 +140,16 @@ fipImage encapsulates the FIBITMAP format. It relies on the FreeImage library, e
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the start of the given scanline in the bitmap’s data-bits. This pointer can be cast according to the result returned by getImageType.  <a href="#z15_1"></a><br><br></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_2">getPixelIndex</a> (unsigned x, unsigned y, BYTE *value)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the pixel index of a palettized image at position (x, y), including range check (slow access).  <a href="#z15_2"></a><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the pixel index of a 1-, 4- or 8-bit palettized image at position (x, y), including range check (slow access).  <a href="#z15_2"></a><br><br></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_3">getPixelColor</a> (unsigned x, unsigned y, RGBQUAD *value)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access).  <a href="#z15_3"></a><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the pixel color of a 16-, 24- or 32-bit image at position (x, y), including range check (slow access).  <a href="#z15_3"></a><br><br></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_4">setPixelIndex</a> (unsigned x, unsigned y, BYTE *value)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the pixel index of a palettized image at position (x, y), including range check (slow access).  <a href="#z15_4"></a><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the pixel index of a 1-, 4- or 8-bit palettized image at position (x, y), including range check (slow access).  <a href="#z15_4"></a><br><br></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_5">setPixelColor</a> (unsigned x, unsigned y, RGBQUAD *value)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access).  <a href="#z15_5"></a><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the pixel color of a 16-, 24- or 32-bit image at position (x, y), including range check (slow access).  <a href="#z15_5"></a><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Conversion routines</div></td></tr>
 <tr><td colspan="2"><div class="groupText">Bitmaps are always loaded in their default bit depth.<p>
 If you want the bitmap to be stored in another bit depth, the class provides several conversion functions. <br><br></div></td></tr>
@@ -258,9 +258,6 @@ If you want the bitmap to be stored in another bit depth, the class provides sev
 <tr><td colspan="2"><div class="groupHeader">Internal use</div></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top><a class="anchor" name="z29_0" doxytag="fipImage::replace" ></a>
 BOOL&nbsp;</td><td class="memItemRight" valign=bottom><b>replace</b> (FIBITMAP *new_dib)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align=right valign=top><a class="anchor" name="z29_1" doxytag="fipImage::replace" ></a>
-BOOL&nbsp;</td><td class="memItemRight" valign=bottom><b>replace</b> (<a class="el" href="classfipImage.html">fipImage</a> &amp;img)</td></tr>
 
 <tr><td colspan=2><br><h2>Protected Attributes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>FIBITMAP *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#p0">_dib</a></td></tr>
@@ -1669,7 +1666,7 @@ Returns the palette size in bytes.
     <td>
 
 <p>
-Get the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access). 
+Get the pixel color of a 16-, 24- or 32-bit image at position (x, y), including range check (slow access). 
 <p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
@@ -1723,7 +1720,7 @@ Get the pixel color of a 24- or 32-bit image at position (x, y), including range
     <td>
 
 <p>
-Get the pixel index of a palettized image at position (x, y), including range check (slow access). 
+Get the pixel index of a 1-, 4- or 8-bit palettized image at position (x, y), including range check (slow access). 
 <p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
@@ -2733,7 +2730,7 @@ set the bitmap resolution along the X axis, in pixels / cm
     <td>
 
 <p>
-Set the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access). 
+Set the pixel color of a 16-, 24- or 32-bit image at position (x, y), including range check (slow access). 
 <p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
@@ -2787,7 +2784,7 @@ Set the pixel color of a 24- or 32-bit image at position (x, y), including range
     <td>
 
 <p>
-Set the pixel index of a palettized image at position (x, y), including range check (slow access). 
+Set the pixel index of a 1-, 4- or 8-bit palettized image at position (x, y), including range check (slow access). 
 <p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">

@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* @(#) $Id$ */
+/* @(#) $Id: example.c,v 1.1 2004/03/16 21:45:10 drolon Exp $ */
 
 #include <stdio.h>
 #include "zlib.h"

@@ -437,7 +437,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			// step 4b: allocate dib and init header
 
-			dib = FreeImage_Allocate(cinfo.image_width, cinfo.image_height, 8 * cinfo.num_components, 0xFF, 0xFF00, 0xFF0000);
+			dib = FreeImage_Allocate(cinfo.image_width, cinfo.image_height, 8 * cinfo.num_components, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 
 			if (cinfo.num_components == 1) {
 				RGBQUAD *colors = FreeImage_GetPalette(dib);
@@ -481,16 +481,18 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			// The default behavior of the JPEG library is kept "as is" because LibTIFF uses 
 			// LibJPEG "as is".
 
+#ifndef FREEIMAGE_BIGENDIAN
 			if(cinfo.num_components == 3) {
-				for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+				for(unsigned y = 0; y < FreeImage_GetHeight(dib); y++) {
 					BYTE *target = FreeImage_GetScanLine(dib, y);
 					BYTE *target_p = target;
-					for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+					for(unsigned x = 0; x < FreeImage_GetWidth(dib); x++) {
 						INPLACESWAP(target_p[0], target_p[2]);
 						target_p += 3;
 					}
 				}
 			}
+#endif
 
 			// step 7: finish decompression
 
@@ -617,12 +619,14 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				while (cinfo.next_scanline < cinfo.image_height) {
 					// get a copy of the scanline
 					memcpy(target, FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1), pitch);
+#ifndef FREEIMAGE_BIGENDIAN
 					// swap R and B channels
 					BYTE *target_p = target;
-					for(int x = 0; x < cinfo.image_width; x++) {
+					for(unsigned x = 0; x < cinfo.image_width; x++) {
 						INPLACESWAP(target_p[0], target_p[2]);
 						target_p += 3;
 					}
+#endif
 					// write the scanline
 					jpeg_write_scanlines(&cinfo, &target, 1);
 				}
@@ -647,6 +651,16 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 					BYTE *source = FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1);
 					FreeImage_ConvertLine8To24(target, source, cinfo.image_width, palette);
 
+#ifndef FREEIMAGE_BIGENDIAN
+					// swap R and B channels
+					BYTE *target_p = target;
+					for(unsigned x = 0; x < cinfo.image_width; x++) {
+						INPLACESWAP(target_p[0], target_p[2]);
+						target_p += 3;
+					}
+#endif
+
+
 					jpeg_write_scanlines(&cinfo, &target, 1);
 				}
 
@@ -654,14 +668,14 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			}
 			else if(color_type == FIC_MINISWHITE) {
 				// reverse 8-bit greyscale image, so reverse grey value on the fly
-				int i;
+				unsigned i;
 				BYTE reverse[256];
 				BYTE *target = (BYTE *)malloc(cinfo.image_width);
 				if (target == NULL)
 					throw "no memory to allocate intermediate scanline buffer";
 
 				for(i = 0; i < 256; i++) {
-					reverse[i] = 255 - i;
+					reverse[i] = (BYTE)(255 - i);
 				}
 
 				while(cinfo.next_scanline < cinfo.image_height) {

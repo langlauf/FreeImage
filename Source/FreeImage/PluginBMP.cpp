@@ -71,12 +71,6 @@ typedef struct tagBITMAPFILEHEADER {
   DWORD   bfOffBits; 
 } BITMAPFILEHEADER, *PBITMAPFILEHEADER;
 
-typedef struct tagRGBTRIPLE { 
-  BYTE rgbtBlue; 
-  BYTE rgbtGreen; 
-  BYTE rgbtRed; 
-} RGBTRIPLE; 
-
 #ifdef WIN32
 #pragma pack(pop)
 #else
@@ -93,6 +87,50 @@ static int s_format_id;
 // Internal functions
 // ==========================================================
 
+#ifdef FREEIMAGE_BIGENDIAN
+static void
+SwapInfoHeader(BITMAPINFOHEADER *header) {
+	SwapLong(&header->biSize);
+	SwapLong((DWORD *)&header->biWidth);
+	SwapLong((DWORD *)&header->biHeight);
+	SwapShort(&header->biPlanes);
+	SwapShort(&header->biBitCount);
+	SwapLong(&header->biCompression);
+	SwapLong(&header->biSizeImage);
+	SwapLong((DWORD *)&header->biXPelsPerMeter);
+	SwapLong((DWORD *)&header->biYPelsPerMeter);
+	SwapLong(&header->biClrUsed);
+	SwapLong(&header->biClrImportant);
+}
+
+static void
+SwapCoreHeader(BITMAPCOREHEADER *header) {
+	SwapLong(&header->bcSize);
+	SwapShort(&header->bcWidth);
+	SwapShort(&header->bcHeight);
+	SwapShort(&header->bcPlanes);
+	SwapShort(&header->bcBitCnt);
+}
+
+static void
+SwapOS21XHeader(BITMAPINFOOS2_1X_HEADER *header) {
+	SwapLong(&header->biSize);
+	SwapShort(&header->biWidth);
+	SwapShort(&header->biHeight);
+	SwapShort(&header->biPlanes);
+	SwapShort(&header->biBitCount);
+}
+
+static void
+SwapFileHeader(BITMAPFILEHEADER *header) {
+	SwapShort(&header->bfType);
+  	SwapLong(&header->bfSize);
+  	SwapShort(&header->bfReserved1);
+  	SwapShort(&header->bfReserved2);
+	SwapLong(&header->bfOffBits);
+}
+#endif
+
 static FIBITMAP *
 LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_offset) {
 	FIBITMAP *dib = NULL;
@@ -103,6 +141,9 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 		BITMAPINFOHEADER bih;
 
 		io->read_proc(&bih, sizeof(BITMAPINFOHEADER), 1, handle);
+#ifdef FREEIMAGE_BIGENDIAN
+		SwapInfoHeader(&bih);
+#endif
 
 		// keep some general information about the bitmap
 
@@ -135,6 +176,12 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 				// load the palette
 
 				io->read_proc(FreeImage_GetPalette(dib), used_colors * sizeof(RGBQUAD), 1, handle);
+#ifdef FREEIMAGE_BIGENDIAN
+				RGBQUAD *pal = FreeImage_GetPalette(dib);
+				for(int i = 0; i < used_colors; i++) {
+					INPLACESWAP(pal[i].rgbRed, pal[i].rgbBlue);
+				}
+#endif
 
 				// seek to the actual pixel data.
 				// this is needed because sometimes the palette is larger than the entries it contains predicts
@@ -349,9 +396,9 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 
 					io->read_proc(bitfields, 3 * sizeof(DWORD), 1, handle);
 
-					dib = FreeImage_Allocate(width, height, bit_count, bitfields[2], bitfields[1], bitfields[0]);
+					dib = FreeImage_Allocate(width, height, bit_count, bitfields[0], bitfields[1], bitfields[2]);
 				} else {
-					dib = FreeImage_Allocate(width, height, bit_count, 0x1F, 0x3E0, 0x7C00);
+					dib = FreeImage_Allocate(width, height, bit_count, FI16_555_RED_MASK, FI16_555_GREEN_MASK, FI16_555_BLUE_MASK);
 				}
 
 				if (dib == NULL)
@@ -362,6 +409,15 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 				pInfoHeader->biYPelsPerMeter = bih.biYPelsPerMeter;
 
 				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
+#ifdef FREEIMAGE_BIGENDIAN
+				for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+					WORD *pixel = (WORD *)FreeImage_GetScanLine(dib, y);
+					for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+						SwapShort(pixel);
+						pixel++;
+					}
+				}
+#endif
 
 				return dib;
 			}
@@ -374,9 +430,13 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 
 					io->read_proc(bitfields, 3 * sizeof(DWORD), 1, handle);
 
-					dib = FreeImage_Allocate(width, height, bit_count, bitfields[2], bitfields[1], bitfields[0]);
+					dib = FreeImage_Allocate(width, height, bit_count, bitfields[0], bitfields[1], bitfields[2]);
 				} else {
-					dib = FreeImage_Allocate(width, height, bit_count, 0xFF, 0xFF00, 0xFF0000);
+					if( bit_count == 32 ) {
+						dib = FreeImage_Allocate(width, height, bit_count, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+					} else {
+						dib = FreeImage_Allocate(width, height, bit_count, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+					}
 				}
 
 				if (dib == NULL)
@@ -398,6 +458,15 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 				// read in the bitmap bits
 
 				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
+#ifdef FREEIMAGE_BIGENDIAN
+				for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+					BYTE *pixel = FreeImage_GetScanLine(dib, y);
+					for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+						INPLACESWAP(pixel[0], pixel[2]);
+						pixel += (bit_count>>3);
+					}
+				}
+#endif
 
 				// check if the bitmap contains transparency, if so enable it in the header
 
@@ -426,6 +495,9 @@ LoadOS22XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 		BITMAPINFOHEADER bih;
 
 		io->read_proc(&bih, sizeof(BITMAPINFOHEADER), 1, handle);
+#ifdef FREEIMAGE_BIGENDIAN
+		SwapInfoHeader(&bih);
+#endif
 
 		// keep some general information about the bitmap
 
@@ -462,13 +534,13 @@ LoadOS22XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 				RGBQUAD *pal = FreeImage_GetPalette(dib);
 
 				for (int count = 0; count < used_colors; count++) {
-					RGBTRIPLE triple;
+					FILE_BGR bgr;
 
-					io->read_proc(&triple, sizeof(RGBTRIPLE), 1, handle);
+					io->read_proc(&bgr, sizeof(FILE_BGR), 1, handle);
 					
-					pal[count].rgbRed = triple.rgbtRed;
-					pal[count].rgbGreen = triple.rgbtGreen;
-					pal[count].rgbBlue = triple.rgbtBlue;
+					pal[count].rgbRed = bgr.r;
+					pal[count].rgbGreen = bgr.g;
+					pal[count].rgbBlue = bgr.b;
 				}
 
 				// seek to the actual pixel data.
@@ -632,7 +704,7 @@ LoadOS22XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 											
 											// align run length to even number of bytes 
 
-											if (status_byte & 1 == 1)
+											if ((status_byte & 1) == 1)
 												io->read_proc(&second_byte, sizeof(BYTE), 1, handle);												
 
 											bits += status_byte;
@@ -674,9 +746,9 @@ LoadOS22XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 
 					io->read_proc(bitfields, 3 * sizeof(DWORD), 1, handle);
 
-					dib = FreeImage_Allocate(width, height, bit_count, bitfields[2], bitfields[1], bitfields[0]);
+					dib = FreeImage_Allocate(width, height, bit_count, bitfields[0], bitfields[1], bitfields[2]);
 				} else {
-					dib = FreeImage_Allocate(width, height, bit_count, 0x1F, 0x3E0, 0x7C00);
+					dib = FreeImage_Allocate(width, height, bit_count, FI16_555_RED_MASK, FI16_555_GREEN_MASK, FI16_555_BLUE_MASK);
 				}
 
 				if (dib == NULL)
@@ -690,14 +762,26 @@ LoadOS22XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 					io->seek_proc(handle, bitmap_bits_offset, SEEK_SET);
 
 				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
-
+#ifdef FREEIMAGE_BIGENDIAN
+				for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+					WORD *pixel = (WORD *)FreeImage_GetScanLine(dib, y);
+					for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+						SwapShort(pixel);
+						pixel++;
+					}
+				}
+#endif
 				return dib;
 			}
 
 			case 24 :
 			case 32 :
 			{
-				dib = FreeImage_Allocate(width, height, bit_count, 0xFF, 0xFF00, 0xFF0000);
+				if( bit_count == 32 ) {
+					dib = FreeImage_Allocate(width, height, bit_count, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+				} else {
+					dib = FreeImage_Allocate(width, height, bit_count, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+				}
 
 				if (dib == NULL)
 					throw "DIB allocation failed";
@@ -715,6 +799,15 @@ LoadOS22XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 				// read in the bitmap bits
 
 				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
+#ifdef FREEIMAGE_BIGENDIAN
+				for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+					BYTE *pixel = FreeImage_GetScanLine(dib, y);
+					for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+						INPLACESWAP(pixel[0], pixel[2]);
+						pixel += (bit_count>>3);
+					}
+				}
+#endif
 
 				// check if the bitmap contains transparency, if so enable it in the header
 
@@ -741,7 +834,9 @@ LoadOS21XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 		BITMAPINFOOS2_1X_HEADER bios2_1x;
 
 		io->read_proc(&bios2_1x, sizeof(BITMAPINFOOS2_1X_HEADER), 1, handle);
-
+#ifdef FREEIMAGE_BIGENDIAN
+		SwapOS21XHeader(&bios2_1x);
+#endif
 		// keep some general information about the bitmap
 
 		int used_colors = 0;
@@ -773,13 +868,13 @@ LoadOS21XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 				RGBQUAD *pal = FreeImage_GetPalette(dib);
 
 				for (int count = 0; count < used_colors; count++) {
-					RGBTRIPLE triple;
+					FILE_BGR bgr;
 
-					io->read_proc(&triple, sizeof(RGBTRIPLE), 1, handle);
+					io->read_proc(&bgr, sizeof(FILE_BGR), 1, handle);
 					
-					pal[count].rgbRed = triple.rgbtRed;
-					pal[count].rgbGreen = triple.rgbtGreen;
-					pal[count].rgbBlue = triple.rgbtBlue;
+					pal[count].rgbRed = bgr.r;
+					pal[count].rgbGreen = bgr.g;
+					pal[count].rgbBlue = bgr.b;
 				}
 
 				// Skip over the optional palette 
@@ -802,7 +897,7 @@ LoadOS21XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 
 			case 16 :
 			{
-				dib = FreeImage_Allocate(width, height, bit_count, 0x1F, 0x3E0, 0x7C00);
+				dib = FreeImage_Allocate(width, height, bit_count, FI16_555_RED_MASK, FI16_555_GREEN_MASK, FI16_555_BLUE_MASK);
 
 				if (dib == NULL)
 					throw "DIB allocation failed";						
@@ -812,6 +907,15 @@ LoadOS21XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 				pInfoHeader->biYPelsPerMeter = 0;
 
 				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
+#ifdef FREEIMAGE_BIGENDIAN
+				for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+					WORD *pixel = (WORD *)FreeImage_GetScanLine(dib, y);
+					for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+						SwapShort(pixel);
+						pixel++;
+					}
+				}
+#endif
 
 				return dib;
 			}
@@ -819,7 +923,11 @@ LoadOS21XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 			case 24 :
 			case 32 :
 			{
-				dib = FreeImage_Allocate(width, height, bit_count, 0xFF, 0xFF00, 0xFF0000);
+				if( bit_count == 32 ) {
+					dib = FreeImage_Allocate(width, height, bit_count, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+				} else {
+					dib = FreeImage_Allocate(width, height, bit_count, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+				}
 
 				if (dib == NULL)
 					throw "DIB allocation failed";						
@@ -832,6 +940,15 @@ LoadOS21XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 				// A 24 or 32 bit DIB may contain a palette for faster color reduction
 
 				io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
+#ifdef FREEIMAGE_BIGENDIAN
+				for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+					BYTE *pixel = FreeImage_GetScanLine(dib, y);
+					for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+						INPLACESWAP(pixel[0], pixel[2]);
+						pixel += (bit_count>>3);
+					}
+				}
+#endif
 
 				// check if the bitmap contains transparency, if so enable it in the header
 
@@ -920,7 +1037,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if (handle != NULL) {
 		BITMAPFILEHEADER bitmapfileheader;
 		DWORD type = 0;
-		WORD magic = 0;
+		BYTE magic[2];
 
 		// we use this offset value to make seemingly absolute seeks relative in the file
 		
@@ -928,27 +1045,34 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 		// read the magic
 
-		io->read_proc(&magic, sizeof(WORD), 1, handle);
+		io->read_proc(&magic, sizeof(magic), 1, handle);
 
 		// compare the magic with the number we know
 
+		// somebody put a comment here explaining the purpose of this loop
 		while (memcmp(&magic, "BA", 2) == 0) {
 			io->read_proc(&bitmapfileheader.bfSize, sizeof(DWORD), 1, handle);
 			io->read_proc(&bitmapfileheader.bfReserved1, sizeof(WORD), 1, handle);
 			io->read_proc(&bitmapfileheader.bfReserved2, sizeof(WORD), 1, handle);
 			io->read_proc(&bitmapfileheader.bfOffBits, sizeof(DWORD), 1, handle);
-			io->read_proc(&magic, sizeof(WORD), 1, handle);
+			io->read_proc(&magic, sizeof(magic), 1, handle);
 		}
 
 		// read the fileheader
 
-		io->seek_proc(handle, 0 - sizeof(WORD), SEEK_CUR);
+		io->seek_proc(handle, 0 - sizeof(magic), SEEK_CUR);
 		io->read_proc(&bitmapfileheader, sizeof(BITMAPFILEHEADER), 1, handle);
+#ifdef FREEIMAGE_BIGENDIAN
+		SwapFileHeader(&bitmapfileheader);
+#endif
 
 		// read the first byte of the infoheader
 
 		io->read_proc(&type, sizeof(DWORD), 1, handle);
 		io->seek_proc(handle, 0 - sizeof(DWORD), SEEK_CUR);
+#ifdef FREEIMAGE_BIGENDIAN
+		SwapLong(&type);
+#endif
 
 		// call the appropriate load function for the found bitmap type
 
@@ -1129,6 +1253,9 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			bitmapfileheader.bfOffBits += 3 * sizeof(DWORD);
 		}
 
+#ifdef FREEIMAGE_BIGENDIAN
+		SwapFileHeader(&bitmapfileheader);
+#endif
 		if (io->write_proc(&bitmapfileheader, sizeof(BITMAPFILEHEADER), 1, handle) != 1)
 			return FALSE;		
 
@@ -1145,6 +1272,9 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		// write the bitmap info header
 
+#ifdef FREEIMAGE_BIGENDIAN
+		SwapInfoHeader(&bih);
+#endif
 		if (io->write_proc(&bih, sizeof(BITMAPINFOHEADER), 1, handle) != 1)
 			return FALSE;
 
@@ -1153,7 +1283,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		if (bit_fields) {
 			DWORD d;
 
-			d = FreeImage_GetBlueMask(dib);
+			d = FreeImage_GetRedMask(dib);
 
 			if (io->write_proc(&d, sizeof(DWORD), 1, handle) != 1)
 				return FALSE;
@@ -1163,7 +1293,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			if (io->write_proc(&d, sizeof(DWORD), 1, handle) != 1)
 				return FALSE;
 
-			d = FreeImage_GetRedMask(dib);
+			d = FreeImage_GetBlueMask(dib);
 
 			if (io->write_proc(&d, sizeof(DWORD), 1, handle) != 1)
 				return FALSE;
@@ -1171,13 +1301,23 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		// write the palette
 
-		if (FreeImage_GetPalette(dib) != NULL)
-			if (io->write_proc(FreeImage_GetPalette(dib), sizeof(RGBQUAD) * FreeImage_GetColorsUsed(dib), 1, handle) != 1)
-				return FALSE;
+		if (FreeImage_GetPalette(dib) != NULL) {
+			RGBQUAD *pal = FreeImage_GetPalette(dib);
+			FILE_BGRA bgra;
+			for( int i = 0; i < FreeImage_GetColorsUsed(dib); i++ ) {
+				bgra.b = pal[i].rgbBlue;
+				bgra.g = pal[i].rgbGreen;
+				bgra.r = pal[i].rgbRed;
+				bgra.a = pal[i].rgbReserved;
+				if (io->write_proc(&bgra, sizeof(FILE_BGRA), 1, handle) != 1)
+					return FALSE;
+			}
+		}
 
 		// write the bitmap data... if RLE compression is enable, use it
 
-		if ((FreeImage_GetBPP(dib) == 8) && (flags & BMP_SAVE_RLE)) {
+		unsigned bpp = FreeImage_GetBPP(dib);
+		if ((bpp == 8) && (flags & BMP_SAVE_RLE)) {
 			BYTE *buffer = new BYTE[FreeImage_GetPitch(dib) * 2];
 
 			for (DWORD i = 0; i < FreeImage_GetHeight(dib); ++i) {
@@ -1198,6 +1338,46 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			}
 
 			delete [] buffer;
+#ifdef FREEIMAGE_BIGENDIAN
+		} else if (bpp == 16) {
+			WORD pixel;
+			for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+				BYTE *line = FreeImage_GetScanLine(dib, y);
+				for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+					pixel = ((WORD *)line)[x];
+					SwapShort(&pixel);
+					if (io->write_proc(&pixel, sizeof(WORD), 1, handle) != 1)
+						return FALSE;
+				}
+			}
+		} else if (bpp == 24) {
+			FILE_BGR bgr;
+			for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+				BYTE *line = FreeImage_GetScanLine(dib, y);
+				for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+					RGBTRIPLE *triple = ((RGBTRIPLE *)line)+x;
+					bgr.b = triple->rgbtBlue;
+					bgr.g = triple->rgbtGreen;
+					bgr.r = triple->rgbtRed;
+					if (io->write_proc(&bgr, sizeof(FILE_BGR), 1, handle) != 1)
+						return FALSE;
+				}
+			}
+		} else if (bpp == 32) {
+			FILE_BGRA bgra;
+			for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+				BYTE *line = FreeImage_GetScanLine(dib, y);
+				for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+					RGBQUAD *quad = ((RGBQUAD *)line)+x;
+					bgra.b = quad->rgbBlue;
+					bgra.g = quad->rgbGreen;
+					bgra.r = quad->rgbRed;
+					bgra.a = quad->rgbReserved;
+					if (io->write_proc(&bgra, sizeof(FILE_BGRA), 1, handle) != 1)
+						return FALSE;
+				}
+			}
+#endif
 		} else if (io->write_proc(FreeImage_GetBits(dib), FreeImage_GetHeight(dib) * FreeImage_GetPitch(dib), 1, handle) != 1) {
 			return FALSE;
 		}

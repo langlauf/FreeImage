@@ -1,4 +1,4 @@
-/* "$Header: /cvsroot/osrs/libtiff/libtiff/mkversion.c,v 1.6 2003/10/09 08:38:18 dron Exp $ */
+/* "$Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/mkversion.c,v 1.2 2004/05/01 19:05:15 drolon Exp $ */
 
 /*
  * Copyright (c) 1995-1997 Sam Leffler

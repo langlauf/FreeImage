@@ -63,6 +63,14 @@
 #endif // FREEIMAGE_EXPORTS
 #endif // FREEIMAGE_LIB || !WIN32
 
+// Some versions of gcc may have BYTE_ORDER or __BYTE_ORDER defined
+// If your big endian system isn't being detected, add an OS specific check
+#if (defined(BYTE_ORDER) && BYTE_ORDER==BIG_ENDIAN) || \
+	(defined(__BYTE_ORDER) && __BYTE_ORDER==__BIG_ENDIAN) || \
+	defined(__APPLE__)
+#define FREEIMAGE_BIGENDIAN
+#endif // BYTE_ORDER
+
 // For C compatility --------------------------------------------------------
 
 #ifdef __cplusplus
@@ -101,19 +109,48 @@ FI_STRUCT (FIMULTIBITMAP) { void *data; };
 #define SEEK_END  2
 #endif
 
-//#ifndef __GNUC__
 typedef long BOOL;
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
 typedef long LONG;
 
+#ifdef WIN32
+#pragma pack(push, 1)
+#else
+#pragma pack(1)
+#endif // WIN32
+
 typedef struct tagRGBQUAD {
-  BYTE rgbBlue; 
-  BYTE rgbGreen; 
-  BYTE rgbRed; 
-  BYTE rgbReserved; 
-} RGBQUAD; 
+#ifdef FREEIMAGE_BIGENDIAN
+  BYTE rgbRed;
+  BYTE rgbGreen;
+  BYTE rgbBlue;
+#else
+  BYTE rgbBlue;
+  BYTE rgbGreen;
+  BYTE rgbRed;
+#endif // FREEIMAGE_BIGENDIAN
+  BYTE rgbReserved;
+} RGBQUAD;
+
+typedef struct tagRGBTRIPLE {
+#ifdef FREEIMAGE_BIGENDIAN
+  BYTE rgbtRed;
+  BYTE rgbtGreen;
+  BYTE rgbtBlue;
+#else
+  BYTE rgbtBlue;
+  BYTE rgbtGreen;
+  BYTE rgbtRed;
+#endif // FREEIMAGE_BIGENDIAN
+} RGBTRIPLE;
+
+#ifdef WIN32
+#pragma pack(pop)
+#else
+#pragma pack()
+#endif // WIN32
 
 typedef struct tagBITMAPINFOHEADER{
   DWORD biSize;
@@ -134,8 +171,57 @@ typedef struct tagBITMAPINFO {
   RGBQUAD          bmiColors[1];
 } BITMAPINFO, *PBITMAPINFO;
 
-//#endif // __GNUC__
 #endif // _WINDOWS_
+
+// Indexes for byte arrays, masks and shifts for treating pixels as words ---
+// These coincide with the order of RGBQUAD and RGBTRIPLE -------------------
+
+#ifndef FREEIMAGE_BIGENDIAN
+// Little Endian (x86 / MS Windows, Linux) : BGR(A) order
+#define FI_RGBA_RED				2
+#define FI_RGBA_GREEN			1
+#define FI_RGBA_BLUE			0
+#define FI_RGBA_ALPHA			3
+#define FI_RGBA_RED_MASK		0x00FF0000
+#define FI_RGBA_GREEN_MASK		0x0000FF00
+#define FI_RGBA_BLUE_MASK		0x000000FF
+#define FI_RGBA_ALPHA_MASK		0xFF000000
+#define FI_RGBA_RED_SHIFT		16
+#define FI_RGBA_GREEN_SHIFT		8
+#define FI_RGBA_BLUE_SHIFT		0
+#define FI_RGBA_ALPHA_SHIFT		24
+#else
+// Big Endian (PPC / Linux, MaxOSX) : RGB(A) order
+#define FI_RGBA_RED				0
+#define FI_RGBA_GREEN			1
+#define FI_RGBA_BLUE			2
+#define FI_RGBA_ALPHA			3
+#define FI_RGBA_RED_MASK		0xFF000000
+#define FI_RGBA_GREEN_MASK		0x00FF0000
+#define FI_RGBA_BLUE_MASK		0x0000FF00
+#define FI_RGBA_ALPHA_MASK		0x000000FF
+#define FI_RGBA_RED_SHIFT		24
+#define FI_RGBA_GREEN_SHIFT		16
+#define FI_RGBA_BLUE_SHIFT		8
+#define FI_RGBA_ALPHA_SHIFT		0
+#endif // FREEIMAGE_BIGENDIAN
+
+#define FI_RGBA_RGB_MASK		(FI_RGBA_RED_MASK|FI_RGBA_GREEN_MASK|FI_RGBA_BLUE_MASK)
+
+// The 16bit macros only include masks and shifts, since each color element is not byte aligned
+
+#define FI16_555_RED_MASK		0x7C00
+#define FI16_555_GREEN_MASK		0x03E0
+#define FI16_555_BLUE_MASK		0x001F
+#define FI16_555_RED_SHIFT		10
+#define FI16_555_GREEN_SHIFT	5
+#define FI16_555_BLUE_SHIFT		0
+#define FI16_565_RED_MASK		0xF800
+#define FI16_565_GREEN_MASK		0x07E0
+#define FI16_565_BLUE_MASK		0x001F
+#define FI16_565_RED_SHIFT		11
+#define FI16_565_GREEN_SHIFT	5
+#define FI16_565_BLUE_SHIFT		0
 
 // ICC profile support ------------------------------------------------------
 
@@ -347,6 +433,7 @@ typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
 #define CUT_DEFAULT         0
 #define DDS_DEFAULT			0
 #define ICO_DEFAULT         0
+#define ICO_MAKEALPHA		1		// convert to 32bpp and create an alpha channel from the AND-mask when loading
 #define IFF_DEFAULT         0
 #define JPEG_DEFAULT        0
 #define JPEG_FAST           1
@@ -376,7 +463,7 @@ typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
 #define TIFF_DEFAULT        0
 #define TIFF_CMYK			0x0001	// reads/stores tags for separated CMYK (use | to combine with compression flags)
 #define TIFF_PACKBITS       0x0100  // save using PACKBITS compression
-#define TIFF_DEFLATE        0x0200  // save using DEFLATE compression
+#define TIFF_DEFLATE        0x0200  // save using DEFLATE compression (a.k.a. ZLIB compression)
 #define TIFF_ADOBE_DEFLATE  0x0400  // save using ADOBE DEFLATE compression
 #define TIFF_NONE           0x0800  // save without any compression
 #define WBMP_DEFAULT        0

@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/osrs/libtiff/libtiff/mkspans.c,v 1.1.1.1 1999/07/27 21:50:27 mike Exp $ */
+/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/mkspans.c,v 1.2 2004/05/01 19:05:15 drolon Exp $ */
 
 /*
  * Copyright (c) 1991-1997 Sam Leffler

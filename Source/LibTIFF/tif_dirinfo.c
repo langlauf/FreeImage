@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_dirinfo.c,v 1.24 2003/12/19 18:29:49 dron Exp $ */
+/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_dirinfo.c,v 1.2 2004/05/01 19:05:15 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

@@ -232,107 +232,104 @@
 00594 
 00595   <span class="keyword">protected</span>:
 00598           BOOL replace(FIBITMAP *new_dib);
-00599           BOOL replace(fipImage&amp; img) {
-00600                   <span class="keywordflow">return</span> replace(img.<a class="code" href="classfipImage.html#z11_4">getFIBITMAP</a>());
-00601           }
-00603 
-00604 };
-00605 
-00606 <span class="comment">// ----------------------------------------------------------</span>
-00607 
-00619 <span class="preprocessor">#ifdef WIN32</span>
-00620 <span class="preprocessor"></span>
-<a name="l00621"></a><a class="code" href="classfipWinImage.html">00621</a> <span class="keyword">class </span>FIP_API fipWinImage : <span class="keyword">public</span> fipImage
-00622 {
-00623 <span class="keyword">public</span>:
-00626 
-00627         fipWinImage(FREE_IMAGE_TYPE image_type = FIT_BITMAP, WORD width = 0, WORD height = 0, WORD bpp = 0);
-00628 
-00630         ~fipWinImage();
+00600 
+00601 };
+00602 
+00603 <span class="comment">// ----------------------------------------------------------</span>
+00604 
+00616 <span class="preprocessor">#ifdef WIN32</span>
+00617 <span class="preprocessor"></span>
+<a name="l00618"></a><a class="code" href="classfipWinImage.html">00618</a> <span class="keyword">class </span>FIP_API fipWinImage : <span class="keyword">public</span> fipImage
+00619 {
+00620 <span class="keyword">public</span>:
+00623 
+00624         fipWinImage(FREE_IMAGE_TYPE image_type = FIT_BITMAP, WORD width = 0, WORD height = 0, WORD bpp = 0);
+00625 
+00627         ~fipWinImage();
+00629 
 00632 
-00635 
-00636         fipWinImage(<span class="keyword">const</span> fipImage&amp; Img);
+00633         fipWinImage(<span class="keyword">const</span> fipImage&amp; Img);
+00634 
+00636         fipWinImage(<span class="keyword">const</span> FIBITMAP *dib);
 00637 
-00639         fipWinImage(<span class="keyword">const</span> FIBITMAP *dib);
-00640 
-00645         HANDLE copyToHandle();
-00646 
-00651         BOOL copyFromHandle(HANDLE hMem);
-00652 
-00657         BOOL copyFromBitmap(HBITMAP hbmp);
-00659 
-00668         BOOL copyToClipboard(HWND hWndNewOwner);
-00669 
-00674         BOOL pasteFromClipboard();
-00676 
-00684         BOOL captureWindow(HWND hWndApplicationWindow, HWND hWndSelectedWindow);
-00686 
+00642         HANDLE copyToHandle();
+00643 
+00648         BOOL copyFromHandle(HANDLE hMem);
+00649 
+00654         BOOL copyFromBitmap(HBITMAP hbmp);
+00656 
+00665         BOOL copyToClipboard(HWND hWndNewOwner);
+00666 
+00671         BOOL pasteFromClipboard();
+00673 
+00681         BOOL captureWindow(HWND hWndApplicationWindow, HWND hWndSelectedWindow);
+00683 
+00684 
 00687 
-00690 
-<a name="l00699"></a><a class="code" href="classfipWinImage.html#z39_0">00699</a>         <span class="keywordtype">void</span> draw(HDC hDC, RECT&amp; rcDest) {
-00700                 drawEx(hDC, rcDest, FALSE, NULL, NULL);
-00701         }
-00702 
-00715         <span class="keywordtype">void</span> drawEx(HDC hDC, RECT&amp; rcDest, BOOL useFileBkg = FALSE, RGBQUAD *appBkColor = NULL, FIBITMAP *bg = NULL);
-00716 
-00718 
-00719 <span class="keyword">protected</span>:
-<a name="l00721"></a><a class="code" href="classfipWinImage.html#p0">00721</a>         FIBITMAP *_display_dib;
-<a name="l00723"></a><a class="code" href="classfipWinImage.html#p1">00723</a>         BOOL _bDeleteMe;
-00724 };
-00725 
-00726 <span class="preprocessor">#endif // WIN32</span>
-00727 <span class="preprocessor"></span>
-00728 <span class="comment">// ----------------------------------------------------------</span>
-00729 
-<a name="l00736"></a><a class="code" href="classfipMemoryIO.html">00736</a> <span class="keyword">class </span>FIP_API fipMemoryIO : <span class="keyword">public</span> FreeImageIO
-00737 {
-00738 <span class="keyword">protected</span>:
-<a name="l00740"></a><a class="code" href="classfipMemoryIO.html#p0">00740</a>         BOOL _delete_me;
-<a name="l00742"></a><a class="code" href="classfipMemoryIO.html#p1">00742</a>     BYTE * _start;
-<a name="l00744"></a><a class="code" href="classfipMemoryIO.html#p2">00744</a>     BYTE *_cp;
-<a name="l00746"></a><a class="code" href="classfipMemoryIO.html#p3">00746</a>         DWORD _size;
-00747 
-00748 <span class="keyword">public</span> :
-00756     fipMemoryIO(BYTE *data = NULL, DWORD size_in_bytes = 0);
-00757 
-00766     BOOL loadFile(<span class="keyword">const</span> <span class="keywordtype">char</span> *lpszPathName);
-00767         
-00771         ~fipMemoryIO();
-00772 
-00775         BOOL isValidIO();
-00776 
-00780         FREE_IMAGE_FORMAT getFileType();
-00781 
-00784     <span class="keyword">static</span> <span class="keywordtype">unsigned</span> FIP_CALLCONV _ReadProc(<span class="keywordtype">void</span> *buffer, <span class="keywordtype">unsigned</span> size, <span class="keywordtype">unsigned</span> count, fi_handle handle);
-00785     <span class="keyword">static</span> <span class="keywordtype">unsigned</span> FIP_CALLCONV _WriteProc(<span class="keywordtype">void</span> *buffer, <span class="keywordtype">unsigned</span> size, <span class="keywordtype">unsigned</span> count, fi_handle handle);
-00786     <span class="keyword">static</span> <span class="keywordtype">int</span> FIP_CALLCONV _SeekProc(fi_handle handle, <span class="keywordtype">long</span> offset, <span class="keywordtype">int</span> origin);
-00787         <span class="keyword">static</span> <span class="keywordtype">long</span> FIP_CALLCONV _TellProc(fi_handle handle);
-00789 
-00790 };
-00791 
-00792 <span class="preprocessor">#ifdef WIN32</span>
-00793 <span class="preprocessor"></span>
-00794 <span class="preprocessor">#include &lt;WinInet.h&gt;</span>
-00795 
-<a name="l00802"></a><a class="code" href="classfipInternetIO.html">00802</a> <span class="keyword">class </span>FIP_API fipInternetIO : <span class="keyword">public</span> fipMemoryIO
-00803 {
-00804 <span class="keyword">protected</span>:
-<a name="l00806"></a><a class="code" href="classfipInternetIO.html#p0">00806</a>         HINTERNET _hInternet;
-<a name="l00808"></a><a class="code" href="classfipInternetIO.html#p1">00808</a>         HINTERNET _hHttpFile;
-00809 
-00810 <span class="keyword">public</span> :
-00814     fipInternetIO();
-00815 
-00819         ~fipInternetIO();
-00820 
-00823         BOOL downloadFile(<span class="keywordtype">char</span> *szURL);
-00824 
-00825 };
-00826 
-00827 <span class="preprocessor">#endif // WIN32</span>
-00828 <span class="preprocessor"></span>
-00829 <span class="preprocessor">#endif  // FREEIMAGEPLUS_H</span>
+<a name="l00696"></a><a class="code" href="classfipWinImage.html#z39_0">00696</a>         <span class="keywordtype">void</span> draw(HDC hDC, RECT&amp; rcDest) {
+00697                 drawEx(hDC, rcDest, FALSE, NULL, NULL);
+00698         }
+00699 
+00712         <span class="keywordtype">void</span> drawEx(HDC hDC, RECT&amp; rcDest, BOOL useFileBkg = FALSE, RGBQUAD *appBkColor = NULL, FIBITMAP *bg = NULL);
+00713 
+00715 
+00716 <span class="keyword">protected</span>:
+<a name="l00718"></a><a class="code" href="classfipWinImage.html#p0">00718</a>         FIBITMAP *_display_dib;
+<a name="l00720"></a><a class="code" href="classfipWinImage.html#p1">00720</a>         BOOL _bDeleteMe;
+00721 };
+00722 
+00723 <span class="preprocessor">#endif // WIN32</span>
+00724 <span class="preprocessor"></span>
+00725 <span class="comment">// ----------------------------------------------------------</span>
+00726 
+<a name="l00733"></a><a class="code" href="classfipMemoryIO.html">00733</a> <span class="keyword">class </span>FIP_API fipMemoryIO : <span class="keyword">public</span> FreeImageIO
+00734 {
+00735 <span class="keyword">protected</span>:
+<a name="l00737"></a><a class="code" href="classfipMemoryIO.html#p0">00737</a>         BOOL _delete_me;
+<a name="l00739"></a><a class="code" href="classfipMemoryIO.html#p1">00739</a>     BYTE * _start;
+<a name="l00741"></a><a class="code" href="classfipMemoryIO.html#p2">00741</a>     BYTE *_cp;
+<a name="l00743"></a><a class="code" href="classfipMemoryIO.html#p3">00743</a>         DWORD _size;
+00744 
+00745 <span class="keyword">public</span> :
+00753     fipMemoryIO(BYTE *data = NULL, DWORD size_in_bytes = 0);
+00754 
+00763     BOOL loadFile(<span class="keyword">const</span> <span class="keywordtype">char</span> *lpszPathName);
+00764         
+00768         ~fipMemoryIO();
+00769 
+00772         BOOL isValidIO();
+00773 
+00777         FREE_IMAGE_FORMAT getFileType();
+00778 
+00781     <span class="keyword">static</span> <span class="keywordtype">unsigned</span> FIP_CALLCONV _ReadProc(<span class="keywordtype">void</span> *buffer, <span class="keywordtype">unsigned</span> size, <span class="keywordtype">unsigned</span> count, fi_handle handle);
+00782     <span class="keyword">static</span> <span class="keywordtype">unsigned</span> FIP_CALLCONV _WriteProc(<span class="keywordtype">void</span> *buffer, <span class="keywordtype">unsigned</span> size, <span class="keywordtype">unsigned</span> count, fi_handle handle);
+00783     <span class="keyword">static</span> <span class="keywordtype">int</span> FIP_CALLCONV _SeekProc(fi_handle handle, <span class="keywordtype">long</span> offset, <span class="keywordtype">int</span> origin);
+00784         <span class="keyword">static</span> <span class="keywordtype">long</span> FIP_CALLCONV _TellProc(fi_handle handle);
+00786 
+00787 };
+00788 
+00789 <span class="preprocessor">#ifdef WIN32</span>
+00790 <span class="preprocessor"></span>
+00791 <span class="preprocessor">#include &lt;WinInet.h&gt;</span>
+00792 
+<a name="l00799"></a><a class="code" href="classfipInternetIO.html">00799</a> <span class="keyword">class </span>FIP_API fipInternetIO : <span class="keyword">public</span> fipMemoryIO
+00800 {
+00801 <span class="keyword">protected</span>:
+<a name="l00803"></a><a class="code" href="classfipInternetIO.html#p0">00803</a>         HINTERNET _hInternet;
+<a name="l00805"></a><a class="code" href="classfipInternetIO.html#p1">00805</a>         HINTERNET _hHttpFile;
+00806 
+00807 <span class="keyword">public</span> :
+00811     fipInternetIO();
+00812 
+00816         ~fipInternetIO();
+00817 
+00820         BOOL downloadFile(<span class="keywordtype">char</span> *szURL);
+00821 
+00822 };
+00823 
+00824 <span class="preprocessor">#endif // WIN32</span>
+00825 <span class="preprocessor"></span>
+00826 <span class="preprocessor">#endif  // FREEIMAGEPLUS_H</span>
 </pre></div><hr>
 <p align="right">
 <img src="freeimage.png"><br>

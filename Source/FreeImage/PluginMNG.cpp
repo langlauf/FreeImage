@@ -77,11 +77,15 @@ mng_bool
 mymngprocessheader(mng_handle mng, mng_uint32 width, mng_uint32 height) {
 	// allocate a bitmap with the given dimensions
 
-	((mngstuff *)mng_get_userdata(mng))->bitmap = FreeImage_Allocate(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+	((mngstuff *)mng_get_userdata(mng))->bitmap = FreeImage_Allocate(width, height, 24, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 
 	// tell the mng decoder about our bit-depth choice
 
+#ifdef FREEIMAGE_BIGENDIAN
+	mng_set_canvasstyle(mng, MNG_CANVAS_RGB8);
+#else
 	mng_set_canvasstyle(mng, MNG_CANVAS_BGR8);
+#endif
 
 	return MNG_TRUE;
 }

@@ -484,7 +484,11 @@ FreeImage_RotateClassic(FIBITMAP *dib, double angle) {
 					// allocate dst image
 					dst_width  = FreeImage_GetWidth(dst8);
 					dst_height = FreeImage_GetHeight(dst8);
-					dst = FreeImage_Allocate(dst_width, dst_height, bpp, 0xFF, 0xFF00, 0xFF0000);
+					if( bpp == 24 ) {
+						dst = FreeImage_Allocate(dst_width, dst_height, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+					} else {
+						dst = FreeImage_Allocate(dst_width, dst_height, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+					}
 					if(!dst) throw(1);
 				}
 				// insert channel to destination dib

@@ -91,18 +91,6 @@ typedef struct tagSUNHEADER {
 // ==========================================================
 
 static void
-SwapLong(DWORD *lp) {
-	// Byte Swapping Support
-
-	register BYTE *cp = (BYTE*) lp;
-
-	BYTE t;
-
-	t = cp[3]; cp[3] = cp[0]; cp[0] = t;
-	t = cp[2]; cp[2] = cp[1]; cp[1] = t;
-}
-
-static void
 ReadData(FreeImageIO *io, fi_handle handle, BYTE *buf, DWORD length, BOOL rle) {
 	// Read either Run-Length Encoded or normal image data
 
@@ -216,6 +204,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			io->read_proc(&header, sizeof(SUNHEADER), 1, handle);
 
+#ifndef FREEIMAGE_BIGENDIAN
 			// SUN rasterfiles are big endian only
 
 			SwapLong(&header.magic);
@@ -226,6 +215,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			SwapLong(&header.type);
 			SwapLong(&header.maptype);
 			SwapLong(&header.maplength);
+#endif
 
 			// Verify SUN identifier
 
@@ -241,8 +231,11 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					break;
 
 				case 24:
+					dib = FreeImage_Allocate(header.width, header.height, header.depth, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
+					break;
+
 				case 32:
-					dib = FreeImage_Allocate(header.width, header.height, header.depth, 0xFF, 0xFF00, 0xFF0000);
+					dib = FreeImage_Allocate(header.width, header.height, header.depth, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 					break;
 			}
 
@@ -257,6 +250,10 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			switch(header.type) {
 				case RT_OLD:
 				case RT_STANDARD:
+				case RT_FORMAT_TIFF: // I don't even know what these format are...
+				case RT_FORMAT_IFF: //The TIFF and IFF format types indicate that the raster
+					//file was originally converted from either of these file formats.
+					//so lets at least try to process them as RT_STANDARD
 					break;
 
 				case RT_BYTE_ENCODED:
@@ -266,9 +263,6 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				case RT_FORMAT_RGB:
 					isRGB = TRUE;
 					break;
-
-				case RT_FORMAT_TIFF: // I don't even know what these format are...
-				case RT_FORMAT_IFF:
 
 				default:
 					throw "Unsupported Sun rasterfile";
@@ -384,17 +378,17 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 						if (isRGB) {
 							for (x = 0; x < header.width; x++) {
-								bits[2] = *(bp++); // red
-								bits[1] = *(bp++); // green
-								bits[0] = *(bp++); // blue
+								bits[FI_RGBA_RED] = *(bp++);	// red
+								bits[FI_RGBA_GREEN] = *(bp++);	// green
+								bits[FI_RGBA_BLUE] = *(bp++);	// blue
 
 								bits += 3;
 							}
 						} else {
 							for (x = 0; x < header.width; x++) {
-								bits[2] = *(bp + 2); // red
-								bits[1] = *(bp + 1); // green
-								bits[0] = *bp;       // blue
+								bits[FI_RGBA_RED] = *(bp + 2);	// red
+								bits[FI_RGBA_GREEN] = *(bp + 1);// green
+								bits[FI_RGBA_BLUE] = *bp;       // blue
 
 								bits += 3; bp += 3;
 							}
@@ -423,20 +417,20 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 						if (isRGB) {
 							for (x = 0; x < header.width; x++) {
-								bp++;				// skip byte
-
-								bits[2] = *(bp++);	// red
-								bits[1] = *(bp++);	// green
-								bits[0] = *(bp++);	// blue
+								bits[FI_RGBA_ALPHA] = *(bp++);	// alpha
+								bits[FI_RGBA_RED] = *(bp++);	// red
+								bits[FI_RGBA_GREEN] = *(bp++);	// green
+								bits[FI_RGBA_BLUE] = *(bp++);	// blue
 
 								bits += 4;
 							}
 						}
 						else {
 							for (x = 0; x < header.width; x++) {
-								bits[2] = *(bp + 3); // red
-								bits[1] = *(bp + 2); // green
-								bits[0] = *(bp + 1); // blue
+								bits[FI_RGBA_RED] = *(bp + 3);	// red
+								bits[FI_RGBA_GREEN] = *(bp + 2); // green
+								bits[FI_RGBA_BLUE] = *(bp + 1);	// blue
+								bits[FI_RGBA_ALPHA] = *bp;		// alpha
 
 								bits += 4;
 								bp += 4;
