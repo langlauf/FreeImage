@@ -167,7 +167,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 	for (int y = 0; y < height / 2; ++y) {
 		io.read_proc(y1, width, 1, handle);
 		io.read_proc(y2, width, 1, handle);
-		io.read_proc(cbcr, width, 1, handle);		
+		io.read_proc(cbcr, width, 1, handle);
 
 		for (int i = 0; i < 2; ++i) {
 			for (int x = 0; x < width; ++x) {
@@ -197,6 +197,8 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 void DLL_CALLCONV
 InitPCD(Plugin &plugin, int format_id) {
+	s_format_id = format_id;
+
 	plugin.format_proc = Format;
 	plugin.description_proc = Description;
 	plugin.extension_proc = Extension;

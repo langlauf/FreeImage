@@ -817,10 +817,7 @@ LoadOS21XBMP(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int flags,
 
 				// check if the bitmap contains transparency, if so enable it in the header
 
-				if (freeimage.get_color_type_proc(dib) == FIC_RGBALPHA)
-					freeimage.set_transparent_proc(dib, TRUE);
-				else
-					freeimage.set_transparent_proc(dib, FALSE);
+				freeimage.set_transparent_proc(dib, (freeimage.get_color_type_proc(dib) == FIC_RGBALPHA));
 
 				return dib;
 			}
@@ -858,16 +855,19 @@ RegExpr() {
 
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO &io, fi_handle handle) {
-	BYTE bmp_signature[] = { 0x42, 0x4D };
+	BYTE bmp_signature1[] = { 0x42, 0x4D };
+	BYTE bmp_signature2[] = { 0x42, 0x41 };
 	BYTE signature[2];
 
-	int items_read = io.read_proc(signature, 1, sizeof(bmp_signature), handle);
+	int items_read = io.read_proc(signature, 1, sizeof(bmp_signature1), handle);
 
-	BOOL result = memcmp(bmp_signature, signature, sizeof(bmp_signature)) == 0;
+	if (memcmp(bmp_signature1, signature, sizeof(bmp_signature1)) == 0)
+		return TRUE;
 
-	io.seek_proc(handle, -items_read, SEEK_CUR);
+	if (memcmp(bmp_signature2, signature, sizeof(bmp_signature2)) == 0)
+		return TRUE;
 
-	return result;
+	return FALSE;
 }
 
 // ----------------------------------------------------------
@@ -910,14 +910,13 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 		// call the appropriate load function for the found bitmap type
 		
 		if (type == 40)
-			return LoadWindowsBMP(freeimage, io, handle, flags, bitmapfileheader.bfOffBits);
+			return LoadWindowsBMP(freeimage, io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
 		
 		if (type == 12)
-			return LoadOS21XBMP(freeimage, io, handle, flags, bitmapfileheader.bfOffBits);
+			return LoadOS21XBMP(freeimage, io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
 
-		if (type <= 64) {
-			return LoadOS22XBMP(freeimage, io, handle, flags, bitmapfileheader.bfOffBits);
-		}
+		if (type <= 64)
+			return LoadOS22XBMP(freeimage, io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);		
 	}
 
 	return NULL;

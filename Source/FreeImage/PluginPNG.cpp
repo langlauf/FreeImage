@@ -110,8 +110,7 @@ Validate(FreeImageIO &io, fi_handle handle) {
 	BYTE png_signature[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
 	BYTE signature[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-	int items_read = io.read_proc(&signature, 1, 8, handle);
-	io.seek_proc(handle, -items_read, SEEK_CUR);
+	io.read_proc(&signature, 1, 8, handle);
 
 	return (memcmp(png_signature, signature, 8) == 0);
 }
@@ -143,7 +142,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			io.read_proc(png_check, 1, PNG_BYTES_TO_CHECK, handle);
 
 			if (png_sig_cmp(png_check, (png_size_t)0, PNG_BYTES_TO_CHECK) != 0)
-				return NULL;	// Bad signature			
+				return NULL;	// Bad signature
 			
 			// create the chunk manage structure
 
@@ -252,9 +251,8 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			double gamma = 0;
 			double screen_gamma = 2.2;
 
-			if (png_get_gAMA(png_ptr, info_ptr, &gamma)) {
+			if (png_get_gAMA(png_ptr, info_ptr, &gamma))
 				png_set_gamma(png_ptr, screen_gamma, gamma);
-			}
 
 			// All transformations have been registered; now update info_ptr data
 
@@ -263,7 +261,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			// Create a DIB and write the bitmap header
 			// set up the DIB palette, if needed
 
-			switch(color_type) {
+			switch (color_type) {
 				case PNG_COLOR_TYPE_RGB:
 					png_set_invert_alpha(png_ptr);
 
@@ -306,7 +304,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					for (i = 0; i < palette_entries; i++) {
 						palette[i].rgbRed   =
 						palette[i].rgbGreen =
-						palette[i].rgbBlue  = (i * 255)/ (palette_entries - 1);
+						palette[i].rgbBlue  = (i * 255) / (palette_entries - 1);
 					}
 
 					// store the transparency table
@@ -361,16 +359,21 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			// check if the bitmap contains transparency, if so enable it in the header
 
-			if (freeimage.get_color_type_proc(dib) == FIC_RGBALPHA)
-				freeimage.set_transparent_proc(dib, TRUE);
-			else
-				freeimage.set_transparent_proc(dib, FALSE);
-			
+			if (freeimage.get_bpp_proc(dib) == 32)
+				if (freeimage.get_color_type_proc(dib) == FIC_RGBALPHA)
+					freeimage.set_transparent_proc(dib, TRUE);
+				else
+					freeimage.set_transparent_proc(dib, FALSE);
+				
 			// cleanup
 
-			free(row_pointers);
+			if (row_pointers)
+				free(row_pointers);
+
 			png_read_end(png_ptr, info_ptr);
-			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+
+			if (png_ptr)
+				png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 
 			return dib;
 		} catch (const char *text) {

@@ -223,12 +223,11 @@ PluginList::IsEmpty() const {
 
 PluginList::~PluginList() {
 	for (map<int, PluginNode *>::iterator i = m_plugin_map.begin(); i != m_plugin_map.end(); ++i) {
-
 #ifdef WIN32
 		if ((*i).second->m_instance != NULL)
 			FreeLibrary((HINSTANCE)(*i).second->m_instance);
 #endif
-
+		delete (*i).second->m_plugin; /*CORRECTED*/
 		delete ((*i).second);
 	}
 }
@@ -639,7 +638,7 @@ FreeImage_GetFIFFromFilename(const char *filename) {
 
 		// get the proper extension if we received a filename
 
-		char *place = strrchr(filename, '.');
+		char *place = strrchr((char *)filename, '.');
 
 		if (place != NULL)
 			extension = ++place;
@@ -695,9 +694,19 @@ FreeImage_GetFIFFromFilename(const char *filename) {
 BOOL DLL_CALLCONV
 FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO &io, fi_handle handle) {
 	if (s_plugins != NULL) {
+		BOOL validated = FALSE;
+
 		PluginNode *node = s_plugins->FindNodeFromFIF(fif);
 
-		return (node != NULL) ? (node->m_enabled) ? (node->m_plugin->validate_proc != NULL) ? node->m_plugin->validate_proc(io, handle) : FALSE : FALSE : FALSE;
+		if (node) {
+			long tell = io.tell_proc(handle);
+
+			validated = (node != NULL) ? (node->m_enabled) ? (node->m_plugin->validate_proc != NULL) ? node->m_plugin->validate_proc(io, handle) : FALSE : FALSE : FALSE;
+
+			io.seek_proc(handle, tell, SEEK_SET);
+		}
+
+		return validated;
 	}
 
 	return FALSE;

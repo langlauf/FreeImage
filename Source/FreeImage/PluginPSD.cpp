@@ -319,13 +319,7 @@ Extension() {
 
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO &io, fi_handle handle) {
-	int tell = io.tell_proc(handle);
-
-	unsigned signature = Read32(io, handle);
-	
-	io.seek_proc(handle, tell, SEEK_SET);
-
-	return (signature == 0x38425053);
+	return (Read32(io, handle) == 0x38425053);
 }
 
 // ----------------------------------------------------------

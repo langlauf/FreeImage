@@ -87,6 +87,15 @@ RegExpr() {
 	return NULL;
 }
 
+static BOOL DLL_CALLCONV
+Validate(FreeImageIO &io, fi_handle handle) {
+	ICONHEADER icon_header;
+
+	long read = io.read_proc(&icon_header, 1, sizeof(ICONHEADER), handle);
+
+	return ((icon_header.idReserved == 0) && (icon_header.idType == 1));
+}
+
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
@@ -108,24 +117,30 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 		io.read_proc(&icon_header, sizeof(ICONHEADER), 1, handle);
 
 		if ((icon_header.idReserved == 0) && (icon_header.idType == 1)) {
-			ICONDIRENTRY *icon_list = (ICONDIRENTRY *)malloc(icon_header.idCount * sizeof(ICONDIRENTRY));
-
 			// load the icon descriptions
 
-			for (int c = 0; c < icon_header.idCount; c++)
-				io.read_proc(icon_list + c, sizeof(ICONDIRENTRY), 1, handle);
+			ICONDIRENTRY *icon_list = (ICONDIRENTRY *)malloc(icon_header.idCount * sizeof(ICONDIRENTRY));
+
+			io.read_proc(icon_list, icon_header.idCount * sizeof(ICONDIRENTRY), 1, handle);
+
+			// load the specified icon
 			
 			if (page < icon_header.idCount) {
-				// calculate the bit count for the colors in the bitmap
-				
-				int bit_count = 1;
-				int colors_used = icon_list[(int)flags].bColorCount;
+				// seek to the start of the bitmap data for the icon
 
-				while (CalculateUsedColors(bit_count) != colors_used)
-					bit_count++;
-							
-				int width  = icon_list[(int)flags].bWidth;
-				int height = icon_list[(int)flags].bHeight;
+				io.seek_proc(handle, start_of_file, SEEK_SET);
+				io.seek_proc(handle, icon_list[(int)flags].dwImageOffset, SEEK_CUR);
+
+				// load the BITMAPINFOHEADER
+
+				BITMAPINFOHEADER header;
+				io.read_proc(&header, sizeof(BITMAPINFOHEADER), 1, handle);
+
+				// allocate the bitmap
+
+				int width  = header.biWidth;
+				int height = header.biHeight / 2; // height == xor + and mask
+				int bit_count = header.biBitCount;
 				int line   = CalculateLine(width, bit_count);
 				int pitch  = CalculatePitch(line);
 
@@ -135,21 +150,19 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				if (dib == NULL) {
 					free(icon_list);
+
 					return NULL;
 				}
 
-				// find the icon and skip the infoheader
+				// black and white cursors look much better on white
 
-				io.seek_proc(handle, start_of_file, SEEK_SET);
-				io.seek_proc(handle, icon_list[(int)flags].dwImageOffset, SEEK_CUR);
-				io.seek_proc(handle, sizeof(BITMAPINFOHEADER), SEEK_CUR);
+				if (icon_header.idType == 2)
+					if (bit_count == 1)
+						memset(FreeImage_GetBits(dib), 255, pitch * height);
 
 				// read the palette data
 
-				RGBQUAD *quad = freeimage.get_palette_proc(dib);
-
-				for (int c = 0; c < colors_used; c++)	
-					io.read_proc(quad++, sizeof(RGBQUAD), 1, handle);				
+				io.read_proc(freeimage.get_palette_proc(dib), CalculateUsedColors(bit_count) * sizeof(RGBQUAD), 1, handle);				
 
 				// apply the AND and XOR masks
 
@@ -200,4 +213,5 @@ InitICO(Plugin &plugin, int format_id) {
 	plugin.extension_proc = Extension;
 	plugin.regexpr_proc = RegExpr;
 	plugin.load_proc = Load;
+	plugin.validate_proc = Validate;
 }

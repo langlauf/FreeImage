@@ -264,21 +264,17 @@ static BOOL DLL_CALLCONV
 Validate(FreeImageIO &io, fi_handle handle) {	
 	BYTE tiff_id1[] = { 0x49, 0x49 };
 	BYTE tiff_id2[] = { 0x4D, 0x4D };
-	BYTE signature[2];
+	BYTE signature[2] = { 0, 0 };
 
-	int items_read = io.read_proc(signature, 1, sizeof(tiff_id1), handle);
+	io.read_proc(signature, 1, sizeof(tiff_id1), handle);
 
-	BOOL result = FALSE;
-	
 	if (memcmp(tiff_id1, signature, sizeof(tiff_id1)) == 0)
-		result = TRUE;
+		return TRUE;
 
 	if (memcmp(tiff_id2, signature, sizeof(tiff_id1)) == 0)
-		result = TRUE;
+		return TRUE;
 
-	io.seek_proc(handle, -items_read, SEEK_CUR);
-
-	return result;
+	return FALSE;
 }
 
 // ----------------------------------------------------------
@@ -467,8 +463,8 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						throw "No space for DIB image";
 					}
 
-					float	fResX, fResY;
-					uint16	resUnit;
+					float fResX, fResY;
+					uint16 resUnit;
 					TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
 					TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fResX);
 					TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fResY);
@@ -480,7 +476,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 						pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
 						pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
-					} else if(resUnit== RESUNIT_CENTIMETER) {
+					} else if (resUnit== RESUNIT_CENTIMETER) {
 						/* metric */
 
 						pInfoHeader->biXPelsPerMeter = (int) (fResX*100.0 + 0.5);

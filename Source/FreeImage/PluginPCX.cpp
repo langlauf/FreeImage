@@ -148,13 +148,9 @@ Validate(FreeImageIO &io, fi_handle handle) {
 	BYTE pcx_signature = 0x0A;
 	BYTE signature = 0;
 
-	int items_read = io.read_proc(&signature, 1, 1, handle);
+	io.read_proc(&signature, 1, 1, handle);
 
-	BOOL result = (pcx_signature == signature);
-
-	io.seek_proc(handle, -items_read, SEEK_CUR);
-
-	return result;
+	return (pcx_signature == signature);
 }
 
 // ----------------------------------------------------------
@@ -188,15 +184,15 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			WORD height = header.window[3] - header.window[1] + 1;
 			WORD bitcount = header.bpp * header.planes;
 
-			if (bitcount == 24) {
+			if (bitcount == 24)
 				dib = freeimage.allocate_proc(width, height, bitcount, 0xFF, 0xFF00, 0xFF0000);
-			} else {
-				dib = freeimage.allocate_proc(width, height, bitcount);
-			}
+			else
+				dib = freeimage.allocate_proc(width, height, bitcount);			
 
-			if (!dib) {
-				throw "DIB allocation failed";
-			}
+			// if the dib couldn't be allocated, throw an error
+
+			if (!dib)
+				throw "DIB allocation failed";			
 
 			// metrics handling code
 

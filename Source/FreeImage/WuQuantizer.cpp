@@ -415,110 +415,116 @@ WuQuantizer::Mark(Box *cube, int label, uint8 *tag) {
 // Wu Quantization algorithm
 
 FIBITMAP *
-WuQuantizer::Quantize()
-{
-	int PalSize = 256;	// Color look-up table size
-	Box	cube[MAXCOLOR];
-	uint8 *tag;
-	int	next;
-	int32 i, weight;
-	int k;
-	float vv[MAXCOLOR], temp;
-	
-	// Compute 3D histogram
+WuQuantizer::Quantize() {
+	uint8 *tag = NULL;
 
-	Hist3D(wt, mr, mg, mb, gm2);
+	try {
+		int PalSize = 256;	// Color look-up table size
+		Box	cube[MAXCOLOR];
+		int	next;
+		int32 i, weight;
+		int k;
+		float vv[MAXCOLOR], temp;
+		
+		// Compute 3D histogram
 
-	// Compute moments
+		Hist3D(wt, mr, mg, mb, gm2);
 
-	M3D(wt, mr, mg, mb, gm2);
+		// Compute moments
 
-	cube[0].r0 = cube[0].g0 = cube[0].b0 = 0;
-	cube[0].r1 = cube[0].g1 = cube[0].b1 = 32;
-	next = 0;
+		M3D(wt, mr, mg, mb, gm2);
 
-	for (i = 1; i < PalSize; i++) {
-		if(Cut(&cube[next], &cube[i])) {
-			// volume test ensures we won't try to cut one-cell box
-			vv[next] = (cube[next].vol > 1) ? Var(&cube[next]) : 0;
-			vv[i] = (cube[i].vol > 1) ? Var(&cube[i]) : 0;
-		} else {
-              vv[next] = 0.0;   // don't try to split this box again
-              i--;              // didn't create box i
-	    }
+		cube[0].r0 = cube[0].g0 = cube[0].b0 = 0;
+		cube[0].r1 = cube[0].g1 = cube[0].b1 = 32;
+		next = 0;
 
-		next = 0; temp = vv[0];
+		for (i = 1; i < PalSize; i++) {
+			if(Cut(&cube[next], &cube[i])) {
+				// volume test ensures we won't try to cut one-cell box
+				vv[next] = (cube[next].vol > 1) ? Var(&cube[next]) : 0;
+				vv[i] = (cube[i].vol > 1) ? Var(&cube[i]) : 0;
+			} else {
+				  vv[next] = 0.0;   // don't try to split this box again
+				  i--;              // didn't create box i
+			}
 
-		for (k = 1; k <= i; k++) {
-			if (vv[k] > temp) {
-				temp = vv[k]; next = k;
+			next = 0; temp = vv[0];
+
+			for (k = 1; k <= i; k++) {
+				if (vv[k] > temp) {
+					temp = vv[k]; next = k;
+				}
+			}
+
+			if (temp <= 0.0) {
+				  PalSize = i + 1;
+
+				  // Error: "Only got 'PalSize' boxes"
+
+				  break;
 			}
 		}
 
-		if (temp <= 0.0) {
-              PalSize = i + 1;
+		// Partition done
 
-              // Error: "Only got 'PalSize' boxes"
+		// the space for array gm2 can be freed now
 
-              break;
-	    }
-	}
+		free(gm2);
 
-	// Partition done
+		gm2 = NULL;
 
-	// the space for array gm2 can be freed now
+		// Allocate a new dib
 
-	free(gm2);
+		FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
 
-	gm2 = NULL;
-
-	// Allocate a new dib
-
-	FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
-
-	if (new_dib == NULL) {
-		throw "Not enough memory";
-	}
-
-	// create an optimized palette
-
-	RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
-
-	tag = (uint8*) malloc(33 * 33 * 33 * sizeof(uint8));
-
-	if (tag == NULL) {
-		throw "Not enough memory";
-	}
-
-	for (k = 0; k < PalSize; k++) {
-		Mark(&cube[k], k, tag);
-	    weight = Vol(&cube[k], wt);
-
-	    if (weight) {
-			new_pal[k].rgbRed	= (uint8)(Vol(&cube[k], mr) / weight);
-			new_pal[k].rgbGreen = (uint8)(Vol(&cube[k], mg) / weight);
-			new_pal[k].rgbBlue	= (uint8)(Vol(&cube[k], mb) / weight);
-		} else {
-	      // Error: bogus box 'k'
-
-	      new_pal[k].rgbRed = new_pal[k].rgbGreen = new_pal[k].rgbBlue = 0;		
-	    }
-	}
-
-	int npitch = FreeImage_GetPitch(new_dib);
-
-	for (uint16 y = 0; y < height; y++) {
-		uint8 *new_bits = FreeImage_GetBits(new_dib) + (y * npitch);
-
-		for (uint16 x = 0; x < width; x++) {
-			new_bits[x] = tag[Qadd[y*width + x]];
+		if (new_dib == NULL) {
+			throw "Not enough memory";
 		}
+
+		// create an optimized palette
+
+		RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
+
+		tag = (uint8*) malloc(33 * 33 * 33 * sizeof(uint8));
+
+		if (tag == NULL) {
+			throw "Not enough memory";
+		}
+
+		for (k = 0; k < PalSize; k++) {
+			Mark(&cube[k], k, tag);
+			weight = Vol(&cube[k], wt);
+
+			if (weight) {
+				new_pal[k].rgbRed	= (uint8)(Vol(&cube[k], mr) / weight);
+				new_pal[k].rgbGreen = (uint8)(Vol(&cube[k], mg) / weight);
+				new_pal[k].rgbBlue	= (uint8)(Vol(&cube[k], mb) / weight);
+			} else {
+				// Error: bogus box 'k'
+
+				new_pal[k].rgbRed = new_pal[k].rgbGreen = new_pal[k].rgbBlue = 0;		
+			}
+		}
+
+		int npitch = FreeImage_GetPitch(new_dib);
+
+		for (uint16 y = 0; y < height; y++) {
+			uint8 *new_bits = FreeImage_GetBits(new_dib) + (y * npitch);
+
+			for (uint16 x = 0; x < width; x++) {
+				new_bits[x] = tag[Qadd[y*width + x]];
+			}
+		}
+
+		// output 'new_pal' as color look-up table contents,
+		// 'new_bits' as the quantized image (array of table addresses).
+
+		free(tag);
+
+		return (FIBITMAP*) new_dib;
+	} catch(...) {
+		free(tag);
 	}
 
-	// output 'new_pal' as color look-up table contents,
-	// 'new_bits' as the quantized image (array of table addresses).
-
-	free(tag);
-
-	return (FIBITMAP*) new_dib;
+	return NULL;
 }

@@ -342,15 +342,24 @@ FIQT_Load(QImageIO *iio) {
 	FREE_IMAGE_FORMAT fif = FIQT_GetFIFFromFilename(iio->format());
 
 	if (fif == FIF_UNKNOWN) {
-		// filename/extension based image lookup failed... try to identify the bitmap by looking at the header
+		// format id based image lookup failed... try to identify the bitmap by looking at the header
 
 		fif = FIQT_GetFileTypeFromHandle(&io, (fi_handle)iio->ioDevice(), 16);
 
 		if (fif == FIF_UNKNOWN) {
-			// failed again. we have no idea what kind of bitmap this is...
+			// failed again... look at the complete filename as a last resort
 
-			iio->setStatus(-1);
-			return;
+			if (!iio->fileName().isEmpty()) {
+				fif = FIQT_GetFIFFromFilename(iio->fileName());
+
+				if (fif == FIF_UNKNOWN) {
+					iio->setStatus(-1);
+					return;
+				}
+			} else {
+				iio->setStatus(-1);
+				return;
+			}
 		}
 	}
 

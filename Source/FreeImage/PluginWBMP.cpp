@@ -244,6 +244,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 				while(header.ExtHeaderFields & 0x80) {
 					io.read_proc(&header.ExtHeaderFields, 1, 1, handle);
+
 					readExtHeader(io, handle, header.ExtHeaderFields);
 				}
 			}
@@ -270,7 +271,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 			// read the bitmap data
 			
 			int pitch = freeimage.get_pitch_proc(dib);
-			int line = CalculateLine(width, 1);
+			int line = freeimage.get_line_proc(dib);
 
 			for (y = 0; y < height; y++) {
 				bits = freeimage.get_scanline_proc(dib, height - 1 - y);

@@ -178,8 +178,7 @@ Validate(FreeImageIO &io, fi_handle handle) {
 	BYTE ras_signature[] = { 0x59, 0xA6, 0x6A, 0x95 };
 	BYTE signature[4] = { 0, 0, 0, 0 };
 
-	int items_read = io.read_proc(signature, 1, sizeof(ras_signature), handle);
-	io.seek_proc(handle, -items_read, SEEK_CUR);
+	io.read_proc(signature, 1, sizeof(ras_signature), handle);
 
 	return (memcmp(ras_signature, signature, sizeof(ras_signature)) == 0);
 }

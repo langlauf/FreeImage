@@ -374,10 +374,9 @@ MimeType() {
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO &io, fi_handle handle) {
 	BYTE jpeg_signature[] = { 0xFF, 0xD8 };
-	BYTE signature[2];
+	BYTE signature[2] = { 0, 0 };
 
-	int items_read = io.read_proc(signature, 1, sizeof(jpeg_signature), handle);
-	io.seek_proc(handle, -items_read, SEEK_CUR);
+	io.read_proc(signature, 1, sizeof(jpeg_signature), handle);
 
 	return (memcmp(jpeg_signature, signature, sizeof(jpeg_signature)) == 0);
 }
@@ -389,18 +388,6 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 	if (handle) {
 		FIBITMAP *dib = NULL;
 	
-		BOOL jpeg_fast_decode = TRUE;
-
-		switch (flags) {
-			case JPEG_ACCURATE :
-				jpeg_fast_decode = FALSE;
-				break;
-
-			default :
-				jpeg_fast_decode = TRUE;
-				break;
-		}
-
 		try {
 			struct jpeg_decompress_struct cinfo;
 			struct jpeg_error_mgr jerr;
@@ -424,7 +411,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			// Step 4a: set parameters for decompression
 
-			if (jpeg_fast_decode) {
+			if ((flags != JPEG_ACCURATE)) {
 				cinfo.dct_method          = JDCT_IFAST;
 				cinfo.do_fancy_upsampling = FALSE;
 			}
@@ -481,7 +468,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 			return (FIBITMAP *)dib;
 		} catch (...) {
-			FreeImage_Free(dib);
+			freeimage.unload_proc(dib);
 		}		
 	}
 
@@ -625,6 +612,8 @@ Save(FreeImage &freeimage, FreeImageIO &io, FIBITMAP *dib, fi_handle handle, int
 
 void DLL_CALLCONV
 InitJPEG(Plugin &plugin, int format_id) {
+	s_format_id = format_id;
+
 	plugin.format_proc = Format;
 	plugin.description_proc = Description;
 	plugin.extension_proc = Extension;

@@ -34,14 +34,14 @@
 #endif
 
 typedef struct {
-    WORD w, h;                     /* raster width & height in pixels */
+    WORD w, h;                    /* raster width & height in pixels */
     WORD x, y;                    /* position for this image */
-    BYTE nPlanes;                  /* # source bitplanes */
-    BYTE masking;                  /* masking technique */
-    BYTE compression;              /* compression algorithm */
-    BYTE pad1;                     /* UNUSED.  For consistency, put 0 here.*/
-    WORD transparentColor;         /* transparent "color number" */
-    BYTE xAspect, yAspect;         /* aspect ratio, a rational number x/y */
+    BYTE nPlanes;                 /* # source bitplanes */
+    BYTE masking;                 /* masking technique */
+    BYTE compression;             /* compression algorithm */
+    BYTE pad1;                    /* UNUSED.  For consistency, put 0 here.*/
+    WORD transparentColor;        /* transparent "color number" */
+    BYTE xAspect, yAspect;        /* aspect ratio, a rational number x/y */
     WORD pageWidth, pageHeight;   /* source "page" size in pixels */
 } BMHD;
 
@@ -51,7 +51,11 @@ typedef struct {
 #pragma pack(4)
 #endif
 
-static bool big_endian = true;
+// ----------------------------------------------------------
+
+static BOOL big_endian = TRUE;
+
+// ----------------------------------------------------------
 
 static WORD swapWORD( WORD n ){
 	return big_endian ? (n >> 8) | (n << 8) : n;
@@ -93,10 +97,9 @@ RegExpr() {
 
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO &io, fi_handle handle) {
-	unsigned type;
+	unsigned type = 0;
 
-	int read = io.read_proc(&type, 4, 1, handle);
-	io.seek_proc(handle, -read, SEEK_CUR);
+	io.read_proc(&type, 4, 1, handle);
 
 	return (swapDWORD(type) == 'FORM');
 }
@@ -281,6 +284,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 					}
 
 					free(src);
+
 					return dib;
 				}
 			}
@@ -291,7 +295,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 		}
 
 		if (dib)
-			FreeImage_Unload(dib);
+			freeimage.unload_proc(dib);
 	}
 
 	return 0;
@@ -303,6 +307,8 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 void DLL_CALLCONV
 InitIFF(Plugin &plugin, int format_id) {
+	s_format_id = format_id;
+
 	plugin.format_proc = Format;
 	plugin.description_proc = Description;
 	plugin.extension_proc = Extension;

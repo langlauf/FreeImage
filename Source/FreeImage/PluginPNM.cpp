@@ -127,8 +127,7 @@ Validate(FreeImageIO &io, fi_handle handle) {
 	BYTE ppm_id2[] = { 0x50, 0x36 };
 	BYTE signature[2] = { 0, 0 };
 
-	int items_read = io.read_proc(signature, 1, sizeof(pbm_id1), handle);
-	io.seek_proc(handle, -items_read, SEEK_CUR);
+	io.read_proc(signature, 1, sizeof(pbm_id1), handle);
 
 	if (memcmp(pbm_id1, signature, sizeof(pbm_id1)) == 0)
 		return TRUE;
@@ -184,7 +183,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 		// Create a new DIB
 
-		switch(id_two)  {
+		switch (id_two) {
 			case '1':
 			case '4':
 				dib = freeimage.allocate_proc(width, height, 1);
@@ -231,7 +230,7 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						}
 					}
 				}  else {		// Raw bitmap
-					int line   = CalculateLine(width, 1);
+					int line = CalculateLine(width, 1);
 
 					for (y = 0; y < height; y++) {				
 						bits = freeimage.get_bits_proc(dib) + (height - 1 - y) * pitch;
@@ -253,8 +252,8 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 				pal = freeimage.get_palette_proc(dib);
 
 				for (i = 0; i < 256; i++) {
-					pal[i].rgbRed	= i;
-					pal[i].rgbGreen = i;
+					pal[i].rgbRed	=
+					pal[i].rgbGreen =
 					pal[i].rgbBlue	= i;
 				}
 

@@ -60,7 +60,7 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 
 			// write out the FREEIMAGEHEADER
 
-			FREEIMAGEHEADER *fih = (FREEIMAGEHEADER *)bitmap->data;
+			FREEIMAGEHEADER *fih    = (FREEIMAGEHEADER *)bitmap->data;
 			fih->red_mask           = red_mask;
 			fih->green_mask         = green_mask;
 			fih->blue_mask          = blue_mask;
@@ -140,7 +140,7 @@ FreeImage_GetColorType(FIBITMAP *dib) {
 				if ((rgb->rgbRed != rgb->rgbGreen) || (rgb->rgbRed != rgb->rgbBlue))
 					return FIC_PALETTE;		
 
-				// The DIB has a color pal	ette if the greyscale isn't a linear ramp
+				// The DIB has a color palette if the greyscale isn't a linear ramp
 
 				if (rgb->rgbRed != i)
 					return FIC_PALETTE;				
@@ -243,11 +243,7 @@ FreeImage_GetWidth(FIBITMAP *dib) {
 
 unsigned DLL_CALLCONV
 FreeImage_GetHeight(FIBITMAP *dib) {
-	if (dib) {
-		return FreeImage_GetInfoHeader(dib)->biHeight;
-	} else {
-		return 0;
-	}
+	return (dib) ? FreeImage_GetInfoHeader(dib)->biHeight : 0;
 }
 
 unsigned DLL_CALLCONV
@@ -277,27 +273,28 @@ FreeImage_GetBits(FIBITMAP *dib) {
 
 BYTE * DLL_CALLCONV
 FreeImage_GetBitsRowCol(FIBITMAP *dib, int col, int row) {
-	int width = FreeImage_GetWidth(dib);
+	if (dib) {
+		int width = FreeImage_GetWidth(dib);
 
-	if (FreeImage_GetBPP(dib) == 4)
-		width /= 2;
-	else if (FreeImage_GetBPP(dib) == 1)
-		width /= 8;
+		if (FreeImage_GetBPP(dib) == 4)
+			width /= 2;
+		else if (FreeImage_GetBPP(dib) == 1)
+			width /= 8;
 
-	return FreeImage_GetBits(dib) + ((FreeImage_GetHeight(dib) - row - 1) * FreeImage_GetPitch(dib)) + (col * FreeImage_GetBPP(dib) / 8);
+		return FreeImage_GetBits(dib) + ((FreeImage_GetHeight(dib) - row - 1) * FreeImage_GetPitch(dib)) + (col * FreeImage_GetBPP(dib) / 8);
+	} else {
+		return NULL;
+	}
 }
 
 BYTE * DLL_CALLCONV
 FreeImage_GetScanLine(FIBITMAP *dib, int scanline) {
-	return CalculateScanLine(FreeImage_GetBits(dib), FreeImage_GetPitch(dib), scanline);
+	return (dib) ? CalculateScanLine(FreeImage_GetBits(dib), FreeImage_GetPitch(dib), scanline) : NULL;
 }
 
 unsigned DLL_CALLCONV
 FreeImage_GetDIBSize(FIBITMAP *dib) {
-	int dib_size = sizeof(BITMAPINFOHEADER);
-	dib_size += FreeImage_GetColorsUsed(dib) * sizeof(RGBQUAD);
-	dib_size += FreeImage_GetPitch(dib) * FreeImage_GetHeight(dib);
-	return dib_size;
+	return (dib) ? sizeof(BITMAPINFOHEADER) + (FreeImage_GetColorsUsed(dib) * sizeof(RGBQUAD)) + (FreeImage_GetPitch(dib) * FreeImage_GetHeight(dib)) : 0;
 }
 
 RGBQUAD * DLL_CALLCONV
@@ -312,15 +309,15 @@ FreeImage_GetDotsPerMeterX(FIBITMAP *dib) {
 
 unsigned DLL_CALLCONV
 FreeImage_GetDotsPerMeterY(FIBITMAP *dib) {
-	return FreeImage_GetInfoHeader(dib)->biYPelsPerMeter;
+	return (dib) ? FreeImage_GetInfoHeader(dib)->biYPelsPerMeter : 0;
 }
 
 BITMAPINFOHEADER * DLL_CALLCONV
 FreeImage_GetInfoHeader(FIBITMAP *dib) {
-	return dib ? (BITMAPINFOHEADER *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER)) : NULL;
+	return (dib) ? (BITMAPINFOHEADER *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER)) : NULL;
 }
 
 BITMAPINFO * DLL_CALLCONV
 FreeImage_GetInfo(FIBITMAP *dib) {
-	return dib ? (BITMAPINFO *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER)) : NULL;
+	return (dib) ? (BITMAPINFO *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER)) : NULL;
 }

@@ -110,10 +110,9 @@ RegExpr() {
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO &io, fi_handle handle) {
 	BYTE koala_signature[] = { 0x00, 0x60 };
-	BYTE signature[2];
+	BYTE signature[2] = { 0, 0 };
 
 	int items_read = io.read_proc(signature, 1, sizeof(koala_signature), handle);
-	io.seek_proc(handle, -items_read, SEEK_CUR);
 
 	return (memcmp(koala_signature, signature, sizeof(koala_signature)) == 0);
 }
@@ -208,6 +207,8 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 void DLL_CALLCONV
 InitKOALA(Plugin &plugin, int format_id) {
+	s_format_id = format_id;
+
 	plugin.format_proc = Format;
 	plugin.description_proc = Description;
 	plugin.extension_proc = Extension;

@@ -479,13 +479,13 @@ NNQuantizer(FIBITMAP *dib, int sampling)
 	FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
 
 	if (new_dib == NULL)
-		throw "Not enough memory";
+		return NULL;
 
 	// 5) Write the quantized palette
 
 	RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
 
-    for(int j = 0; j < netsize; j++) {
+    for (int j = 0; j < netsize; j++) {
 		new_pal[j].rgbBlue  = (BYTE)network[j][0];
 		new_pal[j].rgbGreen = (BYTE)network[j][1];
 		new_pal[j].rgbRed	= (BYTE)network[j][2];
@@ -501,6 +501,7 @@ NNQuantizer(FIBITMAP *dib, int sampling)
 
 		for (WORD cols = 0; cols < FreeImage_GetWidth(dib); cols++) {
 			new_bits[cols] = (BYTE)inxsearch(bits[0], bits[1], bits[2]);
+
 			bits += 3;
 		}
 	}

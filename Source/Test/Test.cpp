@@ -43,8 +43,6 @@ using namespace std;
 #include "FreeImageQt.h"
 #endif
 
-#define FREEIMAGE_LIB
-
 #ifdef API
 #include "FreeImage.h"
 #endif
@@ -124,7 +122,7 @@ TestAPI(int argc, char *argv[]) {
 
 	long handle;
 
-	if ((handle = _findfirst("c:\\projects\\test images\\*.psd", &finddata)) != -1) {
+	if ((handle = _findfirst("c:\\projects\\test images\\*.bmp", &finddata)) != -1) {
 		do {
 			dib = NULL;
 
@@ -209,7 +207,8 @@ TestAPI(int argc, char *argv[]) {
 
 				FreeImage_SetTransparent(dib, FALSE);
 
-				for (int i = 0; i < sizeof(s_extensions) / sizeof(s_extensions[0]); ++i) {
+				for (int i = 0; i < 1; ++i) {
+//				for (int i = 0; i < sizeof(s_extensions) / sizeof(s_extensions[0]); ++i) {
 					itoa(id, unique, 10);
 					strcat(unique, ".");
 					strcat(unique, s_extensions[i].ext);

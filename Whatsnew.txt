@@ -5,6 +5,20 @@ Whats New for FreeImage
 ! : changed
 + : added
 
+July 30th 2001 - 2.4.1
+* [Jan Nauta] fixed some plugin ids not being passed to plugins
+* [Jan Nauta] fixed some functions being natively called instead of indirect
+* [Jan Nauta] fixed BMPs with signature BA not being regognised
+* [Remo Eichenberger] fixed memory leak in the plugin system
+* fixed seek bug in PluginIFF's Validate
+* fixed transparency issue in PluginPNG
+* fixed uncaught exceptions in WUQuantizer and NNQuantizer
+* fixed some problems with PluginTARGA
+* fixed some problems with PluginICO
+* fixed some problems with PluginBMP
+! improved FreeImageQt's load function a little
+! tell/seek control for validation is now handled inside the plugin framework
+
 July 22th 2001 - 2.4.0
 * (Yours Detlev) fixed memory leak in FreeImage_GetFIFFromFilename
 * (Yours Detlev) fixed memory leak in the ICO plugin

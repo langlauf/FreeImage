@@ -448,12 +448,12 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 						case 2 :
 						{
 							if (fliphoriz)
-								for (unsigned count = header.is_height - 1; count > 0; count--) {
-								BYTE *bits = bits = Internal_GetScanLine(freeimage, dib, count, flipvert);
+								for (unsigned count = header.is_height; count > 0; count--) {
+									BYTE *bits = bits = Internal_GetScanLine(freeimage, dib, count-1, flipvert);
 
-								io.read_proc(bits, line, 1, handle);
+									io.read_proc(bits, line, 1, handle);
 
-								bits += pitch;
+									bits += pitch;
 								}
 							else
 								for (unsigned count = 0; count < header.is_height; count++) {
@@ -637,8 +637,8 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 							if (alphabits) {
 								if (fliphoriz)
-									for (unsigned count = header.is_height - 1; count > 0; count--) {
-										BYTE * bits = Internal_GetScanLine(freeimage, dib, count, flipvert);
+									for (unsigned count = header.is_height; count > 0; count--) {
+										BYTE *bits = bits = Internal_GetScanLine(freeimage, dib, count-1, flipvert);
 
 										for (unsigned cols = 0; cols < header.is_width; cols++) {
 											RGBQUAD rgb;
@@ -677,13 +677,13 @@ Load(FreeImage &freeimage, FreeImageIO &io, fi_handle handle, int page, int flag
 
 							} else {
 								if (fliphoriz)
-									for (unsigned count = header.is_height - 1; count > 0; count--) {
+									for (unsigned count = header.is_height; count > 0; count--) {
 										BYTE *bits;
 
-										if(fliphoriz)
-											bits = Internal_GetScanLine(freeimage, dib, header.is_height-count-1, flipvert);
+										if (fliphoriz)
+											bits = Internal_GetScanLine(freeimage, dib, header.is_height-count, flipvert);
 										else
-											bits = Internal_GetScanLine(freeimage, dib, count, flipvert);
+											bits = Internal_GetScanLine(freeimage, dib, count-1, flipvert);
 
 										for (unsigned cols = 0; cols < header.is_width; cols++) {
 											RGBQUAD rgb;
