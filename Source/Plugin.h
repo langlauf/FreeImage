@@ -122,5 +122,6 @@ void DLL_CALLCONV InitRAS(Plugin *plugin, int format_id);
 void DLL_CALLCONV InitTARGA(Plugin *plugin, int format_id);
 void DLL_CALLCONV InitTIFF(Plugin *plugin, int format_id);
 void DLL_CALLCONV InitWBMP(Plugin *plugin, int format_id);
+void DLL_CALLCONV InitXBM(Plugin *plugin, int format_id);
 
 #endif //!PLUGIN_H

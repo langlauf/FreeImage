@@ -4,6 +4,7 @@
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Rui Lopes (ruiglopes@yahoo.com)
+// - Detlev Vendt (detlev.vendt@brillit.de)
 //
 // This file is part of FreeImage 2
 //
@@ -237,6 +238,9 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 		s_freeimage.get_green_mask_proc = FreeImage_GetGreenMask;
 		s_freeimage.get_height_proc = FreeImage_GetHeight;
 		s_freeimage.get_info_header_proc = FreeImage_GetInfoHeader;
+		s_freeimage.get_icc_profile_proc = FreeImage_GetICCProfile;
+		s_freeimage.create_icc_profile_proc = FreeImage_CreateICCProfile;
+		s_freeimage.destroy_icc_profile_proc = FreeImage_DestroyICCProfile;
 		s_freeimage.get_info_proc = FreeImage_GetInfo;
 		s_freeimage.get_line_proc = FreeImage_GetLine;
 		s_freeimage.get_palette_proc = FreeImage_GetPalette;
@@ -309,6 +313,7 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 			s_plugins->AddNode(InitWBMP);
 			s_plugins->AddNode(InitPSD);
 			s_plugins->AddNode(InitCUT);
+			s_plugins->AddNode(InitXBM);
 
 			// external plugin initialization
 
@@ -648,7 +653,22 @@ FreeImage_FIFSupportsExportBPP(FREE_IMAGE_FORMAT fif, int depth) {
 	if (s_plugins != NULL) {
 		PluginNode *node = s_plugins->FindNodeFromFIF(fif);
 
-		return (node != NULL) ? (node->m_plugin->supports_export_bpp_proc != NULL) ? node->m_plugin->supports_export_bpp_proc(depth) : FALSE : FALSE;
+		return (node != NULL) ? 
+			(node->m_plugin->supports_export_bpp_proc != NULL) ? 
+				node->m_plugin->supports_export_bpp_proc(depth) : FALSE : FALSE;
+	}
+
+	return FALSE;
+}
+
+BOOL DLL_CALLCONV
+FreeImage_FIFSupportsICCProfiles(FREE_IMAGE_FORMAT fif) {
+	if (s_plugins != NULL) {
+		PluginNode *node = s_plugins->FindNodeFromFIF(fif);
+
+		return (node != NULL) ? 
+			(node->m_plugin->supports_icc_profiles_proc != NULL) ? 
+				node->m_plugin->supports_icc_profiles_proc() : FALSE : FALSE;
 	}
 
 	return FALSE;

@@ -5,6 +5,22 @@ Whats New for FreeImage
 ! : changed
 + : added
 
+May 25, 2003 - 2.6.1
++ [Detlev Vendt] added FIC_CMYK to FREE_IMAGE_COLOR_TYPE
++ [Detlev Vendt] added ICC profile support to the library (see below)
++                added FreeImage_GetICCProfile
++                added FreeImage_CreateICCProfile
++                added FreeImage_DestroyICCProfile
++                added FIICCPROFILE & FIICCPROFILE flags
++                added plugin function FreeImage_FIFSupportsICCProfiles
++ [Detlev Vendt] added ICC profile support for TIFF
++ [Herve Drolon] added XBM (X11 Bitmap Format) support : loading
+* [Herve Drolon] fixed incorrect IFF file detection (thanks Floris)
+* [Herve Drolon] fixed incorrect conversion from 1/4-bit greyscale bitmaps to 8-bit
+* [Herve Drolon] fixed a bug in TIFF writer when saving 1,4,8 bit dib (introduced in 2.6.0, sorry)
+* [Herve Drolon] fixed a palette problem in TIFF loader when loading 1-bit b & w images
+* [Herve Drolon] improved FreeImage_Dither to handle any bitdepth
+
 May 5th, 2003 - 2.6.0
 ! FreeImage now uses libPNG 1.2.5
 ! FreeImage now uses libMNG 1.0.5

@@ -198,6 +198,10 @@ SOURCE=..\FreeImage\PluginTIFF.cpp
 
 SOURCE=..\FreeImage\PluginWBMP.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\PluginXBM.cpp
+# End Source File
 # End Group
 # Begin Group "DeprecationMgr"
 

@@ -302,34 +302,67 @@ static FIBITMAP* OrderedClusteredDot(FIBITMAP *dib, int order) {
 //
 FIBITMAP * DLL_CALLCONV
 FreeImage_Dither(FIBITMAP *dib, FREE_IMAGE_DITHER algorithm) {
-	FIBITMAP *dib8, *new_dib;
+	FIBITMAP *input = NULL, *dib8 = NULL;
 
-	if(!dib || (FreeImage_GetBPP(dib) != 8)) {
-		return NULL;
+	if(NULL == dib) return NULL;
+
+	int bpp = FreeImage_GetBPP(dib);
+
+	if(bpp == 1) {
+		// Just clone the dib and adjust the palette if needed
+		FIBITMAP *new_dib = FreeImage_Clone(dib);
+		if(NULL == new_dib) return NULL;
+		if(FreeImage_GetColorType(new_dib) == FIC_PALETTE) {
+			// Build a monochrome palette
+			RGBQUAD *pal = FreeImage_GetPalette(new_dib);
+			pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 0;
+			pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255;
+		}
+		return new_dib;
 	}
+
+	// Convert the input dib to a 8-bit greyscale dib
+	//
+	switch(bpp) {
+		case 8:
+			input = dib;
+			break;
+		case 4:
+		case 16:
+		case 24:
+		case 32:
+			input = FreeImage_ConvertTo8Bits(dib);
+			break;			
+	}
+	if(NULL == input) return NULL;
+
+	// Apply the dithering algorithm
 	switch(algorithm) {
 		case FID_FS:
-			dib8 = FloydSteinberg(dib);
+			dib8 = FloydSteinberg(input);
 			break;
 		case FID_BAYER4x4:
-			dib8 = OrderedDispersedDot(dib, 2);
+			dib8 = OrderedDispersedDot(input, 2);
 			break;
 		case FID_BAYER8x8:
-			dib8 = OrderedDispersedDot(dib, 3);
+			dib8 = OrderedDispersedDot(input, 3);
 			break;
 		case FID_CLUSTER6x6:
-			dib8 = OrderedClusteredDot(dib, 3);
+			dib8 = OrderedClusteredDot(input, 3);
 			break;
 		case FID_CLUSTER8x8:
-			dib8 = OrderedClusteredDot(dib, 4);
+			dib8 = OrderedClusteredDot(input, 4);
 			break;
 		case FID_CLUSTER16x16:
-			dib8 = OrderedClusteredDot(dib, 8);
+			dib8 = OrderedClusteredDot(input, 8);
 			break;
+	}
+	if(bpp != 8) {
+		FreeImage_Unload(input);
 	}
 
 	// Convert to 1-bit
-	new_dib = FreeImage_Threshold(dib8, 128);
+	FIBITMAP *new_dib = FreeImage_Threshold(dib8, 128);
 	FreeImage_Unload(dib8);
 
 	return new_dib;

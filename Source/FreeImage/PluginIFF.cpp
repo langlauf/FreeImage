@@ -101,8 +101,14 @@ Validate(FreeImageIO *io, fi_handle handle) {
 
 	io->read_proc(&type, 4, 1, handle);
 
-	return (swapDWORD(type) == 'FORM');
+	if (swapDWORD(type) != 'FORM')
+		return FALSE;
+		
+	io->read_proc(&type, 4, 1, handle);
+
+	return ((swapDWORD(type) == 'ILBM') || (swapDWORD(type) == 'PBM '));
 }
+
 
 static BOOL DLL_CALLCONV
 SupportsExportDepth(int depth) {

@@ -30,7 +30,7 @@
 
 //----------------------------------------------------------------------
 
-static const char *s_version = "2.6.0";
+static const char *s_version = "2.6.1";
 static const char *s_copyright = "This program uses FreeImage, a free, open source image library supporting all common bitmap formats. Get your free copy from http://sourceforge.net/projects/freeimage/.";
 
 //----------------------------------------------------------------------
@@ -82,10 +82,10 @@ FreeImage_SetOutputMessage(FreeImage_OutputMessageFunction omf) {
 void DLL_CALLCONV
 FreeImage_OutputMessage(int fif, const char *fmt, ...) {
 	if ((fmt != NULL) && (FreeImage_OutputMessageProc != NULL)) {
-		// 256 bytes should be more than enough for a short message
+		// 512 bytes should be more than enough for a short message
 
-		char message[256];
-		memset(message, 0, 256);
+		char message[512];
+		memset(message, 0, 512);
 
 		// initialize the optional parameter list
 

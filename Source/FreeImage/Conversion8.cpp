@@ -22,6 +22,7 @@
 // ==========================================================
 
 #include "FreeImage.h"
+#include "Utilities.h"
 
 // ----------------------------------------------------------
 
@@ -35,7 +36,7 @@
 void DLL_CALLCONV
 FreeImage_ConvertLine1To8(BYTE *target, BYTE *source, int width_in_pixels) {
 	for (int cols = 0; cols < width_in_pixels; cols++)
-		target[cols] = (source[cols >> 3] & (0x80 >> (cols & 0x07))) != 0;	
+		target[cols] = (source[cols >> 3] & (0x80 >> (cols & 0x07))) != 0 ? 255 : 0;	
 }
 
 void DLL_CALLCONV
@@ -107,42 +108,49 @@ FreeImage_ConvertTo8Bits(FIBITMAP *dib) {
 	if(dib) {
 		int width  = FreeImage_GetWidth(dib);
 		int height = FreeImage_GetHeight(dib);
+		FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
+
+		if (new_dib == NULL) {
+			return NULL;
+		}
+
+		// Build a greyscale palette (*always* needed for image processing)
+
+		RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
+
+		for (int i = 0; i < 256; i++) {
+			new_pal[i].rgbRed	= i;
+			new_pal[i].rgbGreen = i;
+			new_pal[i].rgbBlue	= i;
+		}
 
 		switch(FreeImage_GetBPP(dib)) {
 			case 1:
 			{
-				FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
+				if(FreeImage_GetColorType(dib) == FIC_PALETTE) {
 
-				if (new_dib != NULL) {
 					// Copy the palette
 
-					RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
 					RGBQUAD *old_pal = FreeImage_GetPalette(dib);
+					memcpy(&new_pal[0], &old_pal[0], sizeof(RGBQUAD));
+					memcpy(&new_pal[255], &old_pal[1], sizeof(RGBQUAD));
 
-					for (int i = 0; i < 2; i++) {
-						new_pal[i].rgbRed	= old_pal[i].rgbRed;
-						new_pal[i].rgbGreen = old_pal[i].rgbGreen;
-						new_pal[i].rgbBlue	= old_pal[i].rgbBlue;
-					}
-
-					// Expand and copy the bitmap data
-
-					for (int rows = 0; rows < height; rows++)
-						FreeImage_ConvertLine1To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
-					
 				}
 
+				// Expand and copy the bitmap data
+
+				for (int rows = 0; rows < height; rows++)
+					FreeImage_ConvertLine1To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
+					
 				return new_dib;
 			}
 
 			case 4 :
 			{
-				FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
+				if(FreeImage_GetColorType(dib) == FIC_PALETTE) {
 
-				if (new_dib != NULL) {
 					// Copy the palette
 
-					RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
 					RGBQUAD *old_pal = FreeImage_GetPalette(dib);
 
 					for (int i = 0; i < 16; i++) {
@@ -150,91 +158,47 @@ FreeImage_ConvertTo8Bits(FIBITMAP *dib) {
 						new_pal[i].rgbGreen = old_pal[i].rgbGreen;
 						new_pal[i].rgbBlue	= old_pal[i].rgbBlue;
 					}
-
-					// Expand and copy the bitmap data
-
-					for (int rows = 0; rows < height; rows++)
-						FreeImage_ConvertLine4To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);					
 				}
+
+				// Expand and copy the bitmap data
+
+				for (int rows = 0; rows < height; rows++)
+					FreeImage_ConvertLine4To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);					
 
 				return new_dib;
 			}
 
 			case 16 :
 			{
-				FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
+				// Expand and copy the bitmap data
 
-				if (new_dib != NULL) {
-					// Build a greyscale palette
-
-					RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
-
-					for (int i = 0; i < 256; i++) {
-						new_pal[i].rgbRed	= i;
-						new_pal[i].rgbGreen = i;
-						new_pal[i].rgbBlue	= i;
+				for (int rows = 0; rows < height; rows++) {
+					if ((FreeImage_GetRedMask(dib) == 0x1F) && (FreeImage_GetGreenMask(dib) == 0x3E0) && (FreeImage_GetBlueMask(dib) == 0x7C00)) {
+						FreeImage_ConvertLine16To8_555(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
+					} else {
+						FreeImage_ConvertLine16To8_565(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
 					}
-
-					// Expand and copy the bitmap data
-
-					for (int rows = 0; rows < height; rows++) {
-						if ((FreeImage_GetRedMask(dib) == 0x1F) && (FreeImage_GetGreenMask(dib) == 0x3E0) && (FreeImage_GetBlueMask(dib) == 0x7C00)) {
-							FreeImage_ConvertLine16To8_555(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
-						} else {
-							FreeImage_ConvertLine16To8_565(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
-						}
-					}
-					
-					return new_dib;
 				}
-
-				return NULL;
+				
+				return new_dib;
 			}
 
 			case 24 :
 			{
-				FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
+				// Expand and copy the bitmap data
 
-				if (new_dib != NULL) {
-					// Build a greyscale palette
-
-					RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
-
-					for (int i = 0; i < 256; i++) {
-						new_pal[i].rgbRed	= i;
-						new_pal[i].rgbGreen = i;
-						new_pal[i].rgbBlue	= i;
-					}
-
-					// Expand and copy the bitmap data
-
-					for (int rows = 0; rows < height; rows++)
-						FreeImage_ConvertLine24To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);					
-				}
+				for (int rows = 0; rows < height; rows++)
+					FreeImage_ConvertLine24To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);					
 
 				return new_dib;
 			}
 
 			case 32 :
 			{
-				FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
+				// Expand and copy the bitmap data
 
-				if (new_dib != NULL) {
-					// Build a greyscale palette
-
-					RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
-
-					for (int i = 0; i < 256; i++) {
-						new_pal[i].rgbRed	= i;
-						new_pal[i].rgbGreen = i;
-						new_pal[i].rgbBlue	= i;
-					}
-
-					// Expand and copy the bitmap data
-
-					for (int rows = 0; rows < height; rows++)
-						FreeImage_ConvertLine32To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
-				}
+				for (int rows = 0; rows < height; rows++)
+					FreeImage_ConvertLine32To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
 				
 				return new_dib;
 			}

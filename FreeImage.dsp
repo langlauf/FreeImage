@@ -172,6 +172,10 @@ SOURCE=.\Source\FreeImage\PluginTIFF.cpp
 
 SOURCE=.\Source\FreeImage\PluginWBMP.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\PluginXBM.cpp
+# End Source File
 # End Group
 # Begin Group "Conversion"
 

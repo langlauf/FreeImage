@@ -10,7 +10,7 @@ MODULES = BitmapAccess.o CacheFile.o Conversion.o Conversion16_555.o Conversion1
 Conversion24.o Conversion32.o Conversion8.o Deprecated.o FreeImage.o FreeImageIO.o GetType.o \
 Halftoning.o MultiPage.o NNQuantizer.o Plugin.o PluginBMP.o PluginCUT.o PluginICO.o PluginIFF.o \
 PluginJPEG.o PluginKOALA.o PluginMNG.o PluginPCD.o PluginPCX.o PluginPNG.o PluginPNM.o PluginPSD.o \
-PluginRAS.o PluginTARGA.o PluginTIFF.o PluginWBMP.o WuQuantizer.o
+PluginRAS.o PluginTARGA.o PluginTIFF.o PluginWBMP.o PluginXBM.o WuQuantizer.o
 
 
 STATICLIB = lib$(TARGET).a

@@ -76,7 +76,7 @@ FIBITMAP* GenericLoader(const char* lpszPathName, int flag) {
 /** Generic image writer
 	@param dib Pointer to the dib to be saved
 	@param lpszPathName Pointer to the full file name
-	@param flag Optional load flag constant
+	@param flag Optional save flag constant
 	@return Returns true if successful, returns false otherwise
 */
 bool GenericWriter(FIBITMAP* dib, const char* lpszPathName, int flag) {

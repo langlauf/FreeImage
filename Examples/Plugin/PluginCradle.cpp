@@ -100,6 +100,16 @@ SupportsExportDepth(int depth) {
 	return FALSE;
 }
 
+// SupportsICCProfiles informs FreeImage that a plugin supports ICC profiles. 
+// This function returns TRUE if the plugin can load and save a profile.
+// ICC profile information is accessed via freeimage->get_icc_profile_proc(dib)
+
+static BOOL DLL_CALLCONV
+SupportsICCProfiles() {
+	return FALSE;
+}
+
+
 // ----------------------------------------------------------
 
 // NEVER EVER use direct function calls to FreeImage when writing
@@ -138,4 +148,5 @@ Init(Plugin *plugin, int format_id) {
 	plugin.save_proc = Save;
 	plugin.validate_proc = Validate;
 	plugin.supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = SupportsICCProfiles;
 }

@@ -42,6 +42,9 @@
 #include <string.h>
 #endif
 
+// INPLACESWAP adopted from codeguru.com 
+#define  INPLACESWAP(a,b)	{a^=b; b^=a; a^=b;}
+
 // ==========================================================
 //   Utility functions
 // ==========================================================

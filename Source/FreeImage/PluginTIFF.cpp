@@ -290,6 +290,11 @@ SupportsExportDepth(int depth) {
 		);
 }
 
+static BOOL DLL_CALLCONV
+SupportsICCProfiles() {
+	return TRUE;
+}
+
 // ----------------------------------------------------------
 
 static void * DLL_CALLCONV
@@ -345,6 +350,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		FIBITMAP *dib;
 		BYTE *bits;		// pointer to dib data
 		RGBQUAD *pal;	// pointer to dib palette
+		void *iccBuf = NULL;
+		uint32 iccSize = 0;
     
 		if (handle) {
 			try {			
@@ -361,6 +368,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);
 				TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip);   
 				TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric);
+				TIFFGetField(tif, TIFFTAG_ICCPROFILE, &iccSize, &iccBuf);
 
 				if (compression == COMPRESSION_LZW)
 					throw "LZW compression is no longer supported due to Unisys patent enforcement";
@@ -376,6 +384,17 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					(photometric == PHOTOMETRIC_SEPARATED) ||
 					(photometric == PHOTOMETRIC_LOGLUV);
 
+				// if image is PHOTOMETRIC_SEPARATED _and_ comes with an ICC profile, 
+				// then the image should preserve its original (CMYK) colour model and 
+				// should be read as CMYK (to keep the match of pixel and profile and 
+				// to avoid multiple conversions. Conversion can be done by changing 
+				// the profile from it's original CMYK to an RGB profile with an 
+				// apropriate color management system. Works with non-tiled TIFFs.
+
+				if (photometric == PHOTOMETRIC_SEPARATED &&	
+					((flags & TIFF_CMYK) == TIFF_CMYK) && !TIFFIsTiled(tif))
+					isRGB = false;
+
 				if (isRGB) {
 					// Read the whole image into one big RGBA buffer and then 
 					// convert it to a DIB. This is using the traditional
@@ -385,7 +404,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 					if (raster == NULL)
 						throw "No space for raster buffer";
-					
+
 					// read the image in one chunk into an RGBA array
 
 					if (!TIFFReadRGBAImage(tif, width, height, raster, 0)) {
@@ -468,7 +487,6 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 					_TIFFfree(raster);
 
-					return (FIBITMAP *)dib;
 				} else {
 					// calculate the line + pitch
 
@@ -523,12 +541,14 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 								if ((compression == COMPRESSION_CCITTFAX3) || (compression == COMPRESSION_CCITTFAX4) || (photometric == PHOTOMETRIC_MINISWHITE))
 									value = 255;
 
-								pal[0].rgbRed =
-								pal[0].rgbGreen =
-								pal[0].rgbBlue = value;
-								pal[1].rgbRed =
-								pal[1].rgbGreen =
-								pal[1].rgbBlue = 255 - value;
+								if (photometric == PHOTOMETRIC_MINISWHITE) {
+									pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = value;
+									pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255 - value;
+								} else {
+									pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 255 - value;
+									pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = value;
+								}
+
 							} else if ((bitspersample == 8) || (bitspersample == 16)) {
 								// need to build the scale for greyscale images
 
@@ -611,18 +631,32 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 								for (int l = 0; l < nrow; l++) {
 									bits -= pitch;
-
 									memcpy(bits, buf + l * line, line);
 								}
 							}
 						}
 					}
+					if (photometric == PHOTOMETRIC_SEPARATED && ((flags & TIFF_CMYK) == TIFF_CMYK)) {
+						freeimage->get_icc_profile_proc(dib)->flags |= FIICC_COLOR_IS_CMYK;
+					}
 					
 					delete [] buf;
-
-					return (FIBITMAP *)dib;
-
 				}
+
+				// copy ICC profile data (must be done after freeimage->allocate_proc)
+
+				FIICCPROFILE *iccProfile = freeimage->get_icc_profile_proc(dib);
+				if ((iccProfile->size = iccSize) && iccBuf) {
+					if (iccProfile->data = malloc(iccProfile->size)) {
+						memcpy (iccProfile->data, iccBuf, iccProfile->size);
+					} else {
+						iccProfile->size = 0;
+					}
+					_TIFFfree(iccBuf);
+				} 
+
+				return (FIBITMAP *)dib;
+
 			} catch (char *message) {
 				freeimage->output_message_proc(s_format_id, message);
 
@@ -639,15 +673,15 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 	if (dib != NULL) {
 		TIFF *out = (TIFF *)data;
 
-		uint32 height;
-		uint32 width;
+		int32 height;
+		int32 width;
 		uint32 rowsperstrip = (uint32) -1;
 		uint16 bitspersample;
 		uint16 samplesperpixel;
 		uint16 photometric;
 		uint16 compression;
 		uint16 pitch;
-		uint32 x, y;
+		int32 x, y;
 
 		width = freeimage->get_width_proc(dib);
 		height = freeimage->get_height_proc(dib);
@@ -656,8 +690,18 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 		photometric = CheckPhotometric(freeimage, dib, bitspersample);
 
 		// CMYK support
-		if (((flags & TIFF_CMYK) == TIFF_CMYK) && (bitspersample == 32)) {
+
+		FIICCPROFILE *iccProfile = freeimage->get_icc_profile_proc(dib);
+		if ((bitspersample == 32) &&
+			(((iccProfile->flags & FIICC_COLOR_IS_CMYK) == FIICC_COLOR_IS_CMYK) ||
+			((flags & TIFF_CMYK) == TIFF_CMYK))) {
 			photometric = PHOTOMETRIC_SEPARATED;
+		}
+		
+		// write possible ICC profile
+
+		if (iccProfile->size && iccProfile->data) {
+			TIFFSetField(out, TIFFTAG_ICCPROFILE, iccProfile->size, iccProfile->data);
 		}
 
 		// handle standard width/height/bpp stuff
@@ -789,18 +833,16 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 					memcpy(buffer, freeimage->get_scanline_proc(dib, height - y - 1), pitch);
 
-					// TIFFs store color data RGB(A) instead of BGR(A)
-
-					BYTE *pBuf = buffer;
-
-					for (x = 0; x < width; x++) {
-						BYTE tmp = pBuf[0];
-						pBuf[0]  = pBuf[2];
-						pBuf[2]  = tmp;
-
-						pBuf += samplesperpixel;
+					if (photometric != PHOTOMETRIC_SEPARATED) {
+						// TIFFs store color data RGB(A) instead of BGR(A)
+	
+						BYTE *pBuf = buffer;
+	
+						for (x = 0; x < width; x++) {
+							INPLACESWAP(pBuf[0], pBuf[2]);
+							pBuf += samplesperpixel;
+						}
 					}
-
 					// write the scanline to disc
 
 					TIFFWriteScanline(out, buffer, y, 0);
@@ -843,5 +885,5 @@ InitTIFF(Plugin *plugin, int format_id) {
 	plugin->validate_proc = Validate;
 	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
-	plugin->pagecount_proc = PageCount;
+	plugin->supports_icc_profiles_proc = SupportsICCProfiles;
 }

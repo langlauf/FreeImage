@@ -4,6 +4,7 @@
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Hervé Drolon (drolon@infonie.fr)
+// - Detlev Vendt (detlev.vendt@brillit.de)
 //
 // This file is part of FreeImage 2
 //
@@ -36,12 +37,13 @@ FI_STRUCT (FREEIMAGEHEADER) {
 	unsigned red_mask;
 	unsigned green_mask;
 	unsigned blue_mask;
-	BOOL transparent;
-	int  transparency_count;
-	BYTE transparent_table[256]; // why another table? for easy transparency table retrieval!
-	BYTE filler[3];              // transparency could be stored in the palette, which is better
-	                             // overall, but it requires quite some changes and it will render
-	                             // FreeImage_GetTransparencyTable obsolete in its current form;
+
+	BOOL transparent;			 // why another table? for easy transparency table retrieval!
+	int  transparency_count;	 // transparency could be stored in the palette, which is better
+	BYTE transparent_table[256]; // overall, but it requires quite some changes and it will render
+								 // FreeImage_GetTransparencyTable obsolete in its current form;
+	FIICCPROFILE iccProfile;	 // space to hold ICC profile
+	BYTE filler[1];              
 };
 
 // ----------------------------------------------------------
@@ -83,6 +85,13 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 			fih->transparent        = FALSE;
 			fih->transparency_count = 0;
 
+			// initialize FIICCPROFILE link
+
+			FIICCPROFILE *iccProfile = FreeImage_GetICCProfile(bitmap);
+			iccProfile->size		= 0;
+			iccProfile->data		= 0;
+			iccProfile->flags		= 0;
+
 			// write out the BITMAPINFOHEADER
 
 			BITMAPINFOHEADER *bih   = FreeImage_GetInfoHeader(bitmap);
@@ -106,26 +115,34 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 
 void DLL_CALLCONV
 FreeImage_Unload(FIBITMAP *dib) {
-	if (dib != NULL) {
-		if (dib->data != NULL)
+	if (dib != NULL) {	// delete bitmap and possible icc profile ...
+		if (dib->data != NULL) {
+			if (FreeImage_GetICCProfile(dib)->data)
+				free(FreeImage_GetICCProfile(dib)->data);
 			free(dib->data);
-
-		// and the wrapper
-
-		free(dib);
+		}
+		free(dib);		// ... and the wrapper
 	}
 }
-
 
 // ----------------------------------------------------------
 
 FIBITMAP * DLL_CALLCONV
 FreeImage_Clone(FIBITMAP *dib) {
-	FIBITMAP *new_dib = FreeImage_Allocate(FreeImage_GetWidth(dib), FreeImage_GetHeight(dib), FreeImage_GetBPP(dib), FreeImage_GetRedMask(dib), FreeImage_GetGreenMask(dib), FreeImage_GetBlueMask(dib));
+	FIBITMAP *new_dib = FreeImage_Allocate(
+		FreeImage_GetWidth(dib), FreeImage_GetHeight(dib), FreeImage_GetBPP(dib), 
+			FreeImage_GetRedMask(dib), FreeImage_GetGreenMask(dib), FreeImage_GetBlueMask(dib));
 
 	if (new_dib) {
-		memcpy(new_dib->data, dib->data, sizeof(FREEIMAGEHEADER) + FreeImage_GetDIBSize(dib));
-
+		memcpy(new_dib->data, dib->data, 
+			sizeof(FREEIMAGEHEADER) + FreeImage_GetDIBSize(dib));
+		if (FreeImage_GetICCProfile(dib)->data &&
+			FreeImage_GetICCProfile(dib)->size) {
+			if (FreeImage_GetICCProfile(new_dib)->data = malloc(FreeImage_GetICCProfile(dib)->size))
+				memcpy(FreeImage_GetICCProfile(new_dib)->data, 
+					   FreeImage_GetICCProfile(dib)->data, 
+					   FreeImage_GetICCProfile(dib)->size);
+		}
 		return new_dib;
 	}
 
@@ -186,6 +203,9 @@ FreeImage_GetColorType(FIBITMAP *dib) {
 
 		case 32:
 		{
+			if (FreeImage_GetICCProfile(dib)->flags & FIICC_COLOR_IS_CMYK)
+				return FIC_CMYK;
+
 			for (unsigned y = 0; y < FreeImage_GetHeight(dib); ++y) {
 				rgb = (RGBQUAD *)FreeImage_GetScanLine(dib, y);
 
@@ -221,7 +241,7 @@ FreeImage_GetBlueMask(FIBITMAP *dib) {
 
 BOOL DLL_CALLCONV
 FreeImage_IsTransparent(FIBITMAP *dib) {
-	return (dib != NULL) ? ((FreeImage_GetBPP(dib) == 32) ? true : ((FREEIMAGEHEADER *)dib->data)->transparent) : false;
+	return (dib != NULL) ? ((FreeImage_GetBPP(dib) == 32) ? TRUE : ((FREEIMAGEHEADER *)dib->data)->transparent) : FALSE;
 }
 
 BYTE * DLL_CALLCONV
@@ -261,6 +281,36 @@ FreeImage_SetTransparencyTable(FIBITMAP *dib, BYTE *table, int count) {
 			((FREEIMAGEHEADER *)dib->data)->transparency_count = 0;
 		}
 	}
+}
+
+// ----------------------------------------------------------
+
+FIICCPROFILE * DLL_CALLCONV
+FreeImage_GetICCProfile(FIBITMAP *dib) {
+	FIICCPROFILE *profile = (dib) ? (FIICCPROFILE *)&((FREEIMAGEHEADER *)dib->data)->iccProfile : NULL;
+	return profile;
+}
+
+FIICCPROFILE * DLL_CALLCONV
+FreeImage_CreateICCProfile(FIBITMAP *dib, void *data, long size) {
+	FIICCPROFILE *profile = FreeImage_GetICCProfile(dib);
+	if (profile->data) {
+		free (profile->data);
+	}
+	memset(profile, 0, sizeof(FIICCPROFILE));
+	if (size && (profile->data = malloc(size))) {
+		memcpy(profile->data, data, profile->size = size);
+	}
+	return profile;
+}
+
+void DLL_CALLCONV
+FreeImage_DestroyICCProfile(FIBITMAP *dib) {
+	FIICCPROFILE *profile = FreeImage_GetICCProfile(dib);
+	if (profile->data) {
+		free (profile->data);
+	}
+	memset(profile, 0, sizeof(FIICCPROFILE));
 }
 
 // ----------------------------------------------------------
@@ -334,3 +384,5 @@ BITMAPINFO * DLL_CALLCONV
 FreeImage_GetInfo(FIBITMAP *dib) {
 	return (BITMAPINFO *)FreeImage_GetInfoHeader(dib);
 }
+
+

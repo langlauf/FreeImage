@@ -125,6 +125,17 @@ typedef struct tagBITMAPINFO {
 
 #endif
 
+// ICC profile support ------------------------------------------------------
+
+#define FIICC_DEFAULT			0x00
+#define FIICC_COLOR_IS_CMYK		0x01
+
+FI_STRUCT (FIICCPROFILE) { 
+	WORD    flags;	// info flag
+	DWORD	size;	// profile's size measured in bytes
+	void   *data;	// points to a block of contiguous memory containing the profile
+};
+
 // Important enums ----------------------------------------------------------
 
 FI_ENUM(FREE_IMAGE_FORMAT) {
@@ -152,6 +163,7 @@ FI_ENUM(FREE_IMAGE_FORMAT) {
 	FIF_PSD,
 	FIF_CUT,
 	FIF_IFF = FIF_LBM,
+	FIF_XBM
 };
 
 FI_ENUM(FREE_IMAGE_COLOR_TYPE) {
@@ -160,6 +172,7 @@ FI_ENUM(FREE_IMAGE_COLOR_TYPE) {
     FIC_RGB        = 2,             // RGB color model
     FIC_PALETTE    = 3,             // color map indexed
 	FIC_RGBALPHA   = 4,             // RGB color model with alpha channel
+	FIC_CMYK       = 5				// CMYK color model
 };
 
 FI_ENUM(FREE_IMAGE_QUANTIZE) {
@@ -232,6 +245,9 @@ typedef unsigned (DLL_CALLCONV *FI_GetDotsPerMeterXProc)(FIBITMAP *dib);
 typedef unsigned (DLL_CALLCONV *FI_GetDotsPerMeterYProc)(FIBITMAP *dib);
 typedef BITMAPINFOHEADER *(DLL_CALLCONV *FI_GetInfoHeaderProc)(FIBITMAP *dib);
 typedef BITMAPINFO *(DLL_CALLCONV *FI_GetInfoProc)(FIBITMAP *dib);
+typedef FIICCPROFILE *(DLL_CALLCONV *FI_GetICCProfileProc)(FIBITMAP *dib);
+typedef FIICCPROFILE *(DLL_CALLCONV *FI_CreateICCProfileProc)(FIBITMAP *dib, void *data, long size);
+typedef void (DLL_CALLCONV *FI_DestroyICCProfileProc)(FIBITMAP *dib);
 typedef FREE_IMAGE_COLOR_TYPE (DLL_CALLCONV *FI_GetColorTypeProc)(FIBITMAP *dib);
 typedef unsigned (DLL_CALLCONV *FI_GetRedMaskProc)(FIBITMAP *dib);
 typedef unsigned (DLL_CALLCONV *FI_GetGreenMaskProc)(FIBITMAP *dib);
@@ -292,6 +308,7 @@ typedef BOOL (DLL_CALLCONV *FI_SaveProc)(FreeImage *freeimage, FreeImageIO *io, 
 typedef BOOL (DLL_CALLCONV *FI_ValidateProc)(FreeImageIO *io, fi_handle handle);
 typedef const char *(DLL_CALLCONV *FI_MimeProc) ();
 typedef BOOL (DLL_CALLCONV *FI_SupportsExportBPPProc)(int bpp);
+typedef BOOL (DLL_CALLCONV *FI_SupportsICCProfilesProc)();
 
 FI_STRUCT(FreeImage) {
 	FI_AllocateProc allocate_proc;
@@ -312,6 +329,9 @@ FI_STRUCT(FreeImage) {
 	FI_GetDotsPerMeterYProc get_dots_per_meter_y_proc;
 	FI_GetInfoHeaderProc get_info_header_proc;
 	FI_GetInfoProc get_info_proc;
+	FI_GetICCProfileProc get_icc_profile_proc;
+	FI_CreateICCProfileProc create_icc_profile_proc;
+	FI_DestroyICCProfileProc destroy_icc_profile_proc;
 	FI_GetColorTypeProc get_color_type_proc;
 	FI_GetRedMaskProc get_red_mask_proc;
 	FI_GetGreenMaskProc get_green_mask_proc;
@@ -368,6 +388,7 @@ FI_STRUCT (Plugin) {
 	FI_ValidateProc validate_proc;
 	FI_MimeProc mime_proc;
 	FI_SupportsExportBPPProc supports_export_bpp_proc;
+	FI_SupportsICCProfilesProc supports_icc_profiles_proc;
 };
 
 #endif
@@ -404,18 +425,19 @@ FI_STRUCT (Plugin) {
 #define PNM_DEFAULT         0
 #define PNM_SAVE_RAW        0       // If set the writer saves in RAW format (i.e. P4, P5 or P6)
 #define PNM_SAVE_ASCII      1       // If set the writer saves in ASCII format (i.e. P1, P2 or P3)
+#define PSD_DEFAULT         0
 #define RAS_DEFAULT         0
 #define TARGA_DEFAULT       0
 #define TARGA_LOAD_RGB888   1       // If set the loader converts RGB555 and ARGB8888 -> RGB888.
 #define TARGA_LOAD_RGB555   2       // This flag is obsolete
 #define TIFF_DEFAULT        0
-#define TIFF_CMYK			0x0001	// If set the writer stores tags for separated CMYK (use | to combine with compression flags)
+#define TIFF_CMYK			0x0001	// reads/stores tags for separated CMYK (use | to combine with compression flags)
 #define TIFF_PACKBITS       0x0100  // save using PACKBITS compression
 #define TIFF_DEFLATE        0x0200  // save using DEFLATE compression
 #define TIFF_ADOBE_DEFLATE  0x0400  // save using ADOBE DEFLATE compression
 #define TIFF_NONE           0x0800  // save without any compression
 #define WBMP_DEFAULT        0
-#define PSD_DEFAULT         0
+#define XBM_DEFAULT			0
 
 #ifdef __cplusplus
 extern "C" {
@@ -468,6 +490,7 @@ DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFilename(const char *
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsReading(FREE_IMAGE_FORMAT fif);
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsWriting(FREE_IMAGE_FORMAT fif);
 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsExportBPP(FREE_IMAGE_FORMAT fif, int bpp);
+DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsICCProfiles(FREE_IMAGE_FORMAT fif);
 
 // Multipaging interface ----------------------------------------------------
 
@@ -536,8 +559,8 @@ DLL_API BOOL DLL_CALLCONV FreeImage_SaveWBMPToHandle(FIBITMAP *dib, FreeImageIO 
 
 // Filetype request routines ------------------------------------------------
 
-DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileType(const char *filename, int size);
-DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileTypeFromHandle(FreeImageIO *io, fi_handle handle, int size);
+DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileType(const char *filename, int size FI_DEFAULT(0));
+DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileTypeFromHandle(FreeImageIO *io, fi_handle handle, int size FI_DEFAULT(0));
 	// FreeImage_GetFileTypeFromFormat routine is DEPRECATED : use FreeImage_GetFormatFromFIF
 DLL_API const char * DLL_CALLCONV FreeImage_GetFileTypeFromFormat(FREE_IMAGE_FORMAT fif);
 	// FreeImage_GetFileTypeFromExt routine is DEPRECATED : use FreeImage_GetFIFFromFilename
@@ -573,6 +596,12 @@ DLL_API unsigned DLL_CALLCONV FreeImage_GetDotsPerMeterY(FIBITMAP *dib);
 DLL_API BITMAPINFOHEADER *DLL_CALLCONV FreeImage_GetInfoHeader(FIBITMAP *dib);
 DLL_API BITMAPINFO *DLL_CALLCONV FreeImage_GetInfo(FIBITMAP *dib);
 DLL_API FREE_IMAGE_COLOR_TYPE DLL_CALLCONV FreeImage_GetColorType(FIBITMAP *dib);
+
+// ICC profile routines -----------------------------------------------------
+
+DLL_API FIICCPROFILE *DLL_CALLCONV FreeImage_GetICCProfile(FIBITMAP *dib);
+DLL_API FIICCPROFILE *DLL_CALLCONV FreeImage_CreateICCProfile(FIBITMAP *dib, void *data, long size);
+DLL_API void DLL_CALLCONV FreeImage_DestroyICCProfile(FIBITMAP *dib);
 
 // Line conversion routines -------------------------------------------------
 

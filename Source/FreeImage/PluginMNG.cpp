@@ -250,4 +250,5 @@ InitMNG(Plugin *plugin, int format_id) {
 	plugin->close_proc = Close;
 	plugin->load_proc = Load;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_icc_profiles_proc = NULL;	// not implemented yet
 }
