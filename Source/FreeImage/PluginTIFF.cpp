@@ -35,9 +35,13 @@
 #include "FreeImage.h"
 #include "Utilities.h"
 
-// ----------------------------------------------------------
+// ==========================================================
+// Plugin Interface
+// ==========================================================
 
 static FreeImageIO *g_io = NULL;
+
+static int s_format_id;
 
 // ----------------------------------------------------------
 //   libtiff interface 
@@ -150,6 +154,13 @@ TIFFErrorHandler _TIFFwarningHandler = msdosWarningHandler;
 
 static void
 msdosErrorHandler(const char* module, const char* fmt, va_list ap) {
+	/*
+	if (module != NULL) {
+		char msg[1024];
+		vsprintf(msg, fmt, ap);
+		FreeImage_OutputMessageProc(s_format_id, "%s%s", module, msg);
+	}
+	*/
 }
 
 TIFFErrorHandler _TIFFerrorHandler = msdosErrorHandler;
@@ -226,12 +237,6 @@ CheckPhotometric(FIBITMAP *dib, uint16 bitspersample) {
 
 	return PHOTOMETRIC_MINISBLACK;
 }
-
-// ==========================================================
-// Plugin Interface
-// ==========================================================
-
-static int s_format_id;
 
 // ==========================================================
 // Plugin Implementation
@@ -375,6 +380,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 				if (compression == COMPRESSION_OJPEG)
 					throw "6.0 JPEG encoding is not supported";
+
+				if((photometric == PHOTOMETRIC_SEPARATED) && (bitspersample == 16))
+					throw "Unable to handle 16-bit CMYK TIFF";
 
 				// Convert to 24 or 32 bits RGB if the image is full color
 
@@ -793,6 +801,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				compression = COMPRESSION_CCITTFAX4;
 				break;
 
+			case 4 :
 			case 8 :
 			case 24 :
 			case 32 :

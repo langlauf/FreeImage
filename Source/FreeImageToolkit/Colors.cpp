@@ -29,7 +29,7 @@
 */
 BOOL DLL_CALLCONV 
 FreeImage_Invert(FIBITMAP *src) {
-	unsigned i, x, y;
+	unsigned i, x, y, k;
 	BYTE *bits;
 
 	if (!src) return FALSE;
@@ -73,34 +73,16 @@ FreeImage_Invert(FIBITMAP *src) {
 			for(y = 0; y < FreeImage_GetHeight(src); y++) {
 				bits =  FreeImage_GetScanLine(src, y);
 				for(x = 0; x < FreeImage_GetWidth(src); x++) {
-					bits[0] = ~bits[0]; // B
-					bits[1] = ~bits[1]; // G
-					bits[2] = ~bits[2]; // R
-
+					for(k = 0; k < bytespp; k++) {
+						bits[k] = ~bits[k];
+					}
 					bits += bytespp;
 				}
 			}
 
 			break;
 		}
-/*		
-		case 32 :
-		{
-			for (y = 0; y < FreeImage_GetHeight(src); y++) {
-				bits =  FreeImage_GetScanLine(src, y);
-				for (x = 0; x < FreeImage_GetWidth(src); x++) {
-					bits[0] = ~bits[0]; // B
-					bits[1] = ~bits[1]; // G
-					bits[2] = ~bits[2]; // R
-					bits[2] = ~bits[3]; // A
 
-					bits += 4;
-				}
-			}
-
-			break;
-		}
-*/
 	}
 	return TRUE;
 }
@@ -212,6 +194,19 @@ FreeImage_AdjustCurve(FIBITMAP *src, BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel
 					}
 					break;
 					
+				case FICC_ALPHA :
+					if(bpp = 32) {
+						for(y = 0; y < FreeImage_GetHeight(src); y++) {
+							bits =  FreeImage_GetScanLine(src, y);
+							for(x = 0; x < FreeImage_GetWidth(src); x++) {
+								bits[3] = LUT[ bits[3] ];	// A
+								
+								bits += bytespp;
+							}
+						}
+					}
+					break;
+
 				default:
 					break;
 			}
@@ -428,6 +423,7 @@ FreeImage_GetChannel(FIBITMAP *src, FREE_IMAGE_COLOR_CHANNEL channel) {
 			case FICC_ALPHA:
 				if(bpp != 32) return NULL;
 				c = 3;
+				break;
 			default:
 				return NULL;
 		}

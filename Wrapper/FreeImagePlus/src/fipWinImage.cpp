@@ -20,6 +20,7 @@
 // ==========================================================
 
 #include "FreeImagePlus.h"
+#include <math.h>
 
 #ifdef WIN32
 
@@ -109,7 +110,7 @@ void fipWinImage::copyFromBitmap(HBITMAP hbmp) {
 		// create the image
         setSize((WORD)bm.bmWidth, (WORD)bm.bmHeight, (WORD)bm.bmBitsPixel);
 		// create a device context for the bitmap
-        HDC dc = ::GetDC(NULL);
+        HDC dc = GetDC(NULL);
 		// copy the pixels
 		int Success = GetDIBits(dc,							// handle to DC
 								hbmp,						// handle to bitmap
@@ -121,10 +122,10 @@ void fipWinImage::copyFromBitmap(HBITMAP hbmp) {
 								);
 		if(Success == 0) {
 			// Error : GetDIBits failed
-			::ReleaseDC(NULL, dc);
+			ReleaseDC(NULL, dc);
 			return;
         }
-        ::ReleaseDC(NULL, dc);
+        ReleaseDC(NULL, dc);
     }
 }
 
@@ -140,5 +141,6 @@ void fipWinImage::draw(HDC hDC, RECT& rcDest) {
 		0, 0, FreeImage_GetWidth(m_dib), FreeImage_GetHeight(m_dib),
 		FreeImage_GetBits(m_dib), FreeImage_GetInfo(m_dib), DIB_RGB_COLORS, SRCCOPY);
 }
+
 
 #endif // WIN32

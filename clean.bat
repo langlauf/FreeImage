@@ -35,5 +35,6 @@ del *.mdb /s /q
 del *.lib /s /q
 del *.exp /s /q
 del *.ilk /s /q
+del *.idb /s /q
 del *.o /s /q
 

@@ -4,6 +4,7 @@
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Herve Drolon (drolon@infonie.fr)
+// - Detlev Vendt (detlev.vendt@brillit.de)
 //
 // This file is part of FreeImage 3
 //
@@ -262,7 +263,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			double gamma = 0;
 			double screen_gamma = 2.2;
 
-			if (png_get_gAMA(png_ptr, info_ptr, &gamma) && ( flags && PNG_IGNOREGAMMA ) != PNG_IGNOREGAMMA)
+			if (png_get_gAMA(png_ptr, info_ptr, &gamma) && ( flags & PNG_IGNOREGAMMA ) != PNG_IGNOREGAMMA)
 				png_set_gamma(png_ptr, screen_gamma, gamma);
 
 			// All transformations have been registered; now update info_ptr data
@@ -582,11 +583,10 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			png_write_end(png_ptr, info_ptr);
 
 			// clean up after the write, and free any memory allocated
+			if (palette)
+				png_free(png_ptr, palette);
 
 			png_destroy_write_struct(&png_ptr, &info_ptr);
-
-			if (palette)
-				png_free(png_ptr, palette);			
 
 			return TRUE;
 		} catch (const char *text) {

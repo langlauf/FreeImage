@@ -129,6 +129,10 @@ SOURCE=.\tif_error.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\tif_extension.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\tif_fax3.c
 # End Source File
 # Begin Source File

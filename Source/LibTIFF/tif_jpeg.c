@@ -59,13 +59,17 @@ int TIFFFillTile(TIFF*, ttile_t);
 
    http://bugzilla.remotesensing.org/show_bug.cgi?id=188
 */
+
+/* Commented out by FreeImage : the correct definition is in ../LibJPEG/jconfig.h */
+/*
 #if defined(__RPCNDR_H__)
 #define HAVE_BOOLEAN
 #define boolean unsigned int
 #endif
+*/
 
-#include "jpeglib.h"
-#include "jerror.h"
+#include "../LibJPEG/jpeglib.h"
+#include "../LibJPEG/jerror.h"
 
 /*
  * On some machines it may be worthwhile to use _setjmp or sigsetjmp

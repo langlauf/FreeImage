@@ -250,6 +250,7 @@ private:
 				double r = 0;
 				double g = 0;
 				double b = 0;
+				double a = 0;
 				int iLeft = weightsTable.GetLeftBoundary(x);    // retrieve left boundary
 				int iRight = weightsTable.GetRightBoundary(x);  // retrieve right boundary
 				for(int i = iLeft; i <= iRight; i++) {
@@ -259,12 +260,13 @@ private:
 					r += (weight * (double)(pSrcRow[i].rgbRed)); 
 					g += (weight * (double)(pSrcRow[i].rgbGreen)); 
 					b += (weight * (double)(pSrcRow[i].rgbBlue)); 
+					a += (weight * (double)(pSrcRow[i].rgbReserved)); 
 				} 
 				// place result in destination pixel
 				pDstRow[x].rgbRed	= (BYTE)MIN(MAX((int)0, (int)(r + 0.5)), (int)255);
 				pDstRow[x].rgbGreen = (BYTE)MIN(MAX((int)0, (int)(g + 0.5)), (int)255);
 				pDstRow[x].rgbBlue	= (BYTE)MIN(MAX((int)0, (int)(b + 0.5)), (int)255);
-				pDstRow[x].rgbReserved = 0;
+				pDstRow[x].rgbReserved = (BYTE)MIN(MAX((int)0, (int)(a + 0.5)), (int)255);
 			} 
 		}
 	} 
@@ -286,6 +288,7 @@ private:
 				double r = 0;
 				double g = 0;
 				double b = 0;
+				double a = 0;
 				int iLeft = weightsTable.GetLeftBoundary(y);    // retrieve left boundary
 				int iRight = weightsTable.GetRightBoundary(y);  // retrieve right boundary
 
@@ -297,13 +300,14 @@ private:
 					r += (weight * (double)(pCurSrc.rgbRed)); 
 					g += (weight * (double)(pCurSrc.rgbGreen)); 
 					b += (weight * (double)(pCurSrc.rgbBlue)); 
+					a += (weight * (double)(pCurSrc.rgbReserved)); 
 				}
 				// clamp and place result in destination pixel
 				int index = y * uDstWidth + uCol;
 				pDst[index].rgbRed	 = (BYTE)MIN(MAX((int)0, (int)(r + 0.5)), (int)255);
 				pDst[index].rgbGreen = (BYTE)MIN(MAX((int)0, (int)(g + 0.5)), (int)255);
 				pDst[index].rgbBlue	 = (BYTE)MIN(MAX((int)0, (int)(b + 0.5)), (int)255);
-				pDst[index].rgbReserved = 0;
+				pDst[index].rgbReserved = (BYTE)MIN(MAX((int)0, (int)(a + 0.5)), (int)255);
 			}
 		}
 	} 

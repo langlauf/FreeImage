@@ -111,6 +111,8 @@
 #define	THUNDER_SUPPORT
 #define	NEXT_SUPPORT
 #define LOGLUV_SUPPORT
+/* added by FreeImage */
+#define JPEG_SUPPORT
 #endif /* COMPRESSION_SUPPORT */
 
 /*

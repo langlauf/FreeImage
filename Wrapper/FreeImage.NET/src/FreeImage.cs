@@ -62,17 +62,18 @@ namespace FreeImageAPI
 	public class BITMAPINFOHEADER
 	{
 		public int size;
-		public long width; 
-		public long height; 
+		public int width; 
+		public int height; 
 		public short biPlanes; 
 		public short biBitCount;
 		public int biCompression; 
 		public int biSizeImage; 
-		public long biXPelsPerMeter; 
-		public long biYPelsPerMeter; 
+		public int biXPelsPerMeter; 
+		public int biYPelsPerMeter; 
 		public int biClrUsed; 
 		public int biClrImportant;
 	}
+
 
 	[StructLayout(LayoutKind.Sequential)]
 	public class BITMAPINFO
@@ -180,7 +181,7 @@ namespace FreeImageAPI
              FIF format, FIBITMAP dib, string filename, int flags);
 		
 		[DllImport("FreeImage.dll")]
-		public static extern void FreeImage_Clone(FIBITMAP dib);
+		public static extern FIBITMAP FreeImage_Clone(FIBITMAP dib);
 
 		[DllImport("FreeImage.dll")]
 		public static extern void FreeImage_Unload(FIBITMAP dib);

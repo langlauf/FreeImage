@@ -537,7 +537,7 @@ public:
 
 class FIP_API fipWinImage : public fipImage
 {
-  public:
+public:
 	/**@name Creation & Destruction */
 	//@{	
 	/// Constructor

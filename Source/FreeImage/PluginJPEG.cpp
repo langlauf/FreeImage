@@ -357,7 +357,7 @@ Description() {
 
 static const char * DLL_CALLCONV
 Extension() {
-	return "jpg,jif,jpeg";
+	return "jpg,jif,jpeg,jpe";
 }
 
 static const char * DLL_CALLCONV
@@ -505,7 +505,8 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				throw sError;
 
 			if(bpp == 8) {
-				if ((color_type != FIC_MINISBLACK) && (color_type != FIC_PALETTE))
+				// allow grey, reverse grey and palette 
+				if ((color_type != FIC_MINISBLACK) && (color_type != FIC_MINISWHITE) && (color_type != FIC_PALETTE))
 					throw sError;
 			}
 
@@ -535,6 +536,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			switch(color_type) {
 				case FIC_MINISBLACK :
+				case FIC_MINISWHITE :
 					cinfo.in_color_space = JCS_GRAYSCALE;
 					cinfo.input_components = 1;
 					break;
@@ -586,22 +588,47 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			/* Step 6: while (scan lines remain to be written) */
 
-			if (color_type != FIC_PALETTE) {
-				// 24-bit or 8-bit greyscale images
+			if((color_type == FIC_RGB) || (color_type == FIC_MINISBLACK)) {
+				// 24-bit or 8-bit standard greyscale images
 				while (cinfo.next_scanline < cinfo.image_height) {
 					JSAMPROW b = FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1);
 
 					jpeg_write_scanlines(&cinfo, &b, 1);
 				}
-			} else {
+			}
+			else if(color_type == FIC_PALETTE) {
 				// 8-bit palettized images are converted to 24-bit images
 				RGBQUAD *palette = FreeImage_GetPalette(dib);
 				BYTE *target = (BYTE*)malloc(cinfo.image_width * 3);
+				if (target == NULL)
+					throw "no memory to allocate intermediate scanline buffer";
 
 				while (cinfo.next_scanline < cinfo.image_height) {
 					BYTE *source = FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1);
 					FreeImage_ConvertLine8To24(target, source, cinfo.image_width, palette);
 
+					jpeg_write_scanlines(&cinfo, &target, 1);
+				}
+
+				free(target);
+			}
+			else if(color_type == FIC_MINISWHITE) {
+				// reverse 8-bit greyscale image, so reverse grey value on the fly
+				int i;
+				BYTE reverse[256];
+				BYTE *target = (BYTE *)malloc(cinfo.image_width * 3);
+				if (target == NULL)
+					throw "no memory to allocate intermediate scanline buffer";
+
+				for(i = 0; i < 256; i++) {
+					reverse[i] = 255 - i;
+				}
+
+				while(cinfo.next_scanline < cinfo.image_height) {
+					BYTE *source = FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1);
+					for(i = 0; i < cinfo.image_width; i++) {
+						target[i] = reverse[ source[i] ];
+					}
 					jpeg_write_scanlines(&cinfo, &target, 1);
 				}
 
@@ -620,7 +647,6 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		} catch (const char *text) {
 			FreeImage_OutputMessageProc(s_format_id, text);
-
 			return FALSE;
 		} catch (FREE_IMAGE_FORMAT) {
 			return FALSE;

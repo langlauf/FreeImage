@@ -27,7 +27,6 @@
 #include "FreeImageIO.h"
 #include "Utilities.h"
 
-#include "../DeprecationManager/DeprecationMgr.h"
 
 // ----------------------------------------------------------
 
@@ -180,23 +179,29 @@ FreeImage_GetColorType(FIBITMAP *dib) {
 		case 4:
 		case 8:	// Check if the DIB has a color or a greyscale palette
 		{
+			int ncolors = FreeImage_GetColorsUsed(dib);
+		    int minisblack = 1;
 			rgb = FreeImage_GetPalette(dib);
 
-			for (unsigned i = 0; i < FreeImage_GetColorsUsed(dib); i++) {
+			for (int i = 0; i < ncolors; i++) {
 				if ((rgb->rgbRed != rgb->rgbGreen) || (rgb->rgbRed != rgb->rgbBlue))
-					return FIC_PALETTE;		
+					return FIC_PALETTE;
 
 				// The DIB has a color palette if the greyscale isn't a linear ramp
-
-				if (rgb->rgbRed != i)
-					return FIC_PALETTE;				
+				// Take care of reversed grey images
+				if (rgb->rgbRed != i) {
+					if ((ncolors-i-1) != rgb->rgbRed)
+						return FIC_PALETTE;
+				    else
+						minisblack = 0;
+				}
 
 				rgb++;
 			}
 
-			return FIC_MINISBLACK;
+			return minisblack ? FIC_MINISBLACK : FIC_MINISWHITE;
 		}
-		
+
 		case 16:
 		case 24:
 			return FIC_RGB;

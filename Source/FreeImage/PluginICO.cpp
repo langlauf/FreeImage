@@ -153,7 +153,7 @@ Validate(FreeImageIO *io, fi_handle handle) {
 
 	io->read_proc(&icon_header, 1, sizeof(ICONHEADER), handle);
 
-	return ((icon_header.idReserved == 0) && (icon_header.idType == 1));
+	return ((icon_header.idReserved == 0) && (icon_header.idType == 1) && (icon_header.idCount > 0));
 }
 
 static BOOL DLL_CALLCONV

@@ -3,6 +3,8 @@
 //
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
+// - Hervé Drolon (drolon@infonie.fr)
+// - Karl-Heinz Bussian (khbussian@moss.de)
 //
 // This file is part of FreeImage 3
 //
@@ -29,7 +31,7 @@
 
 //----------------------------------------------------------------------
 
-static const char *s_version = "3.0.3";
+static const char *s_version = "3.0.4";
 static const char *s_copyright = "This program uses FreeImage, a free, open source image library supporting all common bitmap formats. See http://freeimage.sourceforge.net for details";
 
 //----------------------------------------------------------------------
@@ -71,6 +73,18 @@ FreeImage_GetCopyrightMessage() {
 
 //----------------------------------------------------------------------
 
+BOOL DLL_CALLCONV
+FreeImage_IsLittleEndian() {
+	union {
+		long i;
+		char c[4];
+	} u;
+	u.i = 1;
+	return (u.c[0] != 0);
+}
+
+//----------------------------------------------------------------------
+
 FreeImage_OutputMessageFunction FreeImage_OutputMessageProcProc = NULL;
 
 void DLL_CALLCONV
@@ -80,20 +94,24 @@ FreeImage_SetOutputMessage(FreeImage_OutputMessageFunction omf) {
 
 void DLL_CALLCONV
 FreeImage_OutputMessageProc(int fif, const char *fmt, ...) {
-	if ((fmt != NULL) && (FreeImage_OutputMessageProcProc != NULL)) {
-		// 512 bytes should be more than enough for a short message
+	const int MSG_SIZE = 512; // 512 bytes should be more than enough for a short message
 
-		char message[512];
-		memset(message, 0, 512);
+	if ((fmt != NULL) && (FreeImage_OutputMessageProcProc != NULL)) {
+		char message[MSG_SIZE];
+		memset(message, 0, MSG_SIZE);
 
 		// initialize the optional parameter list
 
 		va_list arg;
 		va_start(arg, fmt);
 
+		// check the length of the format string
+
+		int str_length = (strlen(fmt) > MSG_SIZE) ? MSG_SIZE : strlen(fmt);
+
 		// parse the format string and put the result in 'message'
 
-		for (int i = 0, j = 0, str_length = strlen(fmt); i < str_length; ++i) {
+		for (int i = 0, j = 0; i < str_length; ++i) {
 			if (fmt[i] == '%') {
 				if (i + 1 < str_length) {
 					switch(tolower(fmt[i + 1])) {
