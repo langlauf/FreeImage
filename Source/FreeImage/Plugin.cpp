@@ -18,7 +18,7 @@
 // THIS DISCLAIMER.
 //
 // Use at your own risk!
-// ==================	===================================================
+// =====================================================================
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -52,6 +52,9 @@ s_search_list[] = {
 };
 
 static int s_search_list_size = sizeof(s_search_list) / sizeof(char *);
+static PluginList *s_plugins = NULL;
+static int s_plugin_reference_count = 0;
+
 
 // =====================================================================
 // Reimplementation of stricmp (it is not supported on some systems)
@@ -76,48 +79,12 @@ FreeImage_stricmp(const char *s1, const char *s2) {
 static FreeImage s_freeimage;
 
 // =====================================================================
-//  Plugin Node
+//  Implementation of PluginList
 // =====================================================================
-
-FI_STRUCT (PluginNode) {
-	int m_id;
-	void *m_instance;
-	Plugin *m_plugin;
-	PluginNode *m_next;
-	BOOL m_enabled;
-
-	const char *m_format;
-	const char *m_description;
-	const char *m_extension;
-	const char *m_regexpr;
-};
-
-// =====================================================================
-//  Internal Plugin List
-// =====================================================================
-
-class PluginList {
-public :
-	PluginList();
-	~PluginList();
-
-	FREE_IMAGE_FORMAT AddNode(FI_InitProc proc, void *instance = NULL, const char *format = 0, const char *description = 0, const char *extension = 0, const char *regexpr = 0);
-	PluginNode *FindNodeFromFormat(const char *format);
-	PluginNode *FindNodeFromMime(const char *mime);
-	PluginNode *FindNodeFromFIF(int node_id);
-
-	int Size() const;
-	BOOL IsEmpty() const;
-
-private :
-	map<int, PluginNode *> m_plugin_map;
-	int m_node_count;
-};
-
-// ---------------------------------------------------------------------
 
 PluginList::PluginList() :
-m_plugin_map() {
+m_plugin_map(),
+m_node_count(0) {
 }
 
 FREE_IMAGE_FORMAT
@@ -177,7 +144,7 @@ PluginList::FindNodeFromFormat(const char *format) {
 	for (map<int, PluginNode *>::iterator i = m_plugin_map.begin(); i != m_plugin_map.end(); ++i) {
 		const char *the_format = ((*i).second->m_format != NULL) ? (*i).second->m_format : (*i).second->m_plugin->format_proc();
 
-		if (strcmp(the_format, format) == 0)
+		if (FreeImage_stricmp(the_format, format) == 0)
 			return (*i).second;		
 
 		count++;
@@ -234,13 +201,22 @@ PluginList::~PluginList() {
 }
 
 // =====================================================================
-// Plugin System Initialization
+// Retrieve a pointer to the plugin list container
 // =====================================================================
 
-static PluginList *s_plugins = NULL;
-static int s_plugin_reference_count = 0;
+FreeImage *
+FreeImage_GetFreeImageStruct() {
+	return &s_freeimage;
+}
 
-// ---------------------------------------------------------------------
+PluginList * DLL_CALLCONV
+FreeImage_GetPluginList() {
+	return s_plugins;
+}
+
+// =====================================================================
+// Plugin System Initialization
+// =====================================================================
 
 void DLL_CALLCONV
 FreeImage_Initialise(BOOL load_local_plugins_only) {
@@ -310,66 +286,69 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 
 		s_plugins = new PluginList;
 
-		s_plugins->AddNode(InitBMP);
-		s_plugins->AddNode(InitICO);
-		s_plugins->AddNode(InitJPEG);
-		s_plugins->AddNode(InitMNG, NULL, "JNG", "JPEG Network Graphics", "jng", "");
-		s_plugins->AddNode(InitKOALA);
-		s_plugins->AddNode(InitIFF);
-		s_plugins->AddNode(InitMNG);
-		s_plugins->AddNode(InitPNM, NULL, "PBM", "Portable Bitmap (ASCII)", "pbm", "^P1");
-		s_plugins->AddNode(InitPNM, NULL, "PBMRAW", "Portable Bitmap (RAW)", "pbm", "^P4");
-		s_plugins->AddNode(InitPCD);
-		s_plugins->AddNode(InitPCX);
-		s_plugins->AddNode(InitPNM, NULL, "PGM", "Portable Greymap (ASCII)", "pgm", "^P2");
-		s_plugins->AddNode(InitPNM, NULL, "PGMRAW", "Portable Greymap (RAW)", "pgm", "^P5");
-		s_plugins->AddNode(InitPNG);
-		s_plugins->AddNode(InitPNM, NULL, "PPM", "Portable Pixelmap (ASCII)", "ppm", "^P3");
-		s_plugins->AddNode(InitPNM, NULL, "PPMRAW", "Portable Pixelmap (RAW)", "ppm", "^P6");
-		s_plugins->AddNode(InitRAS);
-		s_plugins->AddNode(InitTARGA);
-		s_plugins->AddNode(InitTIFF);
-		s_plugins->AddNode(InitWBMP);
-		s_plugins->AddNode(InitPSD);
+		if (s_plugins) {
+			s_plugins->AddNode(InitBMP);
+			s_plugins->AddNode(InitICO);
+			s_plugins->AddNode(InitJPEG);
+			s_plugins->AddNode(InitMNG, NULL, "JNG", "JPEG Network Graphics", "jng", "");
+			s_plugins->AddNode(InitKOALA);
+			s_plugins->AddNode(InitIFF);
+			s_plugins->AddNode(InitMNG);
+			s_plugins->AddNode(InitPNM, NULL, "PBM", "Portable Bitmap (ASCII)", "pbm", "^P1");
+			s_plugins->AddNode(InitPNM, NULL, "PBMRAW", "Portable Bitmap (RAW)", "pbm", "^P4");
+			s_plugins->AddNode(InitPCD);
+			s_plugins->AddNode(InitPCX);
+			s_plugins->AddNode(InitPNM, NULL, "PGM", "Portable Greymap (ASCII)", "pgm", "^P2");
+			s_plugins->AddNode(InitPNM, NULL, "PGMRAW", "Portable Greymap (RAW)", "pgm", "^P5");
+			s_plugins->AddNode(InitPNG);
+			s_plugins->AddNode(InitPNM, NULL, "PPM", "Portable Pixelmap (ASCII)", "ppm", "^P3");
+			s_plugins->AddNode(InitPNM, NULL, "PPMRAW", "Portable Pixelmap (RAW)", "ppm", "^P6");
+			s_plugins->AddNode(InitRAS);
+			s_plugins->AddNode(InitTARGA);
+			s_plugins->AddNode(InitTIFF);
+			s_plugins->AddNode(InitWBMP);
+			s_plugins->AddNode(InitPSD);
+			s_plugins->AddNode(InitCUT);
 
-		// external plugin initialization
+			// external plugin initialization
 
 #ifdef WIN32
-		if (!load_local_plugins_only) {
-			int count = 0;
-			char buffer[MAX_PATH + 200];
+			if (!load_local_plugins_only) {
+				int count = 0;
+				char buffer[MAX_PATH + 200];
 
-			while (count < s_search_list_size) {
-				_finddata_t find_data;
-				long find_handle;
+				while (count < s_search_list_size) {
+					_finddata_t find_data;
+					long find_handle;
 
-				strcpy(buffer, s_search_list[count]);
-				strcat(buffer, "*.fip");
+					strcpy(buffer, s_search_list[count]);
+					strcat(buffer, "*.fip");
 
-				if ((find_handle= _findfirst(buffer, &find_data)) != -1L) {
-					do {
-						strcpy(buffer, s_search_list[count]);
-						strncat(buffer, find_data.name, MAX_PATH + 200);
+					if ((find_handle= _findfirst(buffer, &find_data)) != -1L) {
+						do {
+							strcpy(buffer, s_search_list[count]);
+							strncat(buffer, find_data.name, MAX_PATH + 200);
 
-						HINSTANCE instance = LoadLibrary(buffer);
+							HINSTANCE instance = LoadLibrary(buffer);
 
-						if (instance != NULL) {
-							FARPROC proc_address = GetProcAddress(instance, "_Init@8");
+							if (instance != NULL) {
+								FARPROC proc_address = GetProcAddress(instance, "_Init@8");
 
-							if (proc_address != NULL)
-								s_plugins->AddNode((FI_InitProc)proc_address, (void *)instance);
-							else
-								FreeLibrary(instance);
-						}
-					} while (_findnext(find_handle, &find_data) != -1L);
+								if (proc_address != NULL)
+									s_plugins->AddNode((FI_InitProc)proc_address, (void *)instance);
+								else
+									FreeLibrary(instance);
+							}
+						} while (_findnext(find_handle, &find_data) != -1L);
 
-					_findclose(find_handle);
+						_findclose(find_handle);
+					}
+
+					count++;
 				}
-
-				count++;
 			}
-		}
 #endif
+		}
 	}
 }
 
@@ -377,9 +356,28 @@ void DLL_CALLCONV
 FreeImage_DeInitialise() {
 	--s_plugin_reference_count;
 
-	if (s_plugin_reference_count == 0)
+	if (s_plugin_reference_count == 0) {
 		delete s_plugins;
+	}
 }
+
+// =====================================================================
+// Open and close a bitmap
+// =====================================================================
+
+void * DLL_CALLCONV
+FreeImage_Open(PluginNode *node, FreeImageIO *io, fi_handle handle, BOOL open_for_reading) {
+	if (node->m_plugin->open_proc != NULL)
+       return node->m_plugin->open_proc(io, handle, open_for_reading);
+
+	return NULL;
+};
+
+void DLL_CALLCONV
+FreeImage_Close(PluginNode *node, FreeImageIO *io, fi_handle handle, void *data) {
+	if (node->m_plugin->close_proc != NULL)
+		node->m_plugin->close_proc(io, handle, data);
+};
 
 // =====================================================================
 // Plugin System Load/Save Functions
@@ -394,18 +392,13 @@ FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handl
 			if (node->m_enabled) {
 				FIBITMAP *bitmap = NULL;
 
-				if (node->m_plugin->open_proc != NULL) {
-					void *data = node->m_plugin->open_proc(io, handle, TRUE);
+				void *data = FreeImage_Open(node, io, handle, TRUE);
 
-					bitmap = node->m_plugin->load_proc(&s_freeimage, io, handle, -1, flags, data);
+				bitmap = node->m_plugin->load_proc(&s_freeimage, io, handle, -1, flags, data);
 
-					if (node->m_plugin->close_proc != NULL)
-						node->m_plugin->close_proc(io, handle, data);
+				FreeImage_Close(node, io, handle, data);
 
-					return bitmap;
-				} else {
-					return node->m_plugin->load_proc(&s_freeimage, io, handle, -1, flags, NULL);
-				}
+				return bitmap;
 			}
 		}
 	}
@@ -436,27 +429,22 @@ FreeImage_SaveToHandle(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, FreeImageIO *io, fi
 	if ((fif >= 0) && (fif < FreeImage_GetFIFCount())) {
 		PluginNode *node = s_plugins->FindNodeFromFIF(fif);
 
-		if (node != NULL) {
+		if (node) {
 			if (node->m_enabled) {
 				BOOL result = FALSE;
 
-				if (node->m_plugin->open_proc != NULL) {
-					void *data = node->m_plugin->open_proc(io, handle, FALSE);
+				void *data = FreeImage_Open(node, io, handle, FALSE);
 
-					result = node->m_plugin->save_proc(&s_freeimage, io, dib, handle, -1, flags, data);
+				result = node->m_plugin->save_proc(&s_freeimage, io, dib, handle, -1, flags, data);
 
-					if (node->m_plugin->close_proc != NULL)
-						node->m_plugin->close_proc(io, handle, data);				
-				} else {
-					result = node->m_plugin->save_proc(&s_freeimage, io, dib, handle, -1, flags, NULL);
-				}
+				FreeImage_Close(node, io, handle, data);
 
 				return result;
 			}
 		}
 	}
 
-	return NULL;
+	return FALSE;
 }
 
 
@@ -479,7 +467,7 @@ FreeImage_Save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, const char *filename, int f
 }
 
 // =====================================================================
-// Plugin Creation / Enabling Functions
+// Plugin construction + enable/disable functions
 // =====================================================================
 
 FREE_IMAGE_FORMAT DLL_CALLCONV
@@ -650,12 +638,8 @@ FreeImage_GetFIFFromFilename(const char *filename) {
 
 		// get the proper extension if we received a filename
 
-		char *place = strrchr((char *)filename, '.');
-
-		if (place != NULL)
-			extension = ++place;
-		else
-			extension = filename;
+		char *place = strrchr((char *)filename, '.');	
+		extension = (place != NULL) ? ++place : filename;
 
 		// look for the extension in the plugin table
 

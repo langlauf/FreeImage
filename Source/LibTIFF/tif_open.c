@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_open.c,v 1.0 2001-04-13 00:42:34+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_open.c,v 1.6 2001/07/20 02:22:46 warmerda Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -285,6 +285,15 @@ TIFFClientOpen(
 		if (tif->tif_flags & TIFF_SWAB)
 			TIFFSwabShort(&tif->tif_header.tiff_version);
 		tif->tif_header.tiff_diroff = 0;	/* filled in later */
+
+                /*
+                 * This seek shouldn't be necessary, but I have had some
+                 * crazy problems with a failed fseek() on Solaris leaving
+                 * the current file pointer out of whack when an fwrite()
+                 * is done. 
+                 */
+                TIFFSeekFile( tif, 0, SEEK_SET );
+
 		if (!WriteOK(tif, &tif->tif_header, sizeof (TIFFHeader))) {
 			TIFFError(name, "Error writing TIFF header");
 			goto bad;

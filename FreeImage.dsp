@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O1 /I "Source" /I "Source\ZLib" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O1 /I "Source" /I "Source\ZLib" /I "Source\DeprecationManager" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -74,7 +74,7 @@ PostBuild_Cmds=copy Release\FreeImage.dll Dist	copy Release\FreeImage.lib Dist	c
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "Source" /I "Source\ZLib" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "Source" /I "Source\ZLib" /I "Source\DeprecationManager" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -111,6 +111,10 @@ SOURCE=.\Source\FreeImage\Plugin.cpp
 # Begin Source File
 
 SOURCE=.\Source\FreeImage\PluginBMP.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\PluginCUT.cpp
 # End Source File
 # Begin Source File
 
@@ -209,6 +213,14 @@ SOURCE=.\Source\FreeImage\NNQuantizer.cpp
 SOURCE=.\Source\FreeImage\WuQuantizer.cpp
 # End Source File
 # End Group
+# Begin Group "DeprecationMgr"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\Source\DeprecationManager\DeprecationMgr.cpp
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\Source\FreeImage\BitmapAccess.cpp
@@ -233,10 +245,18 @@ SOURCE=.\Source\FreeImage\GetType.cpp
 
 SOURCE=.\Source\FreeImage\LoadFunctions.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\MultiPage.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\Source\DeprecationManager\DeprecationMgr.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\Source\FreeImage.h

@@ -1,12 +1,14 @@
 // ==========================================================
 // JPEG Loader
+// Based on code developed by The Independent JPEG Group
 //
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Jan L. Nauta (jln@magentammt.com)
 // - Markus Loibl (markus.loibl@epost.de)
 //
-// Based on code developed by The Independent JPEG Group
+// EXIF parser design and implementation by
+// - Matthias Wandel (mwandel@rim.net)
 //
 // This file is part of FreeImage 2
 //
@@ -23,6 +25,9 @@
 // Use at your own risk!
 // ==========================================================
 
+#include <ctype.h>
+#include <string.h>
+
 #include "FreeImage.h"
 #include "Utilities.h"
 
@@ -33,7 +38,9 @@ extern "C" {
 #include "../LibJPEG/jpeglib.h"
 }
 
-// ----------------------------------------------------------
+// ==========================================================
+//   JPEG LOAD/SAVE MODULE
+// ==========================================================
 
 #define INPUT_BUF_SIZE  4096	/* choose an efficiently fread'able size */
 #define OUTPUT_BUF_SIZE 4096    /* choose an efficiently fwrite'able size */
@@ -58,8 +65,6 @@ jpeg_output_message (j_common_ptr cinfo) {
 	char buffer[JMSG_LENGTH_MAX];
 
 	(*cinfo->err->format_message)(cinfo, buffer);
-
-	//FreeImage_OutputMessage(FreeImage_GetFIFFromFormat("JPEG"), buffer);
 }
 
 //===========================================================
@@ -155,7 +160,7 @@ init_destination (j_compress_ptr cinfo) {
  * fill the buffer entirely, only to obtain at least one more byte.
  *
  * There is no such thing as an EOF return.  If the end of the file has been
- * reached, the routine has a choice of ERREXIT() or inserting fake data into
+ * reached, the routine has a choice of throw() or inserting fake data into
  * the buffer.  In most cases, generating a warning message and inserting a
  * fake EOI marker is the best course of action --- this will allow the
  * decompressor to output however much of the image is there.  However,
@@ -186,7 +191,7 @@ fill_input_buffer (j_decompress_ptr cinfo) {
 
 	if (nbytes <= 0) {
 		if (src->start_of_file)	/* Treat empty input file as fatal error */
-			ERREXIT(cinfo, JERR_INPUT_EMPTY);
+			throw(cinfo, JERR_INPUT_EMPTY);
 
 		WARNMS(cinfo, JWRN_JPEG_EOF);
 
@@ -210,7 +215,7 @@ empty_output_buffer (j_compress_ptr cinfo) {
 	freeimage_dst_ptr dest = (freeimage_dst_ptr) cinfo->dest;
 
 	if (dest->m_io->write_proc(dest->buffer, 1, OUTPUT_BUF_SIZE, dest->outfile) != OUTPUT_BUF_SIZE)
-		ERREXIT(cinfo, JERR_FILE_WRITE);
+		throw(cinfo, JERR_FILE_WRITE);
 
 	dest->pub.next_output_byte = dest->buffer;
 	dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
@@ -279,7 +284,7 @@ term_destination (j_compress_ptr cinfo) {
 
 	if (datacount > 0) {
 		if (dest->m_io->write_proc(dest->buffer, 1, datacount, dest->outfile) != datacount)
-		  ERREXIT(cinfo, JERR_FILE_WRITE);
+		  throw(cinfo, JERR_FILE_WRITE);
 	}
 }
 
@@ -397,10 +402,16 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		FIBITMAP *dib = NULL;
 	
 		try {
+			// remember the start position for EXIF reading later
+
+			long start_pos = io->tell_proc(handle);
+
+			// set up the jpeglib structures
+
 			struct jpeg_decompress_struct cinfo;
 			struct jpeg_error_mgr jerr;
 
-			// Step 1: allocate and initialize JPEG decompression object
+			// step 1: allocate and initialize JPEG decompression object
 
 			cinfo.err = jpeg_std_error(&jerr);
 
@@ -409,25 +420,25 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			jpeg_create_decompress(&cinfo);
 
-			// Step 2: specify data source (eg, a handle)
+			// step 2: specify data source (eg, a handle)
 
 			jpeg_freeimage_src(&cinfo, handle, io);
 
-			// Step 3: read handle parameters with jpeg_read_header()
+			// step 3: read handle parameters with jpeg_read_header()
 
 			jpeg_read_header(&cinfo, TRUE);
 
-			// Step 4a: set parameters for decompression
+			// step 4a: set parameters for decompression
 
 			if ((flags != JPEG_ACCURATE)) {
 				cinfo.dct_method          = JDCT_IFAST;
 				cinfo.do_fancy_upsampling = FALSE;
 			}
 
-			// Step 4b: allocate dib and init header
+			// step 4b: allocate dib and init header
 
 			dib = freeimage->allocate_proc(cinfo.image_width, cinfo.image_height, 8 * cinfo.num_components, 0xFF, 0xFF00, 0xFF0000);
-
+			
 			if (cinfo.num_components == 1) {
 				RGBQUAD *colors = freeimage->get_palette_proc(dib);
 
@@ -438,7 +449,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				}
 			}
 
-			// Step 4c: handle metrices
+			// step 4c: handle metrices
 
 			BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 
@@ -454,11 +465,11 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				pInfoHeader->biYPelsPerMeter = cinfo.Y_density * 100;
 			}
 			
-			// Step 5: start decompressor
+			// step 5: start decompressor
 
 			jpeg_start_decompress(&cinfo);
 
-			// Step 6: while (scan lines remain to be read) jpeg_read_scanlines(...);
+			// step 6: while (scan lines remain to be read) jpeg_read_scanlines(...);
 
 			while (cinfo.output_scanline < cinfo.output_height) {
 				JSAMPROW b = freeimage->get_scanline_proc(dib, cinfo.output_height - cinfo.output_scanline - 1);
@@ -466,13 +477,15 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				jpeg_read_scanlines(&cinfo, &b, 1);
 			}
 
-			// Step 7: finish decompression 
+			// step 7: finish decompression 
 
 			jpeg_finish_decompress(&cinfo);
 
-			// Step 8: release JPEG decompression object
+			// step 8: release JPEG decompression object
 
 			jpeg_destroy_decompress(&cinfo);
+
+			// everything went well. return the loaded dib
 
 			return (FIBITMAP *)dib;
 		} catch (...) {
@@ -491,7 +504,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 			WORD bpp = freeimage->get_bpp_proc(dib);
 
-			if ((bpp != 32) && (bpp != 8))
+			if ((bpp != 24) && (bpp != 8))
 				throw "only 24-bit highcolor or 8-bit greyscale bitmaps can be saved as JPEG";
 
 			if ((bpp == 8) && (FreeImage_GetColorType(dib) != FIC_MINISBLACK))

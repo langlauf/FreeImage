@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_dumpmode.c,v 1.0 2001-04-13 00:42:31+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_dumpmode.c,v 1.2 2000/01/28 15:08:10 warmerda Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

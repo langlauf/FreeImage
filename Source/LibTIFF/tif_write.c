@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_write.c,v 1.0 2001-04-13 00:42:39+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_write.c,v 1.5 2000/02/11 19:28:17 warmerda Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

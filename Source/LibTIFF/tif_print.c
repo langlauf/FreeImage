@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_print.c,v 1.0 2001-04-13 00:42:36+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_print.c,v 1.5 2001/03/02 04:59:52 warmerda Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -353,6 +353,8 @@ TIFFPrintDirectory(TIFF* tif, FILE* fd, long flags)
 		_TIFFprintAsciiTag(fd, "Host Computer", td->td_hostcomputer);
 	if (TIFFFieldSet(tif,FIELD_SOFTWARE))
 		_TIFFprintAsciiTag(fd, "Software", td->td_software);
+	if (TIFFFieldSet(tif,FIELD_COPYRIGHT))
+		_TIFFprintAsciiTag(fd, "Copyright", td->td_copyright);
 	if (TIFFFieldSet(tif,FIELD_DOCUMENTNAME))
 		_TIFFprintAsciiTag(fd, "Document Name", td->td_documentname);
 	if (TIFFFieldSet(tif,FIELD_IMAGEDESCRIPTION))

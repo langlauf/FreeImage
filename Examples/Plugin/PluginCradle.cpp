@@ -127,7 +127,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 // ==========================================================
 
 void DLL_CALLCONV
-Init(Plugin &plugin, int format_id) {
+Init(Plugin *plugin, int format_id) {
 	s_format_id = format_id;
 
 	plugin.format_proc = Format;

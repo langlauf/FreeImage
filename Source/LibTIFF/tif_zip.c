@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_zip.c,v 1.0 2001-04-13 00:42:40+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_zip.c,v 1.2 1999/12/07 17:11:38 mwelles Exp $ */
 
 /*
  * Copyright (c) 1995-1997 Sam Leffler
@@ -49,7 +49,7 @@
  * last found at ftp://ftp.uu.net/pub/archiving/zip/zlib/zlib-0.99.tar.gz.
  */
 #include "tif_predict.h"
-#include "../zlib/zlib.h"
+#include "..\zlib\zlib.h"
 
 #include <stdio.h>
 #include <assert.h>

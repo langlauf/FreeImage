@@ -193,8 +193,8 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 
 											// apply them
 
-											bits       += delta_x / 2;
-											scanline   += delta_y;
+											bits     += delta_x / 2;
+											scanline += delta_y;
 											break;
 										}
 
@@ -289,6 +289,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 
 											bits     += delta_x;
 											scanline += delta_y;
+
 											break;
 										}
 
@@ -857,9 +858,9 @@ static BOOL DLL_CALLCONV
 Validate(FreeImageIO *io, fi_handle handle) {
 	BYTE bmp_signature1[] = { 0x42, 0x4D };
 	BYTE bmp_signature2[] = { 0x42, 0x41 };
-	BYTE signature[2];
+	BYTE signature[2] = { 0, 0 };
 
-	int items_read = io->read_proc(signature, 1, sizeof(bmp_signature1), handle);
+	io->read_proc(signature, 1, sizeof(bmp_signature1), handle);
 
 	if (memcmp(bmp_signature1, signature, sizeof(bmp_signature1)) == 0)
 		return TRUE;
@@ -920,7 +921,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		io->seek_proc(handle, 0 - sizeof(DWORD), SEEK_CUR);
 
 		// call the appropriate load function for the found bitmap type
-		
+
 		if (type == 40)
 			return LoadWindowsBMP(freeimage, io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
 		
@@ -930,9 +931,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 		if (type <= 64)
 			return LoadOS22XBMP(freeimage, io, handle, flags, offset_in_file + bitmapfileheader.bfOffBits);
 
-		char s[64];
-		sprintf(s, "unknown bmp subtype %d", type);
-		freeimage->output_message_proc(s_format_id, s);
+		freeimage->output_message_proc(s_format_id, "unknown bmp subtype with id %d", type);
 	}
 
 	return NULL;

@@ -34,23 +34,21 @@
 // ==========================================================
 
 inline float
-fix(float a) {
+fix(double a) {
 	return (a < 0) ? 0 : (a > 255) ? 255 : a;
 }
 
 static void
 YUV2RGB(int y, int cb, int cr, int &r, int &g, int &b) {
-	const float c = 256;
-
-	float c11 = 0.0054980  * c;
-	float c12 = 0.0000001  * c;
-	float c13 = 0.0051681  * c;
-	float c21 = 0.0054980  * c;
-	float c22 = -0.0015446 * c;
-	float c23 = -0.0026325 * c;
-	float c31 = 0.0054980  * c;
-	float c32 = 0.0079533  * c;
-	float c33 = 0.0000001  * c;
+	double c11 = 0.0054980  * 256.0;
+	double c12 = 0.0000001  * 256.0;
+	double c13 = 0.0051681  * 256.0;
+	double c21 = 0.0054980  * 256.0;
+	double c22 = -0.0015446 * 256.0;
+	double c23 = -0.0026325 * 256.0;
+	double c31 = 0.0054980  * 256.0;
+	double c32 = 0.0079533  * 256.0;
+	double c33 = 0.0000001  * 256.0;
 
 	r = fix(round(c11 * y + c12 * (cb - 156) + c13 * (cr - 137)));
 	g = fix(round(c21 * y + c22 * (cb - 156) + c23 * (cr - 137)));

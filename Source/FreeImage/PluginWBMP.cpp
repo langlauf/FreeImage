@@ -100,11 +100,8 @@ multiByteRead(FreeImageIO *io, fi_handle handle) {
 	while (io->read_proc(&In, 1, 1, handle)) {
 		Out += (In & 0x7F);
 
-		if ((In & 0x80) == 0x00) {
-			// Last byte to read
-		  
+		if ((In & 0x80) == 0x00)
 			break;
-		}
 
 		Out <<= 7;
 	}
@@ -114,22 +111,22 @@ multiByteRead(FreeImageIO *io, fi_handle handle) {
 
 static void
 multiByteWrite(FreeImageIO *io, fi_handle handle, DWORD In) {
-  BYTE Out, k = 1;
+	BYTE Out, k = 1;
   
-  while(In & (0x7F << 7*k))
-	  k++;
+	while (In & (0x7F << 7*k))
+		k++;
   
-  while(k > 1) {
-	  k--;
-	  Out = (BYTE)(0x80 | (In >> 7*k) & 0xFF);
-	  io->write_proc(&Out, 1, 1, handle);
-  }
+	while (k > 1) {
+		k--;
 
-  // Last byte to write
+		Out = (BYTE)(0x80 | (In >> 7*k) & 0xFF);
 
-  Out = (BYTE)(In & 0x7F);
+		io->write_proc(&Out, 1, 1, handle);
+	}
 
-  io->write_proc(&Out, 1, 1, handle);
+	Out = (BYTE)(In & 0x7F);
+
+	io->write_proc(&Out, 1, 1, handle);
 }
 
 static void
@@ -145,8 +142,8 @@ readExtHeader(FreeImageIO *io, fi_handle handle, BYTE b) {
 		case 0x00:
 		{
 			DWORD info = multiByteRead(io, handle);
-		}
-		break;
+			break;
+		}		
 
 		// Type 11: read a sequence of parameter/value pairs.
 
@@ -163,11 +160,11 @@ readExtHeader(FreeImageIO *io, fi_handle handle, BYTE b) {
 			
 			free(Ident);
 			free(Value);
-		}
-
-		break;
+			break;
+		}		
 
 		// reserved for future use
+
 		case 0x20:	// Type 01
 		case 0x40:	// Type 10
 			break;
@@ -216,7 +213,6 @@ SupportsExportDepth(int depth) {
 		);
 }
 
-
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
@@ -228,7 +224,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 	WBMPHEADER header;
 
-	if(handle) {
+	if (handle) {
 		try {
 			// Read header information
 			// -----------------------
@@ -266,9 +262,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			dib = freeimage->allocate_proc(width, height, 1);
 
-			if (!dib) {
+			if (!dib)
 				throw "DIB allocation failed";
-			}
 
 			// write the palette data
 

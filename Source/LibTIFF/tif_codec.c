@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_codec.c,v 1.0 2001-04-13 00:42:29+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_codec.c,v 1.2 1999/12/07 17:11:38 mwelles Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

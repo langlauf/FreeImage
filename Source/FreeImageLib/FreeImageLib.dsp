@@ -136,6 +136,10 @@ SOURCE=..\FreeImage\PluginBMP.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\FreeImage\PluginCUT.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\FreeImage\PluginICO.cpp
 # End Source File
 # Begin Source File
@@ -191,6 +195,14 @@ SOURCE=..\FreeImage\PluginTIFF.cpp
 SOURCE=..\FreeImage\PluginWBMP.cpp
 # End Source File
 # End Group
+# Begin Group "DeprecationMgr"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\DeprecationManager\DeprecationMgr.cpp
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\FreeImage\BitmapAccess.cpp
@@ -211,10 +223,18 @@ SOURCE=..\FreeImage\GetType.cpp
 
 SOURCE=..\FreeImage\LoadFunctions.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\MultiPage.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=..\DeprecationManager\DeprecationMgr.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\FreeImage.h

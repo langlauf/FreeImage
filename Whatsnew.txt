@@ -5,6 +5,21 @@ Whats New for FreeImage
 ! : changed
 + : added
 
+January 3rd 2001 - 2.5.0
+* fixed bug in FreeImage_SaveJPEG
+* fixed bug in FreeImage_LoadMNG
+* fixed bug in FreeImage_LoadPNG
+* fixed small Visual C++ 5.0 compiler issue in PluginMNG.cpp
+* fixed FreeImage crashing on JPEG 6.0 encoded TIFFs
+! FreeImage now uses libTIFF 3.5.7
+! FreeImage now uses libPNG 1.2.1
+! all the FreeImage_LoadXXX and FreeImage_SaveXXX functions are now deprecated
++ added Dr. Halo (*.cut) support
++ added printf-like format string support to SetOutputMessage
++ added basic multi-paging support: open, close, counting and grabbing
++ added deprecation manager
++ added FreeImage_Clone function
+
 October 3rd 2001 - 2.4.2
 * fixed missing BI_BITFIELDS support for 32-bit BMPs
 * fixed bug in FreeImage_ConvertLine16_555_To16_565 and vice versa

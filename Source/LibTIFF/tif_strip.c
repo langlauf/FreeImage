@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_strip.c,v 1.0 2001-04-13 00:42:36+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_strip.c,v 1.1.1.1 1999/07/27 21:50:27 mike Exp $ */
 
 /*
  * Copyright (c) 1991-1997 Sam Leffler

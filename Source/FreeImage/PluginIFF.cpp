@@ -57,7 +57,7 @@ static BOOL big_endian = TRUE;
 
 // ----------------------------------------------------------
 
-static WORD swapWORD( WORD n ){
+static WORD swapWORD( WORD n ) {
 	return big_endian ? (n >> 8) | (n << 8) : n;
 }
 
@@ -179,7 +179,6 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 					io->read_proc(&pal[k].rgbGreen, 1, 1, handle );
 					io->read_proc(&pal[k].rgbBlue, 1, 1, handle );
 				}
-
 			} else if (ch_type == 'BODY') {
 				if (!dib)
 					return NULL;
@@ -279,8 +278,8 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 							}
 						}
 
-						if (depth == 24){
-							for(unsigned x = 0; x < width; ++x){
+						if (depth == 24) {
+							for (unsigned x = 0; x < width; ++x){
 								char t = dest[x * 3];
 								dest[x * 3] = dest[x * 3 + 2];
 								dest[x * 3 + 2] = t;
@@ -296,7 +295,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			io->seek_proc(handle, ch_end - io->tell_proc(handle), SEEK_CUR);
 
-			size -= ch_size+8;
+			size -= ch_size + 8;
 		}
 
 		if (dib)

@@ -29,20 +29,20 @@
 // ==========================================================
 
 #define BP_START(DIB, WIDTH, HEIGHT) \
-	int scanline = 0; \
-	unsigned *bits = (unsigned *)freeimage->get_scanline_proc(DIB, HEIGHT - 1 - scanline); \
-	unsigned *p = bits;
+	int xxxscanline = 0; \
+	unsigned *xxxbits = (unsigned *)freeimage->get_scanline_proc(DIB, HEIGHT - 1 - xxxscanline); \
+	unsigned *xxxp = xxxbits;
 
 #define BP_NEXT(DIB, WIDTH, HEIGHT) \
-	p++; \
-	if (p - bits == width) { \
-		scanline++; \
-		bits = (unsigned *)freeimage->get_scanline_proc(DIB, HEIGHT - 1 - scanline); \
-		p = bits; \
+	xxxp++; \
+	if (xxxp - xxxbits == WIDTH) { \
+		xxxscanline++; \
+		xxxbits = (unsigned *)freeimage->get_scanline_proc(DIB, HEIGHT - 1 - xxxscanline); \
+		xxxp = xxxbits; \
 	}
 
 #define BP_SETVALUE(VALUE) \
-	*p |= VALUE;
+	*xxxp |= VALUE;
 
 // ==========================================================
 // Internal functions
@@ -89,7 +89,7 @@ ScanForResolution(float* hres, float* vres, FreeImageIO *io, fi_handle handle, i
 		// read the image resource block header.
 
 		if (Read32(io, handle) != 0x3842494D /* "8BIM" */)
-			throw "image resource block has unknown signature";		
+			throw "image resource block has unknown signature";
 
 		int	id = Read16(io, handle);
 

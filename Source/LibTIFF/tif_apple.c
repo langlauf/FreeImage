@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_apple.c,v 1.0 2001-04-13 00:42:28+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_apple.c,v 1.2 2000/12/21 14:32:43 warmerda Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

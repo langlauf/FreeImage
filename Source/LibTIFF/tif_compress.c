@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_compress.c,v 1.0 2001-04-13 00:42:29+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_compress.c,v 1.4 1999/12/21 17:03:03 mwelles Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

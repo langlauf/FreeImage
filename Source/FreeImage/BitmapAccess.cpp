@@ -30,6 +30,10 @@
 
 // ----------------------------------------------------------
 
+const int EXTRA_DATA_SIZE = 0;
+
+// ----------------------------------------------------------
+
 FI_STRUCT (FREEIMAGEHEADER) {
 	unsigned red_mask;
 	unsigned green_mask;
@@ -43,6 +47,17 @@ FI_STRUCT (FREEIMAGEHEADER) {
 };
 
 // ----------------------------------------------------------
+//  Internal
+// ----------------------------------------------------------
+
+int * DLL_CALLCONV
+FreeImage_GetExtraDataPointer(FIBITMAP *bitmap, int entry) {
+	return (bitmap) ? (int *)(*(int *)(((BYTE *)bitmap->data) + sizeof(FREEIMAGEHEADER) + (entry * sizeof(int)))) : NULL;
+}
+
+// ----------------------------------------------------------
+//  DIB information functions
+// ----------------------------------------------------------
 
 FIBITMAP * DLL_CALLCONV
 FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned green_mask, unsigned blue_mask) {
@@ -51,7 +66,9 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 	if (bitmap != NULL) {
 		height = abs(height);
 
-		int dib_size = sizeof(FREEIMAGEHEADER) + sizeof(BITMAPINFOHEADER);
+		int dib_size = sizeof(FREEIMAGEHEADER);
+		dib_size += EXTRA_DATA_SIZE; // reserved for future use
+		dib_size += sizeof(BITMAPINFOHEADER);
 		dib_size += sizeof(RGBQUAD) * CalculateUsedPaletteEntries(bpp);
 		dib_size += CalculatePitch(CalculateLine(width, bpp)) * height;
 
@@ -93,8 +110,11 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 void DLL_CALLCONV
 FreeImage_Free(FIBITMAP *dib) {
 	if (dib != NULL) {
-		if (dib->data != NULL)
+		if (dib->data != NULL) {
 			free(dib->data);
+		}
+
+		// and the wrapper
 
 		free(dib);
 	}
@@ -103,6 +123,21 @@ FreeImage_Free(FIBITMAP *dib) {
 void DLL_CALLCONV
 FreeImage_Unload(FIBITMAP *dib) {
 	FreeImage_Free(dib);
+}
+
+// ----------------------------------------------------------
+
+FIBITMAP * DLL_CALLCONV
+FreeImage_Clone(FIBITMAP *dib) {
+	FIBITMAP *new_dib = FreeImage_Allocate(FreeImage_GetWidth(dib), FreeImage_GetHeight(dib), FreeImage_GetBPP(dib), FreeImage_GetRedMask(dib), FreeImage_GetGreenMask(dib), FreeImage_GetBlueMask(dib));
+
+	if (new_dib) {
+		memcpy(new_dib->data, dib->data, sizeof(FREEIMAGEHEADER) + EXTRA_DATA_SIZE + FreeImage_GetDIBSize(dib));
+
+		return new_dib;
+	}
+
+	return NULL;
 }
 
 // ----------------------------------------------------------
@@ -303,7 +338,7 @@ FreeImage_GetDIBSize(FIBITMAP *dib) {
 
 RGBQUAD * DLL_CALLCONV
 FreeImage_GetPalette(FIBITMAP *dib) {
-	return (dib && FreeImage_GetBPP(dib) < 16) ? (RGBQUAD *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER) + sizeof(BITMAPINFOHEADER)) : NULL;
+	return (dib && FreeImage_GetBPP(dib) < 16) ? (RGBQUAD *)(((BYTE *)FreeImage_GetInfoHeader(dib)) + sizeof(BITMAPINFOHEADER)) : NULL;
 }
 
 unsigned DLL_CALLCONV
@@ -318,10 +353,11 @@ FreeImage_GetDotsPerMeterY(FIBITMAP *dib) {
 
 BITMAPINFOHEADER * DLL_CALLCONV
 FreeImage_GetInfoHeader(FIBITMAP *dib) {
-	return (dib) ? (BITMAPINFOHEADER *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER)) : NULL;
+	return (dib) ? (BITMAPINFOHEADER *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER) + EXTRA_DATA_SIZE) : NULL;
 }
 
 BITMAPINFO * DLL_CALLCONV
 FreeImage_GetInfo(FIBITMAP *dib) {
-	return (dib) ? (BITMAPINFO *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER)) : NULL;
+	return (BITMAPINFO *)FreeImage_GetInfoHeader(dib);
 }
+

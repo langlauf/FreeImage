@@ -3,80 +3,141 @@
 <pre>
 <h1>Build Log</h1>
 <h3>
---------------------Configuration: FreeImage - Win32 Debug--------------------
+--------------------Configuration: LibJPEG - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11C.tmp" with contents
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSPCB.tmp" with contents
 [
-/nologo /MTd /W3 /Gm /GX /ZI /Od /I "Source" /I "Source\ZLib" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
-"C:\Projects\FreeImage\SOURCE\FreeImage\PluginTIFF.cpp"
+/nologo /MT /W3 /GX /O1 /I "..\zlib" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"Release/LibJPEG.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\Projects\FreeImage\Source\LibJPEG\jcapimin.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcapistd.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jccoefct.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jccolor.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcdctmgr.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jchuff.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcinit.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcmainct.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcmarker.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcmaster.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcomapi.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcparam.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcphuff.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcprepct.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jcsample.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jctrans.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdapimin.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdapistd.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdatadst.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdatasrc.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdcoefct.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdcolor.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jddctmgr.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdhuff.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdinput.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdmainct.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdmarker.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdmaster.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdmerge.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdphuff.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdpostct.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdsample.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jdtrans.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jerror.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jfdctflt.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jfdctfst.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jfdctint.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jidctflt.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jidctfst.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jidctint.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jidctred.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jmemmgr.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jmemnobs.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jquant1.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jquant2.c"
+"C:\Projects\FreeImage\Source\LibJPEG\jutils.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11C.tmp" 
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11D.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSPCB.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSPCC.tmp" with contents
 [
-kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"Debug/FreeImaged.pdb" /debug /machine:I386 /out:"Debug/FreeImaged.dll" /implib:"Debug/FreeImaged.lib" /pdbtype:sept 
-.\Debug\Plugin.obj
-.\Debug\PluginBMP.obj
-.\Debug\PluginICO.obj
-.\Debug\PluginIFF.obj
-.\Debug\PluginJPEG.obj
-.\Debug\PluginKOALA.obj
-.\Debug\PluginMNG.obj
-.\Debug\PluginPCD.obj
-.\Debug\PluginPCX.obj
-.\Debug\PluginPNG.obj
-.\Debug\PluginPNM.obj
-.\Debug\PluginPSD.obj
-.\Debug\PluginRAS.obj
-.\Debug\PluginTARGA.obj
-.\Debug\PluginTIFF.obj
-.\Debug\PluginWBMP.obj
-.\Debug\Conversion.obj
-.\Debug\Conversion16_555.obj
-.\Debug\Conversion16_565.obj
-.\Debug\Conversion24.obj
-.\Debug\Conversion32.obj
-.\Debug\Conversion8.obj
-.\Debug\NNQuantizer.obj
-.\Debug\WuQuantizer.obj
-.\Debug\BitmapAccess.obj
-.\Debug\FreeImage.obj
-.\Debug\FreeImageC.obj
-.\Debug\FreeImageIO.obj
-.\Debug\GetType.obj
-.\Debug\LoadFunctions.obj
-.\Source\LibJPEG\Debug\LibJPEG.lib
-.\Source\LibPNG\Debug\LibPNG.lib
-.\Source\LibTIFF\Debug\LibTIFF.lib
-.\Source\ZLib\Debug\ZLib.lib
-.\Source\LibMNG\Debug\LibMNG.lib
+/nologo /out:"Release\LibJPEG.lib" 
+.\Release\jcapimin.obj
+.\Release\jcapistd.obj
+.\Release\jccoefct.obj
+.\Release\jccolor.obj
+.\Release\jcdctmgr.obj
+.\Release\jchuff.obj
+.\Release\jcinit.obj
+.\Release\jcmainct.obj
+.\Release\jcmarker.obj
+.\Release\jcmaster.obj
+.\Release\jcomapi.obj
+.\Release\jcparam.obj
+.\Release\jcphuff.obj
+.\Release\jcprepct.obj
+.\Release\jcsample.obj
+.\Release\jctrans.obj
+.\Release\jdapimin.obj
+.\Release\jdapistd.obj
+.\Release\jdatadst.obj
+.\Release\jdatasrc.obj
+.\Release\jdcoefct.obj
+.\Release\jdcolor.obj
+.\Release\jddctmgr.obj
+.\Release\jdhuff.obj
+.\Release\jdinput.obj
+.\Release\jdmainct.obj
+.\Release\jdmarker.obj
+.\Release\jdmaster.obj
+.\Release\jdmerge.obj
+.\Release\jdphuff.obj
+.\Release\jdpostct.obj
+.\Release\jdsample.obj
+.\Release\jdtrans.obj
+.\Release\jerror.obj
+.\Release\jfdctflt.obj
+.\Release\jfdctfst.obj
+.\Release\jfdctint.obj
+.\Release\jidctflt.obj
+.\Release\jidctfst.obj
+.\Release\jidctint.obj
+.\Release\jidctred.obj
+.\Release\jmemmgr.obj
+.\Release\jmemnobs.obj
+.\Release\jquant1.obj
+.\Release\jquant2.obj
+.\Release\jutils.obj
 ]
-Creating command line "link.exe @C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11D.tmp"
+Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSPCC.tmp"
 <h3>Output Window</h3>
 Compiling...
-PluginTIFF.cpp
-Linking...
-Creating temporary file "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11E.bat" with contents
-[
-@echo off
-copy Debug\FreeImaged.dll Dist
-copy Debug\FreeImaged.lib Dist
-copy Source\FreeImage.h Dist
-]
-Creating command line "C:\DOCUME~1\FLORIS~1\LOCALS~1\Temp\RSP11E.bat"
+jcapimin.c
+jcapistd.c
+jccoefct.c
+jccolor.c
+jcdctmgr.c
+jchuff.c
+jcinit.c
+jcmainct.c
+jcmarker.c
+jcmaster.c
+jcomapi.c
+jcparam.c
+jcphuff.c
+jcprepct.c
+jcsample.c
+jctrans.c
+jdapimin.c
+jdapistd.c
+jdatadst.c
+jdatasrc.c
+jdcoefct.c
+jdcolor.c
+jddctmgr.c
+jdhuff.c
+jdinput.c
+jdmainct.c
+cl.exe terminated at user request.
 
-        1 bestand(en) gekopieerd.
-        1 bestand(en) gekopieerd.
-        1 bestand(en) gekopieerd.
-<h3>
---------------------Configuration: Test - Win32 Debug--------------------
-</h3>
-<h3>Command Lines</h3>
-
-
-
-<h3>Results</h3>
-Test.exe - 0 error(s), 0 warning(s)
 </pre>
 </body>
 </html>

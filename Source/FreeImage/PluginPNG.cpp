@@ -150,7 +150,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 
 			unsigned char png_check[PNG_BYTES_TO_CHECK];
 
-			io->read_proc(png_check, 1, PNG_BYTES_TO_CHECK, handle);
+			io->read_proc(png_check, PNG_BYTES_TO_CHECK, 1, handle);
 
 			if (png_sig_cmp(png_check, (png_size_t)0, PNG_BYTES_TO_CHECK) != 0)
 				return NULL;	// Bad signature

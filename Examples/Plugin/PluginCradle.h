@@ -39,7 +39,7 @@ struct Plugin;
 // ----------------------------------------------------------
 
 extern "C" {
-	PLUGIN_API void DLL_CALLCONV Init(Plugin &plugin, int format_id);
+	PLUGIN_API void DLL_CALLCONV Init(Plugin *plugin, int format_id);
 }
 
 #endif

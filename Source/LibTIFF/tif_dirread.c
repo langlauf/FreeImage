@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_dirread.c,v 1.0 2001-04-13 00:42:30+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_dirread.c,v 1.6 2000/04/21 21:45:33 warmerda Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

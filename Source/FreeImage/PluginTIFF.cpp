@@ -362,6 +362,9 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				if (compression == COMPRESSION_LZW)
 					throw "LZW compression is no longer supported due to Unisys patent enforcement";
 
+				if (compression == COMPRESSION_OJPEG)
+					throw "6.0 JPEG encoding is not supported";
+
 				// Convert to 24 or 32 bits RGB if the image is full color
 
 				BOOL isRGB = (bitspersample >= 8) &&
@@ -521,7 +524,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 								pal[1].rgbRed =
 								pal[1].rgbGreen =
 								pal[1].rgbBlue = 255 - value;
-							} else {
+							} else if (bitspersample == 8) {
 								// need to build the scale for greyscale images
 
 								if (photometric == PHOTOMETRIC_MINISBLACK) {
@@ -761,7 +764,13 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 				free(buffer);
 
 				break;
-			}				
+			}
+		}
+
+		// write out the directory tag if we wrote a page other than -1
+
+		if (page >= 0) {
+			TIFFWriteDirectory(out);
 		}
 
 		return TRUE;
@@ -790,4 +799,5 @@ InitTIFF(Plugin *plugin, int format_id) {
 	plugin->validate_proc = Validate;
 	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->pagecount_proc = PageCount;
 }

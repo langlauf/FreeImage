@@ -23,12 +23,15 @@
 #include <windows.h>
 #endif
 
+#include <assert.h>
+#include <stdlib.h>
+
 #include "FreeImage.h"
 
 //----------------------------------------------------------------------
 
-static const char *s_version = "2.4.2";
-static const char *s_copyright = "This program uses FreeImage, an open source image library supporting all common bitmap formats. Get your free copy now from http://www.6ixsoft.com.";
+static const char *s_version = "2.5.0";
+static const char *s_copyright = "This program uses FreeImage, a free, open source image library supporting all common bitmap formats. Get your free copy from http://www.6ixsoft.com.";
 
 //----------------------------------------------------------------------
 
@@ -77,7 +80,66 @@ FreeImage_SetOutputMessage(FreeImage_OutputMessageFunction omf) {
 }
 
 void DLL_CALLCONV
-FreeImage_OutputMessage(int fif, const char *message) {
-	if (FreeImage_OutputMessageProc != NULL)
+FreeImage_OutputMessage(int fif, const char *fmt, ...) {
+	if (FreeImage_OutputMessageProc != NULL) {
+		// 128 bytes should be more than enough for a short message
+
+		char message[256];
+		memset(message, 0, 256);
+
+		// initialize the optional parameter list
+
+		va_list arg;
+		va_start(arg, fmt);
+
+		// parse the format string and put the result in 'message'
+
+		for (int i = 0, j = 0, str_length = strlen(fmt); i < str_length; ++i) {
+			if (fmt[i] == '%') {
+				if (i + 1 < str_length) {
+					switch(tolower(fmt[i + 1])) {
+						case '%' :
+							message[j++] = '%';
+							break;
+
+						case 'd' : // decimal numbers
+						{
+							char tmp[16];
+
+							_itoa(va_arg(arg, int), tmp, 10);
+
+							strcat(message, tmp);
+
+							j += strlen(tmp);
+							++i;
+							break;
+						}
+
+						case 's' : // strings
+						{
+							char *tmp = va_arg(arg, char*);
+
+							strcat(message, tmp);
+
+							j += strlen(tmp);
+							++i;
+							break;
+						}
+					};
+				} else {
+					message[j++] = fmt[i];
+				}
+			} else {
+				message[j++] = fmt[i];
+			};
+		}
+
+		// deinitialize the optional parameter list
+
+		va_end(arg);
+
+		// output the message to the user program
+
 		FreeImage_OutputMessageProc((FREE_IMAGE_FORMAT)fif, message);
+	}
 }

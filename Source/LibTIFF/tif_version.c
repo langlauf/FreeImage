@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_version.c,v 1.0 2001-04-13 00:42:38+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_version.c,v 1.2 2000/11/13 14:42:38 warmerda Exp $ */
 /*
  * Copyright (c) 1992-1997 Sam Leffler
  * Copyright (c) 1992-1997 Silicon Graphics, Inc.
@@ -24,7 +24,7 @@
  */
 #include "tiffiop.h"
 
-static const char TIFFVersion[] = "LibTIFF 3.5.6. Beta";
+static const char TIFFVersion[] = TIFFLIB_VERSION_STR;
 
 const char*
 TIFFGetVersion(void)

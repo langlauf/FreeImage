@@ -119,6 +119,7 @@ mymngsettimer(mng_handle mng, mng_uint32 msecs) {
 mng_bool
 mymngerror(mng_handle mng, mng_int32 code, mng_int8 severity, mng_chunkid chunktype, mng_uint32 chunkseq, mng_int32 extra1, mng_int32 extra2, mng_pchar text) {
 	throw (const char *)text;
+	return true; // added by mike ... not really neccessary but keeps VC5 happy
 }
 
 // ==========================================================
@@ -162,7 +163,7 @@ static void * DLL_CALLCONV
 Open(FreeImageIO *io, fi_handle handle, BOOL read) {
 	mngstuff *mymng = (mngstuff *)calloc(1, sizeof(*mymng));
 	mymng->io = io;
-	mymng->file = handle;
+	mymng->file = handle;	
 
 	return mymng;
 }
@@ -181,6 +182,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			// allocate our stream data structure
 
 			mngstuff *mymng = (mngstuff *)data;
+			mymng->freeimage = freeimage;
 
 			// set up the mng decoder for our stream
 

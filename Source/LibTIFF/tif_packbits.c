@@ -1,4 +1,4 @@
-/* $Header: C:\\RCS\\D\\FreeImage\\Source\\LibTIFF\\tif_packbits.c,v 1.0 2001-04-13 00:42:35+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Header: /cvsroot/osrs/libtiff/libtiff/tif_packbits.c,v 1.5 2001/09/06 19:28:45 warmerda Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -244,6 +244,7 @@ PackBitsDecode(TIFF* tif, tidata_t op, tsize_t occ, tsample_t s)
                                         "PackBitsDecode: discarding %d bytes "
                                         "to avoid buffer overrun",
                                         n - occ);
+                            n = occ;
                         }
 			occ -= n;
 			b = *bp++, cc--;

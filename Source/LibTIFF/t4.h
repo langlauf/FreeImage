@@ -1,4 +1,4 @@
-/* $Id: t4.h,v 1.0 2001-04-13 00:42:26+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Id: t4.h,v 1.1.1.1 1999/07/27 21:50:27 mike Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

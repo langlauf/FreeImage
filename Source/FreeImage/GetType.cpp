@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../DeprecationManager/DeprecationMgr.h"
 #include "FreeImage.h"
 #include "FreeImageIO.h"
 #include "Plugin.h"
@@ -65,10 +66,14 @@ FreeImage_GetFileType(const char *filename, int size) {
 
 const char * DLL_CALLCONV
 FreeImage_GetFileTypeFromFormat(FREE_IMAGE_FORMAT fif) {
+	DEPRECATE("FreeImage_GetFileTypeFromFormat()", "FreeImage_GetFormatFromFIF()")
+
 	return FreeImage_GetFormatFromFIF(fif);
 }
 
 FREE_IMAGE_FORMAT DLL_CALLCONV
 FreeImage_GetFileTypeFromExt(const char *filename) {
+	DEPRECATE("FreeImage_GetFileTypeFromExt()", "FreeImage_GetFIFFromFilename()")
+
 	return FreeImage_GetFIFFromFilename(filename);
 }

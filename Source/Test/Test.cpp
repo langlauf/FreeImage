@@ -21,6 +21,7 @@
 
 //#define QT
 #define API
+//#define MULTI
 
 #include <assert.h>
 #include <stdio.h>
@@ -44,6 +45,10 @@ using namespace std;
 #endif
 
 #ifdef API
+#include "FreeImage.h"
+#endif
+
+#ifdef MULTI
 #include "FreeImage.h"
 #endif
 
@@ -85,22 +90,6 @@ FreeImage_ExtractTransparency(FIBITMAP *dib) {
 
 // ----------------------------------------------------------
 
-struct Extensions {
-	char *ext;
-	void *function;
-};
-
-static Extensions s_extensions[] = {
-	"bmp", FreeImage_SaveBMP,
-	"jpg", FreeImage_SaveJPEG,
-	"png", FreeImage_SavePNG,
-	"pnm", FreeImage_SavePNM,
-	"tif", FreeImage_SaveTIFF,
-	"wbmp", FreeImage_SaveWBMP,
-};
-
-// ----------------------------------------------------------
-
 static char s_error_message[256];
 
 void
@@ -108,7 +97,48 @@ MessageFunc(FREE_IMAGE_FORMAT fif, const char *message) {
 	strcpy(s_error_message, message);
 }
 
+// ----------------------------------------------------------
+
+#ifdef MULTI
+int __cdecl
+TestMulti(int argc, char *argv[]) {
+	FreeImage_Initialise();
+
+	FIMULTIBITMAP *bitmap = FreeImage_OpenMultiBitmap(FIF_TIFF, "c:\\projects\\test images\\Kopie van money-256.tif", FALSE);
+
+	int count = FreeImage_GetPageCount(bitmap);
+
+	if (FreeImage_SelectPage(bitmap, 0)) {
+		FIBITMAP *bmp = FreeImage_GetCurrentPage(bitmap); // no need to free the page; it is managed by the multi-paging engine
+	}
+
+	FreeImage_CloseMultiBitmap(bitmap);
+
+	FreeImage_DeInitialise();
+
+	return 0;
+}
+
+#endif
+
+// ----------------------------------------------------------
+
 #ifdef API
+
+struct Extensions {
+	char *ext;
+	void *function;
+};
+
+static Extensions s_extensions[] = {
+/*	"bmp", FreeImage_SaveBMP,
+	"jpg", FreeImage_SaveJPEG,
+	"png", FreeImage_SavePNG,
+	"pnm", FreeImage_SavePNM,
+*/	"tif", FreeImage_SaveTIFF,
+//	"wbmp", FreeImage_SaveWBMP,
+};
+
 int __cdecl
 TestAPI(int argc, char *argv[]) {
 	FreeImage_Initialise();
@@ -157,6 +187,10 @@ TestAPI(int argc, char *argv[]) {
 					dib = FreeImage_LoadBMP(directory, BMP_DEFAULT);
 					break;
 
+				case FIF_CUT :
+					dib = FreeImage_LoadCUT(directory, CUT_DEFAULT);
+					break;
+
 				case FIF_ICO :
 					dib = FreeImage_LoadICO(directory, ICO_DEFAULT);
 					break;
@@ -171,6 +205,11 @@ TestAPI(int argc, char *argv[]) {
 
 				case FIF_KOALA :
 					dib = FreeImage_LoadKOALA(directory, KOALA_DEFAULT);
+					break;
+
+				case FIF_MNG :
+				case FIF_JNG :
+					dib = FreeImage_LoadMNG(directory, PCD_DEFAULT);
 					break;
 
 				case FIF_PCD :
@@ -229,10 +268,14 @@ TestAPI(int argc, char *argv[]) {
 					FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(s_extensions[i].ext);
 
 					if ((FreeImage_FIFSupportsWriting(fif)) && (FreeImage_FIFSupportsExportBPP(fif, FreeImage_GetBPP(dib)))) {
+						FIBITMAP *c = FreeImage_Clone(dib);
+
 						itoa(id, unique, 10);
 						strcat(unique, ".");
 						strcat(unique, s_extensions[i].ext);
-						static_cast<void *(DLL_CALLCONV *)(FIBITMAP *dib, const char *filename, int flags)>(s_extensions[i].function)(dib, unique, BMP_DEFAULT);
+						static_cast<void *(DLL_CALLCONV *)(FIBITMAP *dib, const char *filename, int flags)>(s_extensions[i].function)(c, unique, BMP_DEFAULT);
+
+						FreeImage_Unload(c);
 					}
 				}
 
@@ -311,6 +354,9 @@ main(int argc, char *argv[]) {
 #endif
 #ifdef QT
 	return TestQt(argc, argv); 
+#endif
+#ifdef MULTI
+	return TestMulti(argc, argv);
 #endif
 
 	return 0;

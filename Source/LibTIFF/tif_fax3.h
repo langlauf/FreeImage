@@ -1,4 +1,4 @@
-/* $Id: tif_fax3.h,v 1.0 2001-04-13 00:42:32+02 floris_van_den_berg Exp floris_van_den_berg $ */
+/* $Id: tif_fax3.h,v 1.4 2000/12/01 15:46:46 warmerda Exp $ */
 
 /*
  * Copyright (c) 1990-1997 Sam Leffler

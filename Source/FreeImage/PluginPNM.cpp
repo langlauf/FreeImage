@@ -342,10 +342,12 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			case '4':
 				freeimage->output_message_proc(s_format_id, text);
 				break;
+
 			case '2':
 			case '5':
 				freeimage->output_message_proc(s_format_id, text);
 				break;
+
 			case '3':
 			case '6':
 				freeimage->output_message_proc(s_format_id, text);
