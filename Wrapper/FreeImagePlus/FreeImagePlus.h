@@ -103,7 +103,7 @@ public:
 	/// Destructor
 	~fipImage();
 	/// Image allocator
-	BOOL setSize(FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD bpp);
+	BOOL setSize(FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD bpp, unsigned red_mask = 0, unsigned green_mask = 0, unsigned blue_mask = 0);
 	//@}
 
 	/**@name Copying */
@@ -118,9 +118,10 @@ public:
 	fipImage& operator=(FIBITMAP *dib);
 
 
-	/// Copy a sub part of the current image and returns it as a fipImage object.
 	/**
-	The bit depth of the bitmap must be equal to 1, 4, 8, 16, 24 or 32.
+	@brief Copy a sub part of the current image and returns it as a fipImage object.
+
+	The bit depth of the bitmap must be equal to 8, 16, 24 or 32.
 	@param dst Output subimage
 	@param left Specifies the left position of the cropped rectangle. 
 	@param top Specifies the top position of the cropped rectangle. 
@@ -610,6 +611,7 @@ public:
 	<ul>
 	<li>Display a DIB on the screen
 	<li>Copy / Paste a DIB to/from Windows devices (HANDLE, HBITMAP, Clipboard)
+	<li>Capture a window (HWND) and convert it to an image
 	</ul>
 	@version FreeImage 3
 	@author Hervé Drolon

@@ -57,7 +57,7 @@ typedef struct tagTGAHEADER {
 
 	WORD cm_first_entry;		// first entry index
 	WORD cm_length;				// color map length
-	BYTE cm_size;				// color map entry size
+	BYTE cm_size;				// color map entry size, in bits
 
 	WORD is_xorigin;			// X-origin of image
 	WORD is_yorigin;			// Y-origin of image
@@ -253,7 +253,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			int fliphoriz = (header.is_image_descriptor & 0x10) ? 0 : 1;
 			int flipvert = (header.is_image_descriptor & 0x20) ? 1 : 0;
 
+			// skip comment
 			io->seek_proc(handle, header.id_length, SEEK_CUR);
+
 			switch (header.is_pixel_depth) {
 				case 8 :
 				{
@@ -266,34 +268,74 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 					RGBQUAD *palette = FreeImage_GetPalette(dib);
 
-					if (header.color_map_type == 0)
+					if (header.color_map_type == 0) {
+						// no color-map data is included with this image ...
+						// build a greyscale palette
 						for (unsigned i = 0; i < 256; i++) {
 							palette[i].rgbRed	= i;
 							palette[i].rgbGreen = i;
 							palette[i].rgbBlue	= i;
 						}
-					else if (alphabits) {
-						for (unsigned count = header.cm_first_entry; count < header.cm_length; count++) {
-							BGRAQUAD quad;
-
-							io->read_proc(&quad, sizeof(RGBTRIPLE), 1, handle);
-						
-							palette[count].rgbBlue = quad.bgraBlue;
-							palette[count].rgbRed = quad.bgraRed;
-							palette[count].rgbGreen = quad.bgraGreen;
-							palette[count].rgbReserved = quad.bgraAlpha;
-						}
 					}
 					else {
-						for (unsigned count = header.cm_first_entry; count < header.cm_length; count++) {
-							RGBTRIPLE triple;
+						unsigned count, csize;
 
-							io->read_proc(&triple, sizeof(RGBTRIPLE), 1, handle);
-						
-							palette[count].rgbRed = triple.rgbtRed;
-							palette[count].rgbGreen = triple.rgbtGreen;
-							palette[count].rgbBlue = triple.rgbtBlue;
+						// calculate the color map size
+						csize = header.cm_length * header.cm_size / 8;
+						BYTE *cmap = (BYTE*)malloc(csize * sizeof(BYTE));
+
+						io->read_proc(cmap, sizeof(BYTE), csize, handle);
+
+						// build the palette
+						switch(header.cm_size) {
+							case 16:
+							{
+								WORD *rgb555 = (WORD*)&cmap[0];
+								for (count = header.cm_first_entry; count < header.cm_length; count++) {						
+									palette[count].rgbRed = (((*rgb555 & 0x7C00) >> 10) * 0xFF) / 0x1F;
+									palette[count].rgbGreen = (((*rgb555 & 0x3E0) >> 5) * 0xFF) / 0x1F;
+									palette[count].rgbBlue = ((*rgb555 & 0x1F) * 0xFF) / 0x1F;
+									rgb555++;
+								}
+							}
+							break;
+
+							case 24:
+							{
+								RGBTRIPLE *rgb = (RGBTRIPLE*)&cmap[0];
+								for (count = header.cm_first_entry; count < header.cm_length; count++) {						
+									palette[count].rgbBlue  = rgb->rgbtBlue;									
+									palette[count].rgbGreen = rgb->rgbtGreen;
+									palette[count].rgbRed   = rgb->rgbtRed;
+									rgb++;
+								}
+							}
+							break;
+
+							case 32:
+							{
+								BYTE trns[256];
+
+								// clear the transparency table
+								memset(trns, 0xFF, 256);
+
+								BGRAQUAD *quad = (BGRAQUAD*)&cmap[0];
+								for (count = header.cm_first_entry; count < header.cm_length; count++) {						
+									palette[count].rgbBlue  = quad->bgraBlue;									
+									palette[count].rgbGreen = quad->bgraGreen;
+									palette[count].rgbRed   = quad->bgraRed;
+									// alpha
+									trns[count] = quad->bgraAlpha;
+									quad++;
+								}
+
+								// set the tranparency table
+								FreeImage_SetTransparencyTable(dib, trns, 256);
+							}
+							break;
 						}
+
+						free(cmap);
 					}
 					
 					// read in the bitmap bits
@@ -936,7 +978,11 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			header.color_map_type = 1;
 			header.image_type = TGA_CMAP;
 			header.cm_length = 1 << bpp;
-			header.cm_size = sizeof(RGBTRIPLE);
+			if(FreeImage_IsTransparent(dib)) {
+				header.cm_size = 32;
+			} else {
+				header.cm_size = 24;
+			}
 		} else {
 			header.color_map_type = 0;
 			header.image_type = TGA_RGB;
@@ -951,17 +997,36 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		// write the palette	
 
 		if (palette) {
-			RGBTRIPLE *rgb_pal = (RGBTRIPLE*)malloc(header.cm_length * sizeof(RGBTRIPLE));
+			if(FreeImage_IsTransparent(dib)) {
+				BGRAQUAD *rgba_pal = (BGRAQUAD*)malloc(header.cm_length * sizeof(BGRAQUAD));
 
-			for(int i = 0; i < header.cm_length; i++) {
-				rgb_pal[i].rgbtBlue  = palette[i].rgbBlue;
-				rgb_pal[i].rgbtGreen = palette[i].rgbGreen;
-				rgb_pal[i].rgbtRed   = palette[i].rgbRed;
+				// get the transparency table
+				BYTE *trns = FreeImage_GetTransparencyTable(dib);
+
+				for(int i = 0; i < header.cm_length; i++) {
+					rgba_pal[i].bgraBlue  = palette[i].rgbBlue;
+					rgba_pal[i].bgraGreen = palette[i].rgbGreen;
+					rgba_pal[i].bgraRed   = palette[i].rgbRed;
+					rgba_pal[i].bgraAlpha = trns[i];
+				}
+
+				io->write_proc(rgba_pal, sizeof(BGRAQUAD), header.cm_length, handle);
+
+				free(rgba_pal);
+
+			} else {
+				RGBTRIPLE *rgb_pal = (RGBTRIPLE*)malloc(header.cm_length * sizeof(RGBTRIPLE));
+
+				for(int i = 0; i < header.cm_length; i++) {
+					rgb_pal[i].rgbtBlue  = palette[i].rgbBlue;
+					rgb_pal[i].rgbtGreen = palette[i].rgbGreen;
+					rgb_pal[i].rgbtRed   = palette[i].rgbRed;
+				}
+
+				io->write_proc(rgb_pal, sizeof(RGBTRIPLE), header.cm_length, handle);
+
+				free(rgb_pal);
 			}
-
-			io->write_proc(rgb_pal, header.cm_length * sizeof(RGBTRIPLE), 1, handle);
-
-			free(rgb_pal);
 		}
 
 		// write the data bits

@@ -372,7 +372,7 @@ FreeImage_Copy(FIBITMAP *src, int left, int top, int right, int bottom) {
 			break;
 
 		case 4:
-			src_bits += (left * sizeof(BYTE)) / 2;
+			// point to x = 0
 			break;
 
 		case 8 :
@@ -420,9 +420,20 @@ FreeImage_Copy(FIBITMAP *src, int left, int top, int right, int bottom) {
 	}
 
 	else if(bpp == 4) {
-		// TODO : case when x is odd
+		BYTE shift, value;
+		unsigned y_src, y_dst;
+
 		for(int y = 0; y < dst_height; y++) {
-			memcpy(dst_bits + (y * dst_pitch), src_bits + (y * src_pitch), dst_line);
+			y_src = y * src_pitch;
+			y_dst = y * dst_pitch;
+			for(int x = 0; x < dst_width; x++) {
+				// get nibble at (y, x) in src image
+				shift = (BYTE)((1 - (left+x) % 2) << 2);
+				value = (src_bits[y_src + ((left+x) >> 1)] & (0x0F << shift)) >> shift;
+				// set nibble at (y, x) in dst image
+				shift = (BYTE)((1 - x % 2) << 2);
+				dst_bits[y_dst + (x >> 1)] |= ((value & 0x0F) << shift);
+			}
 		}
 	}
 

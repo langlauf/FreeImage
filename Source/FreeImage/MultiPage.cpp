@@ -342,12 +342,12 @@ FreeImage_CloseMultiBitmap(FIMULTIBITMAP *bitmap, int flags) {
 								BlockContinueus *block = (BlockContinueus *)(*i);
 
 								for (int j = block->m_start; j <= block->m_end; j++) {
-									FIBITMAP *bitmap = header->node->m_plugin->load_proc(header->io, header->handle, j, 0, data_read);
+									FIBITMAP *dib = header->node->m_plugin->load_proc(header->io, header->handle, j, 0, data_read);
 
-									success = header->node->m_plugin->save_proc(header->io, bitmap, (fi_handle)f, count, flags, data);
+									success = header->node->m_plugin->save_proc(header->io, dib, (fi_handle)f, count, flags, data);
 									count++;
 
-									FreeImage_Unload(bitmap);
+									FreeImage_Unload(dib);
 								}
 
 								break;
@@ -357,8 +357,8 @@ FreeImage_CloseMultiBitmap(FIMULTIBITMAP *bitmap, int flags) {
 							{
 								BlockReference *ref = (BlockReference *)(*i);
 
-								FIBITMAP bitmap;
-								bitmap.data = new BYTE[ref->m_uncompressed_size];
+								FIBITMAP dib;
+								dib.data = (BYTE*)malloc(ref->m_uncompressed_size * sizeof(BYTE));
 
 								// read the compressed data
 
@@ -368,17 +368,17 @@ FreeImage_CloseMultiBitmap(FIMULTIBITMAP *bitmap, int flags) {
 
 								// uncompress the data
 
-								FreeImage_ZLibUncompress((BYTE *)bitmap.data, ref->m_uncompressed_size, compressed_data, ref->m_size);
+								FreeImage_ZLibUncompress((BYTE *)dib.data, ref->m_uncompressed_size, compressed_data, ref->m_size);
 
 								// save the data
 
-								success = header->node->m_plugin->save_proc(header->io, &bitmap, (fi_handle)f, count, flags, data);
+								success = header->node->m_plugin->save_proc(header->io, &dib, (fi_handle)f, count, flags, data);
 								count++;
 
 								// get rid of the buffers
 
 								free(compressed_data);
-								delete (BYTE*)bitmap.data;
+								free(dib.data);
 
 								break;
 							}
@@ -609,7 +609,7 @@ FreeImage_LockPage(FIMULTIBITMAP *bitmap, int page) {
 		// load the bitmap data
 
 		if (data != NULL) {
-			FIBITMAP *bitmap = (header->node->m_plugin->load_proc != NULL) ? header->node->m_plugin->load_proc(header->io, header->handle, page, 0, data) : NULL;
+			FIBITMAP *dib = (header->node->m_plugin->load_proc != NULL) ? header->node->m_plugin->load_proc(header->io, header->handle, page, 0, data) : NULL;
 
 			// close the file
 
@@ -617,10 +617,10 @@ FreeImage_LockPage(FIMULTIBITMAP *bitmap, int page) {
 
 			// if there was still another bitmap open, get rid of it
 
-			if (bitmap) {
-				header->locked_pages[bitmap] = page;
+			if (dib) {
+				header->locked_pages[dib] = page;
 
-				return bitmap;
+				return dib;
 			}	
 
 			return NULL;

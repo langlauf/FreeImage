@@ -347,6 +347,10 @@ SOURCE=.\Source\FreeImageToolkit\Rescale.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Source\FreeImageToolkit\Resize.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Source\FreeImageToolkit\Resize.h
 # End Source File
 # End Group

@@ -477,7 +477,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				jpeg_read_scanlines(&cinfo, &b, 1);
 			}
 
-			// step 6b: swap red and blue components
+			// step 6b: swap red and blue components (see LibJPEG/jmorecfg.h: #define RGB_RED, ...)
+			// The default behavior of the JPEG library is kept "as is" because LibTIFF uses 
+			// LibJPEG "as is".
 
 			if(cinfo.num_components == 3) {
 				for(int y = 0; y < FreeImage_GetHeight(dib); y++) {

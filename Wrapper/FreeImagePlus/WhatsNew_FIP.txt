@@ -5,6 +5,11 @@ What's New for FreeImagePlus
 ! : changed
 + : added
 
+March, 17th, 2004
+[Herve Drolon]
+! fipImage::setSize now accepts color masks
+* fixed fipWinImage::copyFromHandle not working with DIB having color masks
+
 February 11th, 2004
 [Herve Drolon]
 - removed fipImage::getRedChannel

@@ -30,7 +30,7 @@
 // ----------------------------------------------------------
 
 static const int CACHE_SIZE = 32;
-static const int BLOCK_SIZE = 64 * 1024;
+static const int BLOCK_SIZE = (64 * 1024) - 8;
 
 // ----------------------------------------------------------
 
@@ -41,13 +41,9 @@ static const int BLOCK_SIZE = 64 * 1024;
 #endif // WIN32
 
 struct Block {
-     long next;
-     BYTE data[BLOCK_SIZE - 4];
-};
-
-struct Cache {
-     int nr;
-     Block *data;
+     unsigned nr;
+     unsigned next;
+     BYTE *data;
 };
 
 #ifdef WIN32
@@ -59,8 +55,8 @@ struct Cache {
 // ----------------------------------------------------------
 
 class CacheFile {
-	typedef std::list<Cache *> PageCache;
-	typedef std::list<Cache *>::iterator PageCacheIt;
+	typedef std::list<Block *> PageCache;
+	typedef std::list<Block *>::iterator PageCacheIt;
 	typedef std::map<int, PageCacheIt> PageMap;
 	typedef std::map<int, PageCacheIt>::iterator PageMapIt;
 
@@ -75,6 +71,7 @@ public :
 	void deleteFile(int nr);
 
 private :
+	void cleanupMemCache();
 	int allocateBlock();
 	Block *lockBlock(int nr);
 	BOOL unlockBlock(int nr);
@@ -82,9 +79,10 @@ private :
 
 private :
 	FILE *m_file;
-	char *m_filename;
+	std::string m_filename;
 	std::list<int> m_free_pages;
-	PageCache m_page_cache;
+	PageCache m_page_cache_mem;
+	PageCache m_page_cache_disk;
 	PageMap m_page_map;
 	int m_page_count;
 	Block *m_current_block;

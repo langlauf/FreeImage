@@ -92,21 +92,36 @@ HANDLE fipWinImage::copyToHandle() {
 }
 
 BOOL fipWinImage::copyFromHandle(HANDLE hMem) {
-	// Get a pointer to the bitmap
-	BYTE *lpVoid = (BYTE *)GlobalLock(hMem);
-	// Get a pointer to the bitmap header
-	BITMAPINFOHEADER *pHead = (BITMAPINFOHEADER *)lpVoid;
-	// Get a pointer to the palette
+	BYTE *lpVoid = NULL;
+	BITMAPINFOHEADER *pHead = NULL;
 	RGBQUAD *pPalette = NULL;
+	BYTE *bits = NULL;
+	DWORD bitfields[3] = {0, 0, 0};
+
+	// Get a pointer to the bitmap
+	lpVoid = (BYTE *)GlobalLock(hMem);
+
+	// Get a pointer to the bitmap header
+	pHead = (BITMAPINFOHEADER *)lpVoid;
+
+	// Get a pointer to the palette
 	if(pHead->biBitCount < 16)
 		pPalette = (RGBQUAD *)(((BYTE *)pHead) + sizeof(BITMAPINFOHEADER));
+
 	// Get a pointer to the pixels
-	BYTE *bits = ((BYTE*)pHead + sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * pHead->biClrUsed);
+	bits = ((BYTE*)pHead + sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * pHead->biClrUsed);
+
+	if(pHead->biCompression == BI_BITFIELDS) {
+		// Take into account the color masks that specify the red, green, and blue components (16- and 32-bit)
+		unsigned mask_size = 3 * sizeof(DWORD);
+		memcpy(&bitfields[0], bits, mask_size);
+		bits += mask_size;
+	} 
 
 	if(lpVoid) {
 
 		// Allocate a new FIBITMAP
-		if(!setSize(FIT_BITMAP, (WORD)pHead->biWidth, (WORD)pHead->biHeight, pHead->biBitCount)) {
+		if(!setSize(FIT_BITMAP, (WORD)pHead->biWidth, (WORD)pHead->biHeight, pHead->biBitCount, bitfields[2], bitfields[1], bitfields[0])) {
 			GlobalUnlock(lpVoid);
 			return FALSE;
 		}
@@ -131,6 +146,7 @@ BOOL fipWinImage::copyFromHandle(HANDLE hMem) {
 
 BOOL fipWinImage::copyFromBitmap(HBITMAP hbmp) {
 	if(hbmp) { 
+		int Success;
         BITMAP bm;
 		// Get informations about the bitmap
         GetObject(hbmp, sizeof(BITMAP), (LPSTR) &bm);
@@ -139,7 +155,7 @@ BOOL fipWinImage::copyFromBitmap(HBITMAP hbmp) {
 		// Create a device context for the bitmap
         HDC dc = GetDC(NULL);
 		// Copy the pixels
-		int Success = GetDIBits(dc,							// handle to DC
+		Success = GetDIBits(dc,								// handle to DC
 								hbmp,						// handle to bitmap
 								0,							// first scan line to set
 								FreeImage_GetHeight(_dib),	// number of scan lines to copy
@@ -148,7 +164,7 @@ BOOL fipWinImage::copyFromBitmap(HBITMAP hbmp) {
 								DIB_RGB_COLORS				// RGB 
 								);
 		if(Success == 0) {
-			// Error : GetDIBits failed
+			FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error : GetDIBits failed");
 			ReleaseDC(NULL, dc);
 			return FALSE;
         }

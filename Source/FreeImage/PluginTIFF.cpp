@@ -720,17 +720,12 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 						// Monochrome image
 
 						if (bitspersample == 1) {
-							int value = 0;
-
-							if ((compression == COMPRESSION_CCITTFAX3) || (compression == COMPRESSION_CCITTFAX4) || (photometric == PHOTOMETRIC_MINISWHITE))
-								value = 255;
-
 							if (photometric == PHOTOMETRIC_MINISWHITE) {
-								pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = value;
-								pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255 - value;
+								pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 255;
+								pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 0;
 							} else {
-								pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 255 - value;
-								pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = value;
+								pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 0;
+								pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255;
 							}
 
 						} else if ((bitspersample == 4) ||(bitspersample == 8)) {

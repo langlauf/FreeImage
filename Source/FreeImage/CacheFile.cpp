@@ -27,31 +27,26 @@
 
 CacheFile::CacheFile(const char *filename, BOOL keep_in_memory) :
 m_file(NULL),
-m_filename(NULL),
+m_filename(),
 m_free_pages(),
-m_page_cache(),
+m_page_cache_mem(),
+m_page_cache_disk(),
 m_page_map(),
 m_page_count(0),
 m_current_block(NULL),
 m_keep_in_memory(keep_in_memory) {
 	if (filename) {
-		m_filename = new char[strlen(filename) + 1];
-
-		strcpy(m_filename, filename);
+		m_filename = filename;
 	}
 }
 
 CacheFile::~CacheFile() {
-	if (m_filename) {
-		delete [] m_filename;
-	}
 }
 
 BOOL
 CacheFile::open() {
-	if ((m_filename) && (!m_keep_in_memory)) {
-		m_file = fopen(m_filename, "w+b");
-
+	if ((!m_filename.empty()) && (!m_keep_in_memory)) {
+		m_file = fopen(m_filename.c_str(), "w+b");
 		return (m_file != NULL);
 	}
 
@@ -62,38 +57,65 @@ void
 CacheFile::close() {
 	// dispose the cache entries
 
-	while (!m_page_cache.empty()) {
-		Cache *block = *m_page_cache.begin();
-
-		m_page_cache.pop_front();
+	while (!m_page_cache_disk.empty()) {
+		Block *block = *m_page_cache_disk.begin();
+		m_page_cache_disk.pop_front();
 		delete block->data;
 		delete block;
 	}
 
-	if ((m_filename) && (!m_keep_in_memory)) {
+	if (m_file) {
 		// close the file
 
 		fclose(m_file);
 
 		// delete the file
 
-		remove(m_filename);
+		remove(m_filename.c_str());
+	}
+}
+
+void
+CacheFile::cleanupMemCache() {
+	if (!m_keep_in_memory) {
+		if (m_page_cache_mem.size() > CACHE_SIZE) {
+			// flush the least used block to file
+
+			Block *old_block = m_page_cache_mem.back();
+			fseek(m_file, old_block->nr * BLOCK_SIZE, SEEK_SET);
+			fwrite(old_block->data, BLOCK_SIZE, 1, m_file);
+
+			// remove the data
+
+			delete [] old_block->data;
+			old_block->data = NULL;
+
+			// move the block to another list
+
+			m_page_cache_disk.splice(m_page_cache_disk.begin(), m_page_cache_mem, --m_page_cache_mem.end());
+		}
 	}
 }
 
 int
 CacheFile::allocateBlock() {
-	//Block *block = new Block;
-	//memset(block, 0, sizeof(Block));
+	Block *block = new Block;
+	block->data = new BYTE[BLOCK_SIZE];
+	block->next = 0;
 
 	if (!m_free_pages.empty()) {
-		int free_page = *m_free_pages.begin();
+		block->nr = *m_free_pages.begin();
 		m_free_pages.pop_front();
-
-		return free_page;
 	} else {
-		return m_page_count++;
+		block->nr = m_page_count++;;
 	}
+
+	m_page_cache_mem.push_front(block);
+	m_page_map[block->nr] = m_page_cache_mem.begin();
+
+	cleanupMemCache();
+
+	return block->nr;
 }
 
 Block *
@@ -102,48 +124,26 @@ CacheFile::lockBlock(int nr) {
 		PageMapIt it = m_page_map.find(nr);
 
 		if (it != m_page_map.end()) {
-			// block is in cache...
+			m_current_block = *(it->second);
 
-			m_current_block = (*(it->second))->data;
+			// the block is swapped out to disc. load it back
+			// and remove the block from the cache. it might get cached
+			// again as soon as the memory buffer fills up
 
-			return m_current_block;
-		} else {
-			// block is not in cache...
+			if (m_current_block->data == NULL) {
+				m_current_block->data = new BYTE[BLOCK_SIZE];
 
-			if (!m_keep_in_memory) {
-				if (m_page_cache.size() > CACHE_SIZE) {
-					// flush the least used block to file
+				fseek(m_file, m_current_block->nr * BLOCK_SIZE, SEEK_SET);
+				fread(m_current_block->data, BLOCK_SIZE, 1, m_file);
 
-					Cache *old_block = *m_page_cache.begin();
-
-					fseek(m_file, old_block->nr * sizeof(Block), SEEK_SET);
-					fwrite(old_block->data, sizeof(Block), 1, m_file);
-
-					// remove the block from memory
-
-					m_page_map.erase(old_block->nr);
-					m_page_cache.pop_front();
-
-					delete old_block->data;
-					delete old_block;
-				}
+				m_page_cache_mem.splice(m_page_cache_mem.begin(), m_page_cache_disk, it->second);
 			}
 
-			// allocate a new block
+			// if the memory cache size is too large, swap an item to disc
 
-			m_current_block = new Block;
-			memset(m_current_block, 0, sizeof(Block));
+			cleanupMemCache();
 
-			// allocate a new cache entry
-
-			Cache *cache = new Cache();
-			cache->nr = nr;
-			cache->data = m_current_block;
-
-			// add the new block to the cache
-
-			m_page_cache.push_back(cache);
-			m_page_map[nr] = --m_page_cache.end(); // this is possible only for std::list!
+			// return the current block
 
 			return m_current_block;
 		}
@@ -186,7 +186,6 @@ CacheFile::deleteBlock(int nr) {
 BOOL
 CacheFile::readFile(BYTE *data, int nr, int size) {
 	if ((data) && (size > 0)) {
-		int block_size = sizeof(Block) - 4;
 		int s = 0;
 		int block_nr = nr;
 
@@ -197,11 +196,11 @@ CacheFile::readFile(BYTE *data, int nr, int size) {
 
 			block_nr = block->next;
 
-			memcpy(data + s, block->data, (s + block_size > size) ? size - s : block_size);
+			memcpy(data + s, block->data, (s + BLOCK_SIZE > size) ? size - s : BLOCK_SIZE);
 
 			unlockBlock(copy_nr);
 
-			s += block_size;
+			s += BLOCK_SIZE;
 		} while (block_nr != 0);
 
 		return TRUE;
@@ -213,8 +212,7 @@ CacheFile::readFile(BYTE *data, int nr, int size) {
 int
 CacheFile::writeFile(BYTE *data, int size) {
 	if ((data) && (size > 0)) {
-		int block_size = sizeof(Block) - 4;
-		int nr_blocks_required = 1 + (size / block_size);
+		int nr_blocks_required = 1 + (size / BLOCK_SIZE);
 		int count = 0;
 		int s = 0;
 		int stored_alloc;
@@ -229,14 +227,14 @@ CacheFile::writeFile(BYTE *data, int size) {
 
 			block->next = 0;
 
-			memcpy(block->data, data + s, (s + block_size > size) ? size - s : block_size);
+			memcpy(block->data, data + s, (s + BLOCK_SIZE > size) ? size - s : BLOCK_SIZE);
 
 			if (count + 1 < nr_blocks_required)
 				alloc = block->next = allocateBlock();
 
 			unlockBlock(copy_alloc);
 
-			s += block_size;			
+			s += BLOCK_SIZE;			
 		} while (++count < nr_blocks_required);
 
 		return stored_alloc;
@@ -247,15 +245,19 @@ CacheFile::writeFile(BYTE *data, int size) {
 
 void
 CacheFile::deleteFile(int nr) {
-	int next = nr;
-	
 	do {
-		Block *block = lockBlock(next);
+		Block *block = lockBlock(nr);
 
-		next = block->next;
+		if (block == NULL)
+			break;
+
+		int next = block->next;
 
 		unlockBlock(nr);
 
 		deleteBlock(nr);
-	} while (next != 0);
+
+		nr = next;
+	} while (nr != 0);
 }
+

@@ -50,11 +50,11 @@ fipImage::~fipImage() {
 	}
 }
 
-BOOL fipImage::setSize(FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD bpp) {
+BOOL fipImage::setSize(FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD bpp, unsigned red_mask, unsigned green_mask, unsigned blue_mask) {
 	if(_dib) {
 		FreeImage_Unload(_dib);
 	}
-	if((_dib = FreeImage_AllocateT(image_type, width, height, bpp)) == NULL)
+	if((_dib = FreeImage_AllocateT(image_type, width, height, bpp, red_mask, green_mask, blue_mask)) == NULL)
 		return FALSE;
 
 	if(image_type == FIT_BITMAP) {
@@ -220,7 +220,7 @@ BYTE* fipImage::accessPixels() {
 	return FreeImage_GetBits(_dib); 
 }
 
-BYTE*fipImage::getScanLine(WORD scanline) {
+BYTE* fipImage::getScanLine(WORD scanline) {
 	if(scanline < FreeImage_GetHeight(_dib)) {
 		return FreeImage_GetScanLine(_dib, scanline);
 	}
@@ -621,11 +621,15 @@ BOOL fipImage::getHistogram(DWORD *histo, FREE_IMAGE_COLOR_CHANNEL channel) {
 // Upsampling / downsampling routine
 
 BOOL fipImage::rescale(WORD new_width, WORD new_height, FREE_IMAGE_FILTER filter) {
-	FIBITMAP *src = NULL;
 	if(_dib) {
-		// Convert to 32-bit
-		if(FreeImage_GetBPP(_dib) != 32) {
-			if(!convertTo32Bits())
+		int bpp = FreeImage_GetBPP(_dib);
+		if(bpp < 8) {
+			// Convert to 8-bit
+			if(!convertTo8Bits())
+				return FALSE;
+		} else if(bpp == 16) {
+			// Convert to 24-bit
+			if(!convertTo24Bits())
 				return FALSE;
 		}
 		// Perform upsampling / downsampling

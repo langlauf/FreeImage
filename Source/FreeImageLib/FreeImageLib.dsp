@@ -124,6 +124,10 @@ SOURCE=..\FreeImage\Conversion8.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\FreeImage\ConversionType.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\FreeImage\Halftoning.cpp
 # End Source File
 # End Group
@@ -141,6 +145,10 @@ SOURCE=..\FreeImage\PluginBMP.cpp
 # Begin Source File
 
 SOURCE=..\FreeImage\PluginCUT.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\PluginDDS.cpp
 # End Source File
 # Begin Source File
 
@@ -314,6 +322,10 @@ SOURCE=..\FreeImageToolkit\Flip.cpp
 # Begin Source File
 
 SOURCE=..\FreeImageToolkit\Rescale.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImageToolkit\Resize.cpp
 # End Source File
 # Begin Source File
 
