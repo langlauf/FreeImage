@@ -58,6 +58,7 @@ Limited to 45 degree skewing only. Filters two adjacent pixels.
 */
 static void 
 HorizSkew(FIBITMAP *src, FIBITMAP *dst, int row, int iOffset, double dWeight) {
+	int i = 0;
 	BYTE *pSrc = NULL, *pDst = NULL;
 	int src_width  = FreeImage_GetWidth(src);
 	int src_height = FreeImage_GetHeight(src);
@@ -66,7 +67,7 @@ HorizSkew(FIBITMAP *src, FIBITMAP *dst, int row, int iOffset, double dWeight) {
 
 	// Fill gap left of skew with background
 	pDst = FreeImage_GetScanLine(dst, row);
-	for(int i = 0; i < iOffset; i++) {
+	for(i = 0; i < iOffset; i++) {
         pDst[i] = 0;
 	}
 
@@ -110,6 +111,7 @@ Limited to 45 degree skewing only. Filters two adjacent pixels.
 */
 static void 
 VertSkew(FIBITMAP *src, FIBITMAP *dst, int col, int iOffset, double dWeight) {
+	int i = 0;
 	BYTE *pSrc = NULL, *pDst = NULL;
 	int src_width  = FreeImage_GetWidth(src);
 	int src_height = FreeImage_GetHeight(src);
@@ -119,7 +121,7 @@ VertSkew(FIBITMAP *src, FIBITMAP *dst, int col, int iOffset, double dWeight) {
 	int iYPos = 0;
 
 	// Fill gap above skew with background
-	for(int i = 0; i < iOffset; i++) {
+	for(i = 0; i < iOffset; i++) {
 		pDst = FreeImage_GetScanLine(dst, i);
 		pDst[col] = 0;
 	}

@@ -4,14 +4,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_prop_xs.c          copyright (c) 2000-2002 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_prop_xs.c          copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : property get/set interface (implementation)                * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : implementation of the property get/set functions           * */
 /* *                                                                        * */
@@ -83,6 +81,15 @@
 /* *             1.0.5 - 11/07/2002 - G.Juyn                                * */
 /* *             - added support to get totals after mng_read()             * */
 /* *                                                                        * */
+/* *             1.0.6 - 05/11/2003 - G. Juyn                               * */
+/* *             - added conditionals around canvas update routines         * */
+/* *             1.0.6 - 07/07/2003 - G.R-P                                 * */
+/* *             - added conditionals around some JNG-supporting code       * */
+/* *             1.0.6 - 07/11/2003 - G.R-P                                 * */
+/* *             - added conditionals zlib and jpeg property accessors      * */
+/* *             1.0.6 - 07/14/2003 - G.R-P                                 * */
+/* *             - added conditionals around various unused functions       * */
+/* *                                                                        * */
 /* ************************************************************************** */
 
 #include "libmng.h"
@@ -136,15 +143,33 @@ mng_retcode MNG_DECL mng_set_canvasstyle (mng_handle hHandle,
 
   switch (iStyle)
   {
+#ifndef MNG_SKIPCANVAS_RGB8
     case MNG_CANVAS_RGB8    : break;
+#endif
+#ifndef MNG_SKIPCANVAS_RGBA8
     case MNG_CANVAS_RGBA8   : break;
+#endif
+#ifndef MNG_SKIPCANVAS_ARGB8
     case MNG_CANVAS_ARGB8   : break;
+#endif
+#ifndef MNG_SKIPCANVAS_RGB8_A8
     case MNG_CANVAS_RGB8_A8 : break;
+#endif
+#ifndef MNG_SKIPCANVAS_BGR8
     case MNG_CANVAS_BGR8    : break;
+#endif
+#ifndef MNG_SKIPCANVAS_BGRX8
     case MNG_CANVAS_BGRX8   : break;
+#endif
+#ifndef MNG_SKIPCANVAS_BGRA8
     case MNG_CANVAS_BGRA8   : break;
+#endif
+#ifndef MNG_SKIPCANVAS_BGRA8_PM
     case MNG_CANVAS_BGRA8PM : break;
+#endif
+#ifndef MNG_SKIPCANVAS_ABGR8
     case MNG_CANVAS_ABGR8   : break;
+#endif
 /*    case MNG_CANVAS_RGB16   : break; */
 /*    case MNG_CANVAS_RGBA16  : break; */
 /*    case MNG_CANVAS_ARGB16  : break; */
@@ -187,8 +212,15 @@ mng_retcode MNG_DECL mng_set_bkgdstyle (mng_handle hHandle,
 
   switch (iStyle)                      /* alpha-modes not supported */
   {
+#ifndef MNG_SKIPCANVAS_RGB8
     case MNG_CANVAS_RGB8    : break;
+#endif
+#ifndef MNG_SKIPCANVAS_BGR8
     case MNG_CANVAS_BGR8    : break;
+#endif
+#ifndef MNG_SKIPCANVAS_BGRX8
+    case MNG_CANVAS_BGRX8   : break;
+#endif
 /*    case MNG_CANVAS_RGB16   : break; */
 /*    case MNG_CANVAS_BGR16   : break; */
 /*    case MNG_CANVAS_INDEX8  : break; */
@@ -356,6 +388,7 @@ mng_retcode MNG_DECL mng_set_srgb (mng_handle hHandle,
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_SKIPCHUNK_iCCP
 mng_retcode MNG_DECL mng_set_outputprofile (mng_handle hHandle,
                                             mng_pchar  zFilename)
 {
@@ -387,11 +420,13 @@ mng_retcode MNG_DECL mng_set_outputprofile (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_SKIPCHUNK_iCCP
 mng_retcode MNG_DECL mng_set_outputprofile2 (mng_handle hHandle,
                                              mng_uint32 iProfilesize,
                                              mng_ptr    pProfile)
@@ -424,6 +459,7 @@ mng_retcode MNG_DECL mng_set_outputprofile2 (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
@@ -662,6 +698,7 @@ mng_retcode MNG_DECL mng_set_displaygammaint (mng_handle hHandle,
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DFLT_INFO
 mng_retcode MNG_DECL mng_set_dfltimggammaint (mng_handle hHandle,
                                               mng_uint32 iGamma)
 {
@@ -678,9 +715,11 @@ mng_retcode MNG_DECL mng_set_dfltimggammaint (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIP_MAXCANVAS
 mng_retcode MNG_DECL mng_set_maxcanvaswidth (mng_handle hHandle,
                                              mng_uint32 iMaxwidth)
 {
@@ -737,10 +776,12 @@ mng_retcode MNG_DECL mng_set_maxcanvassize (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_retcode MNG_DECL mng_set_zlib_level (mng_handle hHandle,
                                          mng_int32  iZlevel)
 {
@@ -757,11 +798,13 @@ mng_retcode MNG_DECL mng_set_zlib_level (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_retcode MNG_DECL mng_set_zlib_method (mng_handle hHandle,
                                           mng_int32  iZmethod)
 {
@@ -778,11 +821,13 @@ mng_retcode MNG_DECL mng_set_zlib_method (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_retcode MNG_DECL mng_set_zlib_windowbits (mng_handle hHandle,
                                               mng_int32  iZwindowbits)
 {
@@ -799,11 +844,13 @@ mng_retcode MNG_DECL mng_set_zlib_windowbits (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_retcode MNG_DECL mng_set_zlib_memlevel (mng_handle hHandle,
                                             mng_int32  iZmemlevel)
 {
@@ -820,11 +867,13 @@ mng_retcode MNG_DECL mng_set_zlib_memlevel (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_retcode MNG_DECL mng_set_zlib_strategy (mng_handle hHandle,
                                             mng_int32  iZstrategy)
 {
@@ -841,11 +890,13 @@ mng_retcode MNG_DECL mng_set_zlib_strategy (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_retcode MNG_DECL mng_set_zlib_maxidat (mng_handle hHandle,
                                            mng_uint32 iMaxIDAT)
 {
@@ -862,11 +913,13 @@ mng_retcode MNG_DECL mng_set_zlib_maxidat (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_retcode MNG_DECL mng_set_jpeg_dctmethod (mng_handle        hHandle,
                                              mngjpeg_dctmethod eJPEGdctmethod)
 {
@@ -883,11 +936,13 @@ mng_retcode MNG_DECL mng_set_jpeg_dctmethod (mng_handle        hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_retcode MNG_DECL mng_set_jpeg_quality (mng_handle hHandle,
                                            mng_int32  iJPEGquality)
 {
@@ -904,11 +959,13 @@ mng_retcode MNG_DECL mng_set_jpeg_quality (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_retcode MNG_DECL mng_set_jpeg_smoothing (mng_handle hHandle,
                                              mng_int32  iJPEGsmoothing)
 {
@@ -925,11 +982,13 @@ mng_retcode MNG_DECL mng_set_jpeg_smoothing (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_retcode MNG_DECL mng_set_jpeg_progressive (mng_handle hHandle,
                                                mng_bool   bJPEGprogressive)
 {
@@ -946,11 +1005,13 @@ mng_retcode MNG_DECL mng_set_jpeg_progressive (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_retcode MNG_DECL mng_set_jpeg_optimized (mng_handle hHandle,
                                              mng_bool   bJPEGoptimized)
 {
@@ -967,11 +1028,13 @@ mng_retcode MNG_DECL mng_set_jpeg_optimized (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_retcode MNG_DECL mng_set_jpeg_maxjdat (mng_handle hHandle,
                                            mng_uint32 iMaxJDAT)
 {
@@ -988,6 +1051,7 @@ mng_retcode MNG_DECL mng_set_jpeg_maxjdat (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
@@ -1218,9 +1282,11 @@ mng_uint8 MNG_DECL mng_get_bitdepth (mng_handle hHandle)
   if (((mng_datap)hHandle)->eImagetype == mng_it_png)
     iRslt = ((mng_datap)hHandle)->iBitdepth;
   else
+#ifdef MNG_INCLUDE_JNG
   if (((mng_datap)hHandle)->eImagetype == mng_it_jng)
     iRslt = ((mng_datap)hHandle)->iJHDRimgbitdepth;
   else
+#endif
     iRslt = 0;
 
 #ifdef MNG_SUPPORT_TRACE
@@ -1245,9 +1311,11 @@ mng_uint8 MNG_DECL mng_get_colortype (mng_handle hHandle)
   if (((mng_datap)hHandle)->eImagetype == mng_it_png)
     iRslt = ((mng_datap)hHandle)->iColortype;
   else
+#ifdef MNG_INCLUDE_JNG
   if (((mng_datap)hHandle)->eImagetype == mng_it_jng)
     iRslt = ((mng_datap)hHandle)->iJHDRcolortype;
   else
+#endif
     iRslt = 0;
 
 #ifdef MNG_SUPPORT_TRACE
@@ -1272,9 +1340,11 @@ mng_uint8 MNG_DECL mng_get_compression (mng_handle hHandle)
   if (((mng_datap)hHandle)->eImagetype == mng_it_png)
     iRslt = ((mng_datap)hHandle)->iCompression;
   else
+#ifdef MNG_INCLUDE_JNG
   if (((mng_datap)hHandle)->eImagetype == mng_it_jng)
     iRslt = ((mng_datap)hHandle)->iJHDRimgcompression;
   else
+#endif
     iRslt = 0;
 
 #ifdef MNG_SUPPORT_TRACE
@@ -1323,9 +1393,11 @@ mng_uint8 MNG_DECL mng_get_interlace (mng_handle hHandle)
   if (((mng_datap)hHandle)->eImagetype == mng_it_png)
     iRslt = ((mng_datap)hHandle)->iInterlace;
   else
+#ifdef MNG_INCLUDE_JNG
   if (((mng_datap)hHandle)->eImagetype == mng_it_jng)
     iRslt = ((mng_datap)hHandle)->iJHDRimginterlace;
   else
+#endif
     iRslt = 0;
 
 #ifdef MNG_SUPPORT_TRACE
@@ -1347,9 +1419,11 @@ mng_uint8 MNG_DECL mng_get_alphabitdepth (mng_handle hHandle)
 
   MNG_VALIDHANDLEX (hHandle)
 
+#ifdef MNG_INCLUDE_JNG
   if (((mng_datap)hHandle)->eImagetype == mng_it_jng)
     iRslt = ((mng_datap)hHandle)->iJHDRalphabitdepth;
   else
+#endif
     iRslt = 0;
 
 #ifdef MNG_SUPPORT_TRACE
@@ -1416,9 +1490,11 @@ mng_uint8 MNG_DECL mng_get_alphacompression (mng_handle hHandle)
 
   MNG_VALIDHANDLEX (hHandle)
 
+#ifdef MNG_INCLUDE_JNG
   if (((mng_datap)hHandle)->eImagetype == mng_it_jng)
     iRslt = ((mng_datap)hHandle)->iJHDRalphacompression;
   else
+#endif
     iRslt = 0;
 
 #ifdef MNG_SUPPORT_TRACE
@@ -1440,9 +1516,11 @@ mng_uint8 MNG_DECL mng_get_alphafilter (mng_handle hHandle)
 
   MNG_VALIDHANDLEX (hHandle)
 
+#ifdef MNG_INCLUDE_JNG
   if (((mng_datap)hHandle)->eImagetype == mng_it_jng)
     iRslt = ((mng_datap)hHandle)->iJHDRalphafilter;
   else
+#endif
     iRslt = 0;
 
 #ifdef MNG_SUPPORT_TRACE
@@ -1464,9 +1542,11 @@ mng_uint8 MNG_DECL mng_get_alphainterlace (mng_handle hHandle)
 
   MNG_VALIDHANDLEX (hHandle)
 
+#ifdef MNG_INCLUDE_JNG
   if (((mng_datap)hHandle)->eImagetype == mng_it_jng)
     iRslt = ((mng_datap)hHandle)->iJHDRalphainterlace;
   else
+#endif
     iRslt = 0;
 
 #ifdef MNG_SUPPORT_TRACE
@@ -1690,6 +1770,7 @@ mng_float MNG_DECL mng_get_displaygamma (mng_handle hHandle)
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DFLT_INFO
 mng_float MNG_DECL mng_get_dfltimggamma (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1704,6 +1785,7 @@ mng_float MNG_DECL mng_get_dfltimggamma (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->dDfltimggamma;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -1741,6 +1823,7 @@ mng_uint32 MNG_DECL mng_get_displaygammaint (mng_handle hHandle)
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DFLT_INFO
 mng_uint32 MNG_DECL mng_get_dfltimggammaint (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1755,9 +1838,11 @@ mng_uint32 MNG_DECL mng_get_dfltimggammaint (mng_handle hHandle)
 
   return (mng_uint32)(((mng_datap)hHandle)->dDfltimggamma * 100000);
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIP_MAXCANVAS
 mng_uint32 MNG_DECL mng_get_maxcanvaswidth (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1789,10 +1874,12 @@ mng_uint32 MNG_DECL mng_get_maxcanvasheight (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iMaxheight;
 }
+#endif
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_int32 MNG_DECL mng_get_zlib_level (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1807,11 +1894,12 @@ mng_int32 MNG_DECL mng_get_zlib_level (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iZlevel;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
-
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_int32 MNG_DECL mng_get_zlib_method (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1826,11 +1914,14 @@ mng_int32 MNG_DECL mng_get_zlib_method (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iZmethod;
 }
+
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_int32 MNG_DECL mng_get_zlib_windowbits (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1845,11 +1936,13 @@ mng_int32 MNG_DECL mng_get_zlib_windowbits (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iZwindowbits;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_int32 MNG_DECL mng_get_zlib_memlevel (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1864,11 +1957,13 @@ mng_int32 MNG_DECL mng_get_zlib_memlevel (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iZmemlevel;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_int32 MNG_DECL mng_get_zlib_strategy (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1883,11 +1978,13 @@ mng_int32 MNG_DECL mng_get_zlib_strategy (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iZstrategy;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_ZLIB
+#ifdef MNG_ACCESS_ZLIB
 mng_uint32 MNG_DECL mng_get_zlib_maxidat (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1902,11 +1999,13 @@ mng_uint32 MNG_DECL mng_get_zlib_maxidat (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iMaxIDAT;
 }
+#endif /* MNG_ACCESS_ZLIB */
 #endif /* MNG_INCLUDE_ZLIB */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mngjpeg_dctmethod MNG_DECL mng_get_jpeg_dctmethod (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1922,11 +2021,13 @@ mngjpeg_dctmethod MNG_DECL mng_get_jpeg_dctmethod (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->eJPEGdctmethod;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_int32 MNG_DECL mng_get_jpeg_quality (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1941,11 +2042,13 @@ mng_int32 MNG_DECL mng_get_jpeg_quality (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iJPEGquality;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_int32 MNG_DECL mng_get_jpeg_smoothing (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1960,11 +2063,13 @@ mng_int32 MNG_DECL mng_get_jpeg_smoothing (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iJPEGsmoothing;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_bool MNG_DECL mng_get_jpeg_progressive (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1979,11 +2084,13 @@ mng_bool MNG_DECL mng_get_jpeg_progressive (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->bJPEGcompressprogr;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_bool MNG_DECL mng_get_jpeg_optimized (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1998,11 +2105,13 @@ mng_bool MNG_DECL mng_get_jpeg_optimized (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->bJPEGcompressopt;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
 
 #ifdef MNG_INCLUDE_JNG
+#ifdef MNG_ACCESS_JPEG
 mng_uint32 MNG_DECL mng_get_jpeg_maxjdat (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2017,6 +2126,7 @@ mng_uint32 MNG_DECL mng_get_jpeg_maxjdat (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iMaxJDAT;
 }
+#endif /* MNG_ACCESS_JPEG */
 #endif /* MNG_INCLUDE_JNG */
 
 /* ************************************************************************** */
@@ -2191,6 +2301,7 @@ mng_uint32 MNG_DECL mng_get_runtime (mng_handle hHandle)
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_NO_CURRENT_INFO
 mng_uint32 MNG_DECL mng_get_currentframe (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2206,11 +2317,13 @@ mng_uint32 MNG_DECL mng_get_currentframe (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iFrameseq;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_NO_CURRENT_INFO
 mng_uint32 MNG_DECL mng_get_currentlayer (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2226,11 +2339,13 @@ mng_uint32 MNG_DECL mng_get_currentlayer (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iLayerseq;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_NO_CURRENT_INFO
 mng_uint32 MNG_DECL mng_get_currentplaytime (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2246,11 +2361,13 @@ mng_uint32 MNG_DECL mng_get_currentplaytime (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iFrametime;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_NO_CURRENT_INFO
 mng_uint32 MNG_DECL mng_get_totalframes (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2266,11 +2383,13 @@ mng_uint32 MNG_DECL mng_get_totalframes (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iTotalframes;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_NO_CURRENT_INFO
 mng_uint32 MNG_DECL mng_get_totallayers (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2286,11 +2405,13 @@ mng_uint32 MNG_DECL mng_get_totallayers (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iTotallayers;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_NO_CURRENT_INFO
 mng_uint32 MNG_DECL mng_get_totalplaytime (mng_handle hHandle)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2306,6 +2427,7 @@ mng_uint32 MNG_DECL mng_get_totalplaytime (mng_handle hHandle)
 
   return ((mng_datap)hHandle)->iTotalplaytime;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */

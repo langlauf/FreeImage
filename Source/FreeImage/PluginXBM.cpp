@@ -90,7 +90,7 @@ readXBMFile(FreeImageIO *io, fi_handle handle, int *widthP, int *heightP, char *
 	char line[MAX_LINE], name_and_type[MAX_LINE];
 	char* ptr;
 	char* t;
-	int version;
+	int version = 0;
 	int raster_length, v;
 	int bytes, bytes_per_line, padding;
 	int c1, c2, value1, value2;

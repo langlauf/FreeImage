@@ -348,14 +348,14 @@ FreeImage_Copy(FIBITMAP *src, int left, int top, int right, int bottom) {
 	// check the size of the sub image
 	int src_width  = FreeImage_GetWidth(src);
 	int src_height = FreeImage_GetHeight(src);
-	if((left < 0) || (right > (src_width-1)) || (top < 0) || (bottom > (src_height-1))) {
+	if((left < 0) || (right > src_width) || (top < 0) || (bottom > src_height)) {
 		return NULL;
 	}
 
 	// allocate the sub image
 	unsigned bpp = FreeImage_GetBPP(src);
-	int dst_width = (left == 0) ? (right - left + 1) : (right - left);
-	int dst_height = (top == 0) ? (bottom - top + 1) : (bottom - top);
+	int dst_width = (right - left);
+	int dst_height = (bottom - top);
 	FIBITMAP *dst = FreeImage_Allocate(dst_width, dst_height, bpp, 0xFF, 0xFF00, 0xFF0000);
 
 	// get the dimensions
@@ -528,3 +528,5 @@ FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, int left, int top, int alpha) {
 
 	return bResult;
 }
+
+

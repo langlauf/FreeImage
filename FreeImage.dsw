@@ -54,18 +54,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "FreeImageQt"=.\Source\FreeImageQt\FreeImageQt.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "LibJPEG"=.\Source\LibJPEG\LibJPEG.dsp - Package Owner=<4>
 
 Package=<5>

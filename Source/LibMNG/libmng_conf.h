@@ -1,14 +1,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_conf.h             copyright (c) G.Juyn             * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_conf.h             copyright (c) G.Juyn 2000-2003   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : main configuration file                                    * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : The configuration file. Change this to include/exclude     * */
 /* *             the options you want or do not want in libmng.             * */
@@ -39,6 +37,12 @@
 /* *             - added event handling for dynamic MNG                     * */
 /* *             - added 'supports' call to check function availability     * */
 /* *                                                                        * */
+/* *             1.0.6 - 06/22/2002 - G.R-P                                 * */
+/* *             - added MNG_NO_INCLUDE_JNG conditional                     * */
+/* *             - added MNG_SKIPCHUNK_evNT conditional                     * */
+/* *             1.0.6 - 07/14/2002 - G.R-P                                 * */
+/* *             - added MNG_NO_SUPPORT_FUNCQUERY conditional               * */
+/* *                                                                        * */
 /* ************************************************************************** */
 
 
@@ -48,6 +52,10 @@
 
 #ifndef _libmng_conf_h_
 #define _libmng_conf_h_
+
+#ifdef MNG_MOZILLA_CFG
+#include "special\mozcfg\mozlibmngconf.h"
+#endif
 
 /* ************************************************************************** */
 /* *                                                                        * */
@@ -79,6 +87,7 @@
    so choose the one you've defined in jconfig.h; if you don't know what
    the heck I'm talking about, just leave it at 8-bit support (thank you!) */
 
+#ifndef MNG_NO_INCLUDE_JNG
 #ifdef MNG_SUPPORT_FULL                /* full support includes JNG */
 #define MNG_SUPPORT_IJG6B
 #endif
@@ -101,6 +110,7 @@
 #if defined(MNG_BUILD_DLL) || defined(MNG_USE_DLL)
 #if defined(MNG_SUPPORT_IJG6B) && defined(__BORLANDC__)
 #define MNG_DEFINE_JPEG_STDCALL
+#endif
 #endif
 #endif
 
@@ -137,21 +147,13 @@
 
 /* ************************************************************************** */
 
-/* enable exactly one of the color-management-functionality selectors */
+/* enable exactly one(1) of the color-management functionality selectors */
 /* use this to select the level of automatic color support */
 /* MNG_FULL_CMS requires the lcms (little cms) external package ! */
 /* if you want your own app (or the OS) to handle color-management
    select MNG_APP_CMS */
 
-#if !defined(MNG_FULL_CMS) && !defined(MNG_GAMMA_ONLY) && !defined(MNG_NO_CMS) && !defined(MNG_APP_CMS)
-#if defined(MNG_BUILD_DLL) || defined(MNG_USE_DLL)
-#define MNG_FULL_CMS
-#else
 #define MNG_GAMMA_ONLY
-#endif
-/* #define MNG_NO_CMS */
-/* #define MNG_APP_CMS */
-#endif
 
 /* ************************************************************************** */
 
@@ -221,9 +223,11 @@
    useful for apps that dynamically load the library and that need specific
    functions */
 
+#ifndef MNG_NO_SUPPORT_FUNCQUERY
 #ifndef MNG_SUPPORT_FUNCQUERY
 #if defined(MNG_BUILD_SO) || defined(MNG_USE_SO) || defined(MNG_BUILD_DLL) || defined(MNG_USE_DLL)
 #define MNG_SUPPORT_FUNCQUERY
+#endif
 #endif
 #endif
 
@@ -237,6 +241,27 @@
 #ifndef MNG_SUPPORT_DYNAMICMNG
 #if defined(MNG_BUILD_SO) || defined(MNG_USE_SO) || defined(MNG_BUILD_DLL) || defined(MNG_USE_DLL)
 #define MNG_SUPPORT_DYNAMICMNG
+#endif
+#endif
+#ifndef MNG_SUPPORT_DYNAMICMNG
+#ifndef MNG_SKIPCHUNK_evNT
+#define MNG_SKIPCHUNK_evNT
+#endif
+#endif
+
+#ifdef MNG_INCLUDE_JNG
+#ifndef MNG_NO_ACCESS_JPEG
+#ifndef MNG_ACCESS_JPEG
+#define MNG_ACCESS_JPEG
+#endif
+#endif
+#endif
+
+#ifdef MNG_INCLUDE_ZLIB
+#ifndef MNG_NO_ACCESS_ZLIB
+#ifndef MNG_ACCESS_ZLIB
+#define MNG_ACCESS_ZLIB
+#endif
 #endif
 #endif
 

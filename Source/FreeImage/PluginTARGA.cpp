@@ -343,7 +343,6 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 						throw "DIB allocation failed";
 
 					int line = CalculateLine(header.is_width, pixel_bits);
-					int pitch = CalculatePitch(line);
 
 					const unsigned pixel_size = unsigned(pixel_bits) / 8;
 

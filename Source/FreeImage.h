@@ -99,7 +99,7 @@ FI_STRUCT (FIMULTIBITMAP) { void *data; };
 #define SEEK_END  2
 #endif
 
-#ifndef __GNUC__
+//#ifndef __GNUC__
 typedef long BOOL;
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
@@ -132,7 +132,7 @@ typedef struct tagBITMAPINFO {
   RGBQUAD          bmiColors[1];
 } BITMAPINFO, *PBITMAPINFO;
 
-#endif // __GNUC__
+//#endif // __GNUC__
 #endif // _WINDOWS_
 
 // ICC profile support ------------------------------------------------------
@@ -271,10 +271,6 @@ FI_STRUCT(FreeImageIO) {
 #ifndef PLUGINS
 #define PLUGINS
 
-FI_STRUCT (Plugin);
-
-typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
-
 typedef const char *(DLL_CALLCONV *FI_FormatProc) ();
 typedef const char *(DLL_CALLCONV *FI_DescriptionProc) ();
 typedef const char *(DLL_CALLCONV *FI_ExtensionListProc) ();
@@ -306,6 +302,8 @@ FI_STRUCT (Plugin) {
 	FI_SupportsExportBPPProc supports_export_bpp_proc;
 	FI_SupportsICCProfilesProc supports_icc_profiles_proc;
 };
+
+typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
 
 #endif // PLUGINS
 

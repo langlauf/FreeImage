@@ -273,7 +273,6 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *dataa) {
 
 			// read the bitmap data
 			
-			int pitch = FreeImage_GetPitch(dib);
 			int line = FreeImage_GetLine(dib);
 
 			for (y = 0; y < height; y++) {

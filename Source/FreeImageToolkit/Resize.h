@@ -109,8 +109,9 @@ public:
 			m_WeightTable[u].Left = iLeft; 
 			m_WeightTable[u].Right = iRight;
 
+			int iSrc = 0;
 			double dTotalWeight = 0.0;  // Zero sum of weights
-			for(int iSrc = iLeft; iSrc <= iRight; iSrc++) {
+			for(iSrc = iLeft; iSrc <= iRight; iSrc++) {
 				// Calculate weights
 				double weight = dFScale * pFilter->Filter(dFScale * (dCenter - (double)iSrc));
 				m_WeightTable[u].Weights[iSrc-iLeft] = weight;

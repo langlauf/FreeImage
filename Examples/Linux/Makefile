@@ -1,8 +1,7 @@
-include ../../Makefile.cfg
-
-
-
-INCLUDE = -I../../Source
+CC = gcc
+CPP = g++
+COMPILERFLAGS = -O3
+INCLUDE = -I../../Dist -I/usr/include/asm
 VGALIBRARIES = -lfreeimage -lvga
 GTKLIBRARIES = -lfreeimage -lgtk -lgdk
 GTKINCLUDE = -I/usr/lib/glib/include

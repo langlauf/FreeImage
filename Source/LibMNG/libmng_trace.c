@@ -4,14 +4,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_trace.c            copyright (c) 2000-2002 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_trace.c            copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : Trace functions (implementation)                           * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : implementation of the trace functions                      * */
 /* *                                                                        * */
@@ -124,6 +122,13 @@
 /* *             1.0.5 - 11/07/2002 - G.Juyn                                * */
 /* *             - added support to get totals after mng_read()             * */
 /* *                                                                        * */
+/* *             1.0.6 - 07/07/2003 - G.R-P                                 * */
+/* *             - added conditionals around JNG and Delta-PNG code         * */
+/* *             1.0.6 - 07/14/2003 - G.R-P                                 * */
+/* *             - added conditionals around various unused functions       * */
+/* *             1.0.6 - 07/29/2003 - G.R-P                                 * */
+/* *             - added conditionals around PAST chunk support             * */
+/* *                                                                        * */
 /* ************************************************************************** */
 
 #include "libmng.h"
@@ -158,9 +163,11 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_DISPLAY_RESUME,            "display_resume"},
     {MNG_FN_DISPLAY_FREEZE,            "display_freeze"},
     {MNG_FN_DISPLAY_RESET,             "display_reset"},
+#ifndef MNG_NO_DISPLAY_GO_SUPPORTED
     {MNG_FN_DISPLAY_GOFRAME,           "display_goframe"},
     {MNG_FN_DISPLAY_GOLAYER,           "display_golayer"},
     {MNG_FN_DISPLAY_GOTIME,            "display_gotime"},
+#endif
     {MNG_FN_GETLASTERROR,              "getlasterror"},
     {MNG_FN_READ_RESUME,               "read_resume"},
     {MNG_FN_TRAPEVENT,                 "trapevent"},
@@ -227,26 +234,34 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_SET_BGCOLOR,               "set_bgcolor"},
     {MNG_FN_SET_STORECHUNKS,           "set_storechunks"},
     {MNG_FN_SET_VIEWGAMMA,             "set_viewgamma"},
+#ifndef MNG_NO_DFLT_INFO
     {MNG_FN_SET_DISPLAYGAMMA,          "set_displaygamma"},
+#endif
     {MNG_FN_SET_DFLTIMGGAMMA,          "set_dfltimggamma"},
     {MNG_FN_SET_SRGB,                  "set_srgb"},
     {MNG_FN_SET_OUTPUTPROFILE,         "set_outputprofile"},
     {MNG_FN_SET_SRGBPROFILE,           "set_srgbprofile"},
+#ifndef MNG_SKIP_MAXCANVAS
     {MNG_FN_SET_MAXCANVASWIDTH,        "set_maxcanvaswidth"},
     {MNG_FN_SET_MAXCANVASHEIGHT,       "set_maxcanvasheight"},
     {MNG_FN_SET_MAXCANVASSIZE,         "set_maxcanvassize"},
+#endif
+#ifndef MNG_NO_ACCESS_ZLIB
     {MNG_FN_SET_ZLIB_LEVEL,            "set_zlib_level"},
     {MNG_FN_SET_ZLIB_METHOD,           "set_zlib_method"},
     {MNG_FN_SET_ZLIB_WINDOWBITS,       "set_zlib_windowbits"},
     {MNG_FN_SET_ZLIB_MEMLEVEL,         "set_zlib_memlevel"},
     {MNG_FN_SET_ZLIB_STRATEGY,         "set_zlib_strategy"},
     {MNG_FN_SET_ZLIB_MAXIDAT,          "set_zlib_maxidat"},
+#endif
+#ifndef MNG_NO_ACCESS_JPEG
     {MNG_FN_SET_JPEG_DCTMETHOD,        "set_jpeg_dctmethod"},
     {MNG_FN_SET_JPEG_QUALITY,          "set_jpeg_quality"},
     {MNG_FN_SET_JPEG_SMOOTHING,        "set_jpeg_smoothing"},
     {MNG_FN_SET_JPEG_PROGRESSIVE,      "set_jpeg_progressive"},
     {MNG_FN_SET_JPEG_OPTIMIZED,        "set_jpeg_optimized"},
     {MNG_FN_SET_JPEG_MAXJDAT,          "set_jpeg_maxjdat"},
+#endif
     {MNG_FN_SET_SPEED,                 "set_speed"},
     {MNG_FN_SET_SUSPENSIONMODE,        "set_suspensionmode"},
     {MNG_FN_SET_SECTIONBREAKS,         "set_sectionbreaks"},
@@ -274,30 +289,40 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_GET_STORECHUNKS,           "get_storechunks"},
     {MNG_FN_GET_VIEWGAMMA,             "get_viewgamma"},
     {MNG_FN_GET_DISPLAYGAMMA,          "get_displaygamma"},
+#ifndef MNG_NO_DFLT_INFO
     {MNG_FN_GET_DFLTIMGGAMMA,          "get_dfltimggamma"},
+#endif
     {MNG_FN_GET_SRGB,                  "get_srgb"},
+#ifndef MNG_SKIP_MAXCANVAS
     {MNG_FN_GET_MAXCANVASWIDTH,        "get_maxcanvaswidth"},
     {MNG_FN_GET_MAXCANVASHEIGHT,       "get_maxcanvasheight"},
+#endif
+#ifndef MNG_NO_ACCESS_ZLIB
     {MNG_FN_GET_ZLIB_LEVEL,            "get_zlib_level"},
     {MNG_FN_GET_ZLIB_METHOD,           "get_zlib_method"},
     {MNG_FN_GET_ZLIB_WINDOWBITS,       "get_zlib_windowbits"},
     {MNG_FN_GET_ZLIB_MEMLEVEL,         "get_zlib_memlevel"},
     {MNG_FN_GET_ZLIB_STRATEGY,         "get_zlib_strategy"},
     {MNG_FN_GET_ZLIB_MAXIDAT,          "get_zlib_maxidat"},
+#endif
+#ifndef MNG_NO_ACCESS_JPEG
     {MNG_FN_GET_JPEG_DCTMETHOD,        "get_jpeg_dctmethod"},
     {MNG_FN_GET_JPEG_QUALITY,          "get_jpeg_quality"},
     {MNG_FN_GET_JPEG_SMOOTHING,        "get_jpeg_smoothing"},
     {MNG_FN_GET_JPEG_PROGRESSIVE,      "get_jpeg_progressive"},
     {MNG_FN_GET_JPEG_OPTIMIZED,        "get_jpeg_optimized"},
     {MNG_FN_GET_JPEG_MAXJDAT,          "get_jpeg_maxjdat"},
+#endif
     {MNG_FN_GET_SPEED,                 "get_speed"},
     {MNG_FN_GET_IMAGELEVEL,            "get_imagelevel"},
     {MNG_FN_GET_SUSPENSIONMODE,        "get_speed"},
     {MNG_FN_GET_STARTTIME,             "get_starttime"},
     {MNG_FN_GET_RUNTIME,               "get_runtime"},
+#ifndef MNG_NO_CURRENT_INFO
     {MNG_FN_GET_CURRENTFRAME,          "get_currentframe"},
     {MNG_FN_GET_CURRENTLAYER,          "get_currentlayer"},
     {MNG_FN_GET_CURRENTPLAYTIME,       "get_currentplaytime"},
+#endif
     {MNG_FN_GET_SECTIONBREAKS,         "get_sectionbreaks"},
     {MNG_FN_GET_ALPHADEPTH,            "get_alphadepth"},
     {MNG_FN_GET_BITDEPTH,              "get_bitdepth"},
@@ -315,9 +340,11 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_GET_DOPROGRESSIVE,         "get_doprogressive"},
     {MNG_FN_GET_LASTBACKCHUNK,         "get_lastbackchunk"},
     {MNG_FN_GET_LASTSEEKNAME,          "get_lastseekname"},
+#ifndef MNG_NO_CURRENT_INFO
     {MNG_FN_GET_TOTALFRAMES,           "get_totalframes"},
     {MNG_FN_GET_TOTALLAYERS,           "get_totallayers"},
     {MNG_FN_GET_TOTALPLAYTIME,         "get_totalplaytime"},
+#endif
 
     {MNG_FN_STATUS_ERROR,              "status_error"},
     {MNG_FN_STATUS_READING,            "status_reading"},
@@ -338,19 +365,45 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_GETCHUNK_IDAT,             "getchunk_idat"},
     {MNG_FN_GETCHUNK_IEND,             "getchunk_iend"},
     {MNG_FN_GETCHUNK_TRNS,             "getchunk_trns"},
+#ifndef MNG_SKIPCHUNK_gAMA
     {MNG_FN_GETCHUNK_GAMA,             "getchunk_gama"},
+#endif
+#ifndef MNG_SKIPCHUNK_cHRM
     {MNG_FN_GETCHUNK_CHRM,             "getchunk_chrm"},
+#endif
+#ifndef MNG_SKIPCHUNK_sRGB
     {MNG_FN_GETCHUNK_SRGB,             "getchunk_srgb"},
+#endif
+#ifndef MNG_SKIPCHUNK_iCCP
     {MNG_FN_GETCHUNK_ICCP,             "getchunk_iccp"},
+#endif
+#ifndef MNG_SKIPCHUNK_tEXt
     {MNG_FN_GETCHUNK_TEXT,             "getchunk_text"},
+#endif
+#ifndef MNG_SKIPCHUNK_zTXt
     {MNG_FN_GETCHUNK_ZTXT,             "getchunk_ztxt"},
+#endif
+#ifndef MNG_SKIPCHUNK_iTXt
     {MNG_FN_GETCHUNK_ITXT,             "getchunk_itxt"},
+#endif
+#ifndef MNG_SKIPCHUNK_bKGD
     {MNG_FN_GETCHUNK_BKGD,             "getchunk_bkgd"},
+#endif
+#ifndef MNG_SKIPCHUNK_pHYs
     {MNG_FN_GETCHUNK_PHYS,             "getchunk_phys"},
+#endif
+#ifndef MNG_SKIPCHUNK_sBIT
     {MNG_FN_GETCHUNK_SBIT,             "getchunk_sbit"},
+#endif
+#ifndef MNG_SKIPCHUNK_sPLT
     {MNG_FN_GETCHUNK_SPLT,             "getchunk_splt"},
+#endif
+#ifndef MNG_SKIPCHUNK_hIST
     {MNG_FN_GETCHUNK_HIST,             "getchunk_hist"},
+#endif
+#ifndef MNG_SKIPCHUNK_tIME
     {MNG_FN_GETCHUNK_TIME,             "getchunk_time"},
+#endif
     {MNG_FN_GETCHUNK_MHDR,             "getchunk_mhdr"},
     {MNG_FN_GETCHUNK_MEND,             "getchunk_mend"},
     {MNG_FN_GETCHUNK_LOOP,             "getchunk_loop"},
@@ -358,7 +411,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_GETCHUNK_DEFI,             "getchunk_defi"},
     {MNG_FN_GETCHUNK_BASI,             "getchunk_basi"},
     {MNG_FN_GETCHUNK_CLON,             "getchunk_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_GETCHUNK_PAST,             "getchunk_past"},
+#endif
     {MNG_FN_GETCHUNK_DISC,             "getchunk_disc"},
     {MNG_FN_GETCHUNK_BACK,             "getchunk_back"},
     {MNG_FN_GETCHUNK_FRAM,             "getchunk_fram"},
@@ -366,52 +421,114 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_GETCHUNK_CLIP,             "getchunk_clip"},
     {MNG_FN_GETCHUNK_SHOW,             "getchunk_show"},
     {MNG_FN_GETCHUNK_TERM,             "getchunk_term"},
+#ifndef MNG_SKIPCHUNK_SAVE
     {MNG_FN_GETCHUNK_SAVE,             "getchunk_save"},
+#endif
+#ifndef MNG_SKIPCHUNK_SEEK
     {MNG_FN_GETCHUNK_SEEK,             "getchunk_seek"},
+#endif
+#ifndef MNG_SKIPCHUNK_eXPI
     {MNG_FN_GETCHUNK_EXPI,             "getchunk_expi"},
+#endif
+#ifndef MNG_SKIPCHUNK_fPRI
     {MNG_FN_GETCHUNK_FPRI,             "getchunk_fpri"},
+#endif
+#ifndef MNG_SKIPCHUNK_nEED
     {MNG_FN_GETCHUNK_NEED,             "getchunk_need"},
+#endif
+#ifndef MNG_SKIPCHUNK_pHYg
     {MNG_FN_GETCHUNK_PHYG,             "getchunk_phyg"},
+#endif
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_GETCHUNK_JHDR,             "getchunk_jhdr"},
     {MNG_FN_GETCHUNK_JDAT,             "getchunk_jdat"},
     {MNG_FN_GETCHUNK_JSEP,             "getchunk_jsep"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_GETCHUNK_DHDR,             "getchunk_dhdr"},
     {MNG_FN_GETCHUNK_PROM,             "getchunk_prom"},
     {MNG_FN_GETCHUNK_IPNG,             "getchunk_ipng"},
     {MNG_FN_GETCHUNK_PPLT,             "getchunk_pplt"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_GETCHUNK_IJNG,             "getchunk_ijng"},
+#endif
+#ifndef MNG_SKIPCHUNK_DROP
     {MNG_FN_GETCHUNK_DROP,             "getchunk_drop"},
+#endif
+#ifndef MNG_SKIPCHUNK_DBYK
     {MNG_FN_GETCHUNK_DBYK,             "getchunk_dbyk"},
+#endif
+#ifndef MNG_SKIPCHUNK_ORDR
     {MNG_FN_GETCHUNK_ORDR,             "getchunk_ordr"},
+#endif
+#endif
     {MNG_FN_GETCHUNK_UNKNOWN,          "getchunk_unknown"},
     {MNG_FN_GETCHUNK_MAGN,             "getchunk_magn"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_GETCHUNK_JDAA,             "getchunk_jdaa"},
+#endif
+#ifndef MNG_SKIPCHUNK_evNT
     {MNG_FN_GETCHUNK_EVNT,             "getchunk_evnt"},
+#endif
 
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_GETCHUNK_PAST_SRC,         "getchunk_past_src"},
+#endif
+#ifndef MNG_SKIPCHUNK_SAVE
     {MNG_FN_GETCHUNK_SAVE_ENTRY,       "getchunk_save_entry"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_GETCHUNK_PPLT_ENTRY,       "getchunk_pplt_entry"},
     {MNG_FN_GETCHUNK_ORDR_ENTRY,       "getchunk_ordr_entry"},
+#endif
+#ifndef MNG_SKIPCHUNK_evNT
     {MNG_FN_GETCHUNK_EVNT_ENTRY,       "getchunk_evnt_entry"},
+#endif
 
     {MNG_FN_PUTCHUNK_IHDR,             "putchunk_ihdr"},
     {MNG_FN_PUTCHUNK_PLTE,             "putchunk_plte"},
     {MNG_FN_PUTCHUNK_IDAT,             "putchunk_idat"},
     {MNG_FN_PUTCHUNK_IEND,             "putchunk_iend"},
     {MNG_FN_PUTCHUNK_TRNS,             "putchunk_trns"},
+#ifndef MNG_SKIPCHUNK_gAMA
     {MNG_FN_PUTCHUNK_GAMA,             "putchunk_gama"},
+#endif
+#ifndef MNG_SKIPCHUNK_cHRM
     {MNG_FN_PUTCHUNK_CHRM,             "putchunk_chrm"},
+#endif
+#ifndef MNG_SKIPCHUNK_sRGB
     {MNG_FN_PUTCHUNK_SRGB,             "putchunk_srgb"},
+#endif
+#ifndef MNG_SKIPCHUNK_iCCP
     {MNG_FN_PUTCHUNK_ICCP,             "putchunk_iccp"},
+#endif
+#ifndef MNG_SKIPCHUNK_tEXt
     {MNG_FN_PUTCHUNK_TEXT,             "putchunk_text"},
+#endif
+#ifndef MNG_SKIPCHUNK_zEXt
     {MNG_FN_PUTCHUNK_ZTXT,             "putchunk_ztxt"},
+#endif
+#ifndef MNG_SKIPCHUNK_iTXt
     {MNG_FN_PUTCHUNK_ITXT,             "putchunk_itxt"},
+#endif
+#ifndef MNG_SKIPCHUNK_bKGD
     {MNG_FN_PUTCHUNK_BKGD,             "putchunk_bkgd"},
+#endif
+#ifndef MNG_SKIPCHUNK_pHYs
     {MNG_FN_PUTCHUNK_PHYS,             "putchunk_phys"},
+#endif
+#ifndef MNG_SKIPCHUNK_sBIT
     {MNG_FN_PUTCHUNK_SBIT,             "putchunk_sbit"},
+#endif
+#ifndef MNG_SKIPCHUNK_sPLT
     {MNG_FN_PUTCHUNK_SPLT,             "putchunk_splt"},
+#endif
+#ifndef MNG_SKIPCHUNK_hIST
     {MNG_FN_PUTCHUNK_HIST,             "putchunk_hist"},
+#endif
+#ifndef MNG_SKIPCHUNK_tIME
     {MNG_FN_PUTCHUNK_TIME,             "putchunk_time"},
+#endif
     {MNG_FN_PUTCHUNK_MHDR,             "putchunk_mhdr"},
     {MNG_FN_PUTCHUNK_MEND,             "putchunk_mend"},
     {MNG_FN_PUTCHUNK_LOOP,             "putchunk_loop"},
@@ -419,7 +536,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_PUTCHUNK_DEFI,             "putchunk_defi"},
     {MNG_FN_PUTCHUNK_BASI,             "putchunk_basi"},
     {MNG_FN_PUTCHUNK_CLON,             "putchunk_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_PUTCHUNK_PAST,             "putchunk_past"},
+#endif
     {MNG_FN_PUTCHUNK_DISC,             "putchunk_disc"},
     {MNG_FN_PUTCHUNK_BACK,             "putchunk_back"},
     {MNG_FN_PUTCHUNK_FRAM,             "putchunk_fram"},
@@ -427,42 +546,80 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_PUTCHUNK_CLIP,             "putchunk_clip"},
     {MNG_FN_PUTCHUNK_SHOW,             "putchunk_show"},
     {MNG_FN_PUTCHUNK_TERM,             "putchunk_term"},
+#ifndef MNG_SKIPCHUNK_SAVE
     {MNG_FN_PUTCHUNK_SAVE,             "putchunk_save"},
+#endif
+#ifndef MNG_SKIPCHUNK_SEEK
     {MNG_FN_PUTCHUNK_SEEK,             "putchunk_seek"},
+#endif
+#ifndef MNG_SKIPCHUNK_eXPI
     {MNG_FN_PUTCHUNK_EXPI,             "putchunk_expi"},
+#endif
+#ifndef MNG_SKIPCHUNK_fPRI
     {MNG_FN_PUTCHUNK_FPRI,             "putchunk_fpri"},
+#endif
+#ifndef MNG_SKIPCHUNK_nEED
     {MNG_FN_PUTCHUNK_NEED,             "putchunk_need"},
+#endif
+#ifndef MNG_SKIPCHUNK_pHYg
     {MNG_FN_PUTCHUNK_PHYG,             "putchunk_phyg"},
+#endif
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_PUTCHUNK_JHDR,             "putchunk_jhdr"},
     {MNG_FN_PUTCHUNK_JDAT,             "putchunk_jdat"},
     {MNG_FN_PUTCHUNK_JSEP,             "putchunk_jsep"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_PUTCHUNK_DHDR,             "putchunk_dhdr"},
     {MNG_FN_PUTCHUNK_PROM,             "putchunk_prom"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_PUTCHUNK_IPNG,             "putchunk_ipng"},
+#endif
     {MNG_FN_PUTCHUNK_PPLT,             "putchunk_pplt"},
     {MNG_FN_PUTCHUNK_IJNG,             "putchunk_ijng"},
+#ifndef MNG_SKIPCHUNK_DROP
     {MNG_FN_PUTCHUNK_DROP,             "putchunk_drop"},
+#endif
+#ifndef MNG_SKIPCHUNK_DBYK
     {MNG_FN_PUTCHUNK_DBYK,             "putchunk_dbyk"},
+#endif
+#ifndef MNG_SKIPCHUNK_ORDR
     {MNG_FN_PUTCHUNK_ORDR,             "putchunk_ordr"},
+#endif
+#endif
     {MNG_FN_PUTCHUNK_UNKNOWN,          "putchunk_unknown"},
     {MNG_FN_PUTCHUNK_MAGN,             "putchunk_magn"},
     {MNG_FN_PUTCHUNK_JDAA,             "putchunk_jdaa"},
+#ifndef MNG_SKIPCHUNK_evNT
     {MNG_FN_PUTCHUNK_EVNT,             "putchunk_evnt"},
+#endif
 
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_PUTCHUNK_PAST_SRC,         "putchunk_past_src"},
+#endif
+#ifndef MNG_SKIPCHUNK_SAVE
     {MNG_FN_PUTCHUNK_SAVE_ENTRY,       "putchunk_save_entry"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_PUTCHUNK_PPLT_ENTRY,       "putchunk_pplt_entry"},
+#ifndef MNG_SKIPCHUNK_ORDR
     {MNG_FN_PUTCHUNK_ORDR_ENTRY,       "putchunk_ordr_entry"},
+#endif
+#endif
+#ifndef MNG_SKIPCHUNK_evNT
     {MNG_FN_PUTCHUNK_EVNT_ENTRY,       "putchunk_evnt_entry"},
+#endif
 
     {MNG_FN_GETIMGDATA_SEQ,            "getimgdata_seq"},
     {MNG_FN_GETIMGDATA_CHUNKSEQ,       "getimgdata_chunkseq"},
     {MNG_FN_GETIMGDATA_CHUNK,          "getimgdata_chunk"},
 
     {MNG_FN_PUTIMGDATA_IHDR,           "putimgdata_ihdr"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_PUTIMGDATA_JHDR,           "putimgdata_jhdr"},
     {MNG_FN_PUTIMGDATA_BASI,           "putimgdata_basi"},
     {MNG_FN_PUTIMGDATA_DHDR,           "putimgdata_dhdr"},
+#endif
 
     {MNG_FN_UPDATEMNGHEADER,           "updatemngheader"},
     {MNG_FN_UPDATEMNGSIMPLICITY,       "updatemngsimplicity"},
@@ -488,7 +645,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_SAVE_STATE,                "save_state"},
     {MNG_FN_RESTORE_STATE,             "restore_state"},
     {MNG_FN_DROP_SAVEDATA,             "drop_savedata"},
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_EXECUTE_DELTA_IMAGE,       "execute_delta_image"},
+#endif
     {MNG_FN_PROCESS_DISPLAY,           "process_display"},
     {MNG_FN_CLEAR_CANVAS,              "clear_canvas"},
     {MNG_FN_READ_DATABUFFER,           "read_databuffer"},
@@ -548,36 +707,38 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_PROCESS_RGBA8,             "process_rgba8"},
     {MNG_FN_PROCESS_RGBA16,            "process_rgba16"},
 
-    {MNG_FN_INIT_G1_NI,                "init_g1_ni"},
     {MNG_FN_INIT_G1_I,                 "init_g1_i"},
-    {MNG_FN_INIT_G2_NI,                "init_g2_ni"},
     {MNG_FN_INIT_G2_I,                 "init_g2_i"},
-    {MNG_FN_INIT_G4_NI,                "init_g4_ni"},
     {MNG_FN_INIT_G4_I,                 "init_g4_i"},
-    {MNG_FN_INIT_G8_NI,                "init_g8_ni"},
     {MNG_FN_INIT_G8_I,                 "init_g8_i"},
-    {MNG_FN_INIT_G16_NI,               "init_g16_ni"},
     {MNG_FN_INIT_G16_I,                "init_g16_i"},
-    {MNG_FN_INIT_RGB8_NI,              "init_rgb8_ni"},
     {MNG_FN_INIT_RGB8_I,               "init_rgb8_i"},
-    {MNG_FN_INIT_RGB16_NI,             "init_rgb16_ni"},
     {MNG_FN_INIT_RGB16_I,              "init_rgb16_i"},
-    {MNG_FN_INIT_IDX1_NI,              "init_idx1_ni"},
     {MNG_FN_INIT_IDX1_I,               "init_idx1_i"},
-    {MNG_FN_INIT_IDX2_NI,              "init_idx2_ni"},
     {MNG_FN_INIT_IDX2_I,               "init_idx2_i"},
-    {MNG_FN_INIT_IDX4_NI,              "init_idx4_ni"},
     {MNG_FN_INIT_IDX4_I,               "init_idx4_i"},
-    {MNG_FN_INIT_IDX8_NI,              "init_idx8_ni"},
     {MNG_FN_INIT_IDX8_I,               "init_idx8_i"},
-    {MNG_FN_INIT_GA8_NI,               "init_ga8_ni"},
     {MNG_FN_INIT_GA8_I,                "init_ga8_i"},
-    {MNG_FN_INIT_GA16_NI,              "init_ga16_ni"},
     {MNG_FN_INIT_GA16_I,               "init_ga16_i"},
-    {MNG_FN_INIT_RGBA8_NI,             "init_rgba8_ni"},
     {MNG_FN_INIT_RGBA8_I,              "init_rgba8_i"},
-    {MNG_FN_INIT_RGBA16_NI,            "init_rgba16_ni"},
     {MNG_FN_INIT_RGBA16_I,             "init_rgba16_i"},
+#ifndef MNG_OPTIMIZE_FOOTPRINT_INIT
+    {MNG_FN_INIT_G1_NI,                "init_g1_ni"},
+    {MNG_FN_INIT_G2_NI,                "init_g2_ni"},
+    {MNG_FN_INIT_G4_NI,                "init_g4_ni"},
+    {MNG_FN_INIT_G8_NI,                "init_g8_ni"},
+    {MNG_FN_INIT_G16_NI,               "init_g16_ni"},
+    {MNG_FN_INIT_RGB8_NI,              "init_rgb8_ni"},
+    {MNG_FN_INIT_RGB16_NI,             "init_rgb16_ni"},
+    {MNG_FN_INIT_IDX1_NI,              "init_idx1_ni"},
+    {MNG_FN_INIT_IDX2_NI,              "init_idx2_ni"},
+    {MNG_FN_INIT_IDX4_NI,              "init_idx4_ni"},
+    {MNG_FN_INIT_IDX8_NI,              "init_idx8_ni"},
+    {MNG_FN_INIT_GA8_NI,               "init_ga8_ni"},
+    {MNG_FN_INIT_GA16_NI,              "init_ga16_ni"},
+    {MNG_FN_INIT_RGBA8_NI,             "init_rgba8_ni"},
+    {MNG_FN_INIT_RGBA16_NI,            "init_rgba16_ni"},
+#endif
 
     {MNG_FN_INIT_ROWPROC,              "init_rowproc"},
     {MNG_FN_NEXT_ROW,                  "next_row"},
@@ -645,6 +806,7 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_RETRIEVE_RGBA8,            "retrieve_rgba8"},
     {MNG_FN_RETRIEVE_RGBA16,           "retrieve_rgba16"},
 
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_DELTA_G1,                  "delta_g1"},
     {MNG_FN_DELTA_G2,                  "delta_g2"},
     {MNG_FN_DELTA_G4,                  "delta_g4"},
@@ -660,13 +822,16 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_DELTA_GA16,                "delta_ga16"},
     {MNG_FN_DELTA_RGBA8,               "delta_rgba8"},
     {MNG_FN_DELTA_RGBA16,              "delta_rgba16"},
+#endif
 
     {MNG_FN_CREATE_ANI_LOOP,           "create_ani_loop"},
     {MNG_FN_CREATE_ANI_ENDL,           "create_ani_endl"},
     {MNG_FN_CREATE_ANI_DEFI,           "create_ani_defi"},
     {MNG_FN_CREATE_ANI_BASI,           "create_ani_basi"},
     {MNG_FN_CREATE_ANI_CLON,           "create_ani_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_CREATE_ANI_PAST,           "create_ani_past"},
+#endif
     {MNG_FN_CREATE_ANI_DISC,           "create_ani_disc"},
     {MNG_FN_CREATE_ANI_BACK,           "create_ani_back"},
     {MNG_FN_CREATE_ANI_FRAM,           "create_ani_fram"},
@@ -683,11 +848,15 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_CREATE_ANI_PLTE,           "create_ani_plte"},
     {MNG_FN_CREATE_ANI_TRNS,           "create_ani_trns"},
     {MNG_FN_CREATE_ANI_BKGD,           "create_ani_bkgd"},
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_CREATE_ANI_DHDR,           "create_ani_dhdr"},
     {MNG_FN_CREATE_ANI_PROM,           "create_ani_prom"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_CREATE_ANI_IPNG,           "create_ani_ipng"},
+#endif
     {MNG_FN_CREATE_ANI_IJNG,           "create_ani_ijng"},
     {MNG_FN_CREATE_ANI_PPLT,           "create_ani_pplt"},
+#endif
     {MNG_FN_CREATE_ANI_MAGN,           "create_ani_magn"},
 
     {MNG_FN_CREATE_ANI_IMAGE,          "create_ani_image"},
@@ -698,7 +867,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_FREE_ANI_DEFI,             "free_ani_defi"},
     {MNG_FN_FREE_ANI_BASI,             "free_ani_basi"},
     {MNG_FN_FREE_ANI_CLON,             "free_ani_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_FREE_ANI_PAST,             "free_ani_past"},
+#endif
     {MNG_FN_FREE_ANI_DISC,             "free_ani_disc"},
     {MNG_FN_FREE_ANI_BACK,             "free_ani_back"},
     {MNG_FN_FREE_ANI_FRAM,             "free_ani_fram"},
@@ -715,11 +886,15 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_FREE_ANI_PLTE,             "free_ani_plte"},
     {MNG_FN_FREE_ANI_TRNS,             "free_ani_trns"},
     {MNG_FN_FREE_ANI_BKGD,             "free_ani_bkgd"},
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_FREE_ANI_DHDR,             "free_ani_dhdr"},
     {MNG_FN_FREE_ANI_PROM,             "free_ani_prom"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_FREE_ANI_IPNG,             "free_ani_ipng"},
+#endif
     {MNG_FN_FREE_ANI_IJNG,             "free_ani_ijng"},
     {MNG_FN_FREE_ANI_PPLT,             "free_ani_pplt"},
+#endif
     {MNG_FN_FREE_ANI_MAGN,             "free_ani_magn"},
 
     {MNG_FN_FREE_ANI_IMAGE,            "free_ani_image"},
@@ -730,7 +905,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_PROCESS_ANI_DEFI,          "process_ani_defi"},
     {MNG_FN_PROCESS_ANI_BASI,          "process_ani_basi"},
     {MNG_FN_PROCESS_ANI_CLON,          "process_ani_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_PROCESS_ANI_PAST,          "process_ani_past"},
+#endif
     {MNG_FN_PROCESS_ANI_DISC,          "process_ani_disc"},
     {MNG_FN_PROCESS_ANI_BACK,          "process_ani_back"},
     {MNG_FN_PROCESS_ANI_FRAM,          "process_ani_fram"},
@@ -747,11 +924,15 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_PROCESS_ANI_PLTE,          "process_ani_plte"},
     {MNG_FN_PROCESS_ANI_TRNS,          "process_ani_trns"},
     {MNG_FN_PROCESS_ANI_BKGD,          "process_ani_bkgd"},
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_PROCESS_ANI_DHDR,          "process_ani_dhdr"},
     {MNG_FN_PROCESS_ANI_PROM,          "process_ani_prom"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_PROCESS_ANI_IPNG,          "process_ani_ipng"},
+#endif
     {MNG_FN_PROCESS_ANI_IJNG,          "process_ani_ijng"},
     {MNG_FN_PROCESS_ANI_PPLT,          "process_ani_pplt"},
+#endif
     {MNG_FN_PROCESS_ANI_MAGN,          "process_ani_magn"},
 
     {MNG_FN_PROCESS_ANI_IMAGE,         "process_ani_image"},
@@ -790,7 +971,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_INIT_DEFI,                 "init_defi"},
     {MNG_FN_INIT_BASI,                 "init_basi"},
     {MNG_FN_INIT_CLON,                 "init_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_INIT_PAST,                 "init_past"},
+#endif
     {MNG_FN_INIT_DISC,                 "init_disc"},
     {MNG_FN_INIT_BACK,                 "init_back"},
     {MNG_FN_INIT_FRAM,                 "init_fram"},
@@ -804,17 +987,23 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_INIT_FPRI,                 "init_fpri"},
     {MNG_FN_INIT_NEED,                 "init_need"},
     {MNG_FN_INIT_PHYG,                 "init_phyg"},
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_INIT_JHDR,                 "init_jhdr"},
     {MNG_FN_INIT_JDAT,                 "init_jdat"},
     {MNG_FN_INIT_JSEP,                 "init_jsep"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_INIT_DHDR,                 "init_dhdr"},
     {MNG_FN_INIT_PROM,                 "init_prom"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_INIT_IPNG,                 "init_ipng"},
+#endif
     {MNG_FN_INIT_PPLT,                 "init_pplt"},
     {MNG_FN_INIT_IJNG,                 "init_ijng"},
     {MNG_FN_INIT_DROP,                 "init_drop"},
     {MNG_FN_INIT_DBYK,                 "init_dbyk"},
     {MNG_FN_INIT_ORDR,                 "init_ordr"},
+#endif
     {MNG_FN_INIT_UNKNOWN,              "init_unknown"},
     {MNG_FN_INIT_MAGN,                 "init_magn"},
     {MNG_FN_INIT_JDAA,                 "init_jdaa"},
@@ -845,7 +1034,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_ASSIGN_DEFI,               "assign_defi"},
     {MNG_FN_ASSIGN_BASI,               "assign_basi"},
     {MNG_FN_ASSIGN_CLON,               "assign_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_ASSIGN_PAST,               "assign_past"},
+#endif
     {MNG_FN_ASSIGN_DISC,               "assign_disc"},
     {MNG_FN_ASSIGN_BACK,               "assign_back"},
     {MNG_FN_ASSIGN_FRAM,               "assign_fram"},
@@ -859,17 +1050,23 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_ASSIGN_FPRI,               "assign_fpri"},
     {MNG_FN_ASSIGN_NEED,               "assign_need"},
     {MNG_FN_ASSIGN_PHYG,               "assign_phyg"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_ASSIGN_JHDR,               "assign_jhdr"},
     {MNG_FN_ASSIGN_JDAT,               "assign_jdat"},
     {MNG_FN_ASSIGN_JSEP,               "assign_jsep"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_ASSIGN_DHDR,               "assign_dhdr"},
     {MNG_FN_ASSIGN_PROM,               "assign_prom"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_ASSIGN_IPNG,               "assign_ipng"},
+#endif
     {MNG_FN_ASSIGN_PPLT,               "assign_pplt"},
     {MNG_FN_ASSIGN_IJNG,               "assign_ijng"},
     {MNG_FN_ASSIGN_DROP,               "assign_drop"},
     {MNG_FN_ASSIGN_DBYK,               "assign_dbyk"},
     {MNG_FN_ASSIGN_ORDR,               "assign_ordr"},
+#endif
     {MNG_FN_ASSIGN_UNKNOWN,            "assign_unknown"},
     {MNG_FN_ASSIGN_MAGN,               "assign_magn"},
     {MNG_FN_ASSIGN_JDAA,               "assign_jdaa"},
@@ -900,7 +1097,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_FREE_DEFI,                 "free_defi"},
     {MNG_FN_FREE_BASI,                 "free_basi"},
     {MNG_FN_FREE_CLON,                 "free_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_FREE_PAST,                 "free_past"},
+#endif
     {MNG_FN_FREE_DISC,                 "free_disc"},
     {MNG_FN_FREE_BACK,                 "free_back"},
     {MNG_FN_FREE_FRAM,                 "free_fram"},
@@ -914,17 +1113,23 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_FREE_FPRI,                 "free_fpri"},
     {MNG_FN_FREE_NEED,                 "free_need"},
     {MNG_FN_FREE_PHYG,                 "free_phyg"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_FREE_JHDR,                 "free_jhdr"},
     {MNG_FN_FREE_JDAT,                 "free_jdat"},
     {MNG_FN_FREE_JSEP,                 "free_jsep"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_FREE_DHDR,                 "free_dhdr"},
     {MNG_FN_FREE_PROM,                 "free_prom"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_FREE_IPNG,                 "free_ipng"},
+#endif
     {MNG_FN_FREE_PPLT,                 "free_pplt"},
     {MNG_FN_FREE_IJNG,                 "free_ijng"},
     {MNG_FN_FREE_DROP,                 "free_drop"},
     {MNG_FN_FREE_DBYK,                 "free_dbyk"},
     {MNG_FN_FREE_ORDR,                 "free_ordr"},
+#endif
     {MNG_FN_FREE_UNKNOWN,              "free_unknown"},
     {MNG_FN_FREE_MAGN,                 "free_magn"},
     {MNG_FN_FREE_JDAA,                 "free_jdaa"},
@@ -955,7 +1160,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_READ_DEFI,                 "read_defi"},
     {MNG_FN_READ_BASI,                 "read_basi"},
     {MNG_FN_READ_CLON,                 "read_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_READ_PAST,                 "read_past"},
+#endif
     {MNG_FN_READ_DISC,                 "read_disc"},
     {MNG_FN_READ_BACK,                 "read_back"},
     {MNG_FN_READ_FRAM,                 "read_fram"},
@@ -969,17 +1176,23 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_READ_FPRI,                 "read_fpri"},
     {MNG_FN_READ_NEED,                 "read_need"},
     {MNG_FN_READ_PHYG,                 "read_phyg"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_READ_JHDR,                 "read_jhdr"},
     {MNG_FN_READ_JDAT,                 "read_jdat"},
     {MNG_FN_READ_JSEP,                 "read_jsep"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_READ_DHDR,                 "read_dhdr"},
     {MNG_FN_READ_PROM,                 "read_prom"},
     {MNG_FN_READ_IPNG,                 "read_ipng"},
     {MNG_FN_READ_PPLT,                 "read_pplt"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_READ_IJNG,                 "read_ijng"},
+#endif
     {MNG_FN_READ_DROP,                 "read_drop"},
     {MNG_FN_READ_DBYK,                 "read_dbyk"},
     {MNG_FN_READ_ORDR,                 "read_ordr"},
+#endif
     {MNG_FN_READ_UNKNOWN,              "read_unknown"},
     {MNG_FN_READ_MAGN,                 "read_magn"},
     {MNG_FN_READ_JDAA,                 "read_jdaa"},
@@ -1010,7 +1223,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_WRITE_DEFI,                "write_defi"},
     {MNG_FN_WRITE_BASI,                "write_basi"},
     {MNG_FN_WRITE_CLON,                "write_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_WRITE_PAST,                "write_past"},
+#endif
     {MNG_FN_WRITE_DISC,                "write_disc"},
     {MNG_FN_WRITE_BACK,                "write_back"},
     {MNG_FN_WRITE_FRAM,                "write_fram"},
@@ -1024,17 +1239,23 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_WRITE_FPRI,                "write_fpri"},
     {MNG_FN_WRITE_NEED,                "write_need"},
     {MNG_FN_WRITE_PHYG,                "write_phyg"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_WRITE_JHDR,                "write_jhdr"},
     {MNG_FN_WRITE_JDAT,                "write_jdat"},
     {MNG_FN_WRITE_JSEP,                "write_jsep"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_WRITE_DHDR,                "write_dhdr"},
     {MNG_FN_WRITE_PROM,                "write_prom"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_WRITE_IPNG,                "write_ipng"},
+#endif
     {MNG_FN_WRITE_PPLT,                "write_pplt"},
     {MNG_FN_WRITE_IJNG,                "write_ijng"},
     {MNG_FN_WRITE_DROP,                "write_drop"},
     {MNG_FN_WRITE_DBYK,                "write_dbyk"},
     {MNG_FN_WRITE_ORDR,                "write_ordr"},
+#endif
     {MNG_FN_WRITE_UNKNOWN,             "write_unknown"},
     {MNG_FN_WRITE_MAGN,                "write_magn"},
     {MNG_FN_WRITE_JDAA,                "write_jdaa"},
@@ -1072,7 +1293,9 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_PROCESS_DISPLAY_DEFI,      "process_display_defi"},
     {MNG_FN_PROCESS_DISPLAY_BASI,      "process_display_basi"},
     {MNG_FN_PROCESS_DISPLAY_CLON,      "process_display_clon"},
+#ifndef MNG_SKIPCHUNK_PAST
     {MNG_FN_PROCESS_DISPLAY_PAST,      "process_display_past"},
+#endif
     {MNG_FN_PROCESS_DISPLAY_DISC,      "process_display_disc"},
     {MNG_FN_PROCESS_DISPLAY_BACK,      "process_display_back"},
     {MNG_FN_PROCESS_DISPLAY_FRAM,      "process_display_fram"},
@@ -1086,17 +1309,23 @@ MNG_LOCAL mng_trace_entry const trace_table [] =
     {MNG_FN_PROCESS_DISPLAY_FPRI,      "process_display_fpri"},
     {MNG_FN_PROCESS_DISPLAY_NEED,      "process_display_need"},
     {MNG_FN_PROCESS_DISPLAY_PHYG,      "process_display_phyg"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_PROCESS_DISPLAY_JHDR,      "process_display_jhdr"},
     {MNG_FN_PROCESS_DISPLAY_JDAT,      "process_display_jdat"},
     {MNG_FN_PROCESS_DISPLAY_JSEP,      "process_display_jsep"},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {MNG_FN_PROCESS_DISPLAY_DHDR,      "process_display_dhdr"},
     {MNG_FN_PROCESS_DISPLAY_PROM,      "process_display_prom"},
+#ifdef MNG_INCLUDE_JNG
     {MNG_FN_PROCESS_DISPLAY_IPNG,      "process_display_ipng"},
+#endif
     {MNG_FN_PROCESS_DISPLAY_PPLT,      "process_display_pplt"},
     {MNG_FN_PROCESS_DISPLAY_IJNG,      "process_display_ijng"},
     {MNG_FN_PROCESS_DISPLAY_DROP,      "process_display_drop"},
     {MNG_FN_PROCESS_DISPLAY_DBYK,      "process_display_dbyk"},
     {MNG_FN_PROCESS_DISPLAY_ORDR,      "process_display_ordr"},
+#endif
     {MNG_FN_PROCESS_DISPLAY_MAGN,      "process_display_magn"},
     {MNG_FN_PROCESS_DISPLAY_JDAA,      "process_display_jdaa"},
 

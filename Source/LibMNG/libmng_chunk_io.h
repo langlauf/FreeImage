@@ -4,19 +4,17 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_chunk_io.h         copyright (c) 2000-2002 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_chunk_io.h         copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : Chunk I/O routines (definition)                            * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : Definition of the chunk input/output routines              * */
 /* *                                                                        * */
 /* * changes   : 0.5.1 - 05/04/2000 - G.Juyn                                * */
-/* *             - changed CRC initializtion to use dynamic structure       * */
+/* *             - changed CRC initialization to use dynamic structure      * */
 /* *               (wasn't thread-safe the old way !)                       * */
 /* *             0.5.1 - 05/08/2000 - G.Juyn                                * */
 /* *             - changed write routines definition                        * */
@@ -34,6 +32,11 @@
 /* *             - B597134 - libmng pollutes the linker namespace           * */
 /* *             1.0.5 - 09/14/2002 - G.Juyn                                * */
 /* *             - added event handling for dynamic MNG                     * */
+/* *                                                                        * */
+/* *             1.0.6 - 07/07/2003 - G.R-P                                 * */
+/* *             - added SKIP_CHUNK and NO_DELTA_PNG support                * */
+/* *             1.0.6 - 07/29/2003 - G.R-P                                 * */
+/* *             - added conditionals around PAST chunk support             * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -68,16 +71,36 @@ READ_CHUNK (mng_read_trns) ;
 READ_CHUNK (mng_read_gama) ;
 READ_CHUNK (mng_read_chrm) ;
 READ_CHUNK (mng_read_srgb) ;
+#ifndef MNG_SKIPCHUNK_iCCP
 READ_CHUNK (mng_read_iccp) ;
+#endif
+#ifndef MNG_SKIPCHUNK_tEXt
 READ_CHUNK (mng_read_text) ;
+#endif
+#ifndef MNG_SKIPCHUNK_ztXt
 READ_CHUNK (mng_read_ztxt) ;
+#endif
+#ifndef MNG_SKIPCHUNK_itXt
 READ_CHUNK (mng_read_itxt) ;
+#endif
+#ifndef MNG_SKIPCHUNK_bKGD
 READ_CHUNK (mng_read_bkgd) ;
+#endif
+#ifndef MNG_SKIPCHUNK_pHYs
 READ_CHUNK (mng_read_phys) ;
+#endif
+#ifndef MNG_SKIPCHUNK_sBIT
 READ_CHUNK (mng_read_sbit) ;
+#endif
+#ifndef MNG_SKIPCHUNK_sPLT
 READ_CHUNK (mng_read_splt) ;
+#endif
+#ifndef MNG_SKIPCHUNK_hIST
 READ_CHUNK (mng_read_hist) ;
+#endif
+#ifndef MNG_SKIPCHUNK_tIME
 READ_CHUNK (mng_read_time) ;
+#endif
 READ_CHUNK (mng_read_mhdr) ;
 READ_CHUNK (mng_read_mend) ;
 READ_CHUNK (mng_read_loop) ;
@@ -85,7 +108,9 @@ READ_CHUNK (mng_read_endl) ;
 READ_CHUNK (mng_read_defi) ;
 READ_CHUNK (mng_read_basi) ;
 READ_CHUNK (mng_read_clon) ;
+#ifndef MNG_SKIPCHUNK_PAST
 READ_CHUNK (mng_read_past) ;
+#endif
 READ_CHUNK (mng_read_disc) ;
 READ_CHUNK (mng_read_back) ;
 READ_CHUNK (mng_read_fram) ;
@@ -95,24 +120,40 @@ READ_CHUNK (mng_read_show) ;
 READ_CHUNK (mng_read_term) ;
 READ_CHUNK (mng_read_save) ;
 READ_CHUNK (mng_read_seek) ;
+#ifndef MNG_SKIPCHUNK_eXPI
 READ_CHUNK (mng_read_expi) ;
+#endif
+#ifndef MNG_SKIPCHUNK_fPRI
 READ_CHUNK (mng_read_fpri) ;
+#endif
+#ifndef MNG_SKIPCHUNK_pHYg
 READ_CHUNK (mng_read_phyg) ;
+#endif
+#ifdef MNG_INCLUDE_JNG
 READ_CHUNK (mng_read_jhdr) ;
 READ_CHUNK (mng_read_jdaa) ;
 READ_CHUNK (mng_read_jdat) ;
 READ_CHUNK (mng_read_jsep) ;
+#endif
+#ifndef MNG_NO_DELTA_PNG
 READ_CHUNK (mng_read_dhdr) ;
 READ_CHUNK (mng_read_prom) ;
 READ_CHUNK (mng_read_ipng) ;
 READ_CHUNK (mng_read_pplt) ;
+#ifdef MNG_INCLUDE_JNG
 READ_CHUNK (mng_read_ijng) ;
+#endif
 READ_CHUNK (mng_read_drop) ;
 READ_CHUNK (mng_read_dbyk) ;
 READ_CHUNK (mng_read_ordr) ;
+#endif
 READ_CHUNK (mng_read_magn) ;
+#ifndef MNG_SKIPCHUNK_nEED
 READ_CHUNK (mng_read_need) ;
+#endif
+#ifndef MNG_SKIPCHUNK_evNT
 READ_CHUNK (mng_read_evnt) ;
+#endif
 READ_CHUNK (mng_read_unknown) ;
 
 /* ************************************************************************** */
@@ -143,7 +184,9 @@ READ_CHUNK (mng_read_unknown) ;
 #define mng_read_defi 0
 #define mng_read_basi 0
 #define mng_read_clon 0
+#ifndef MNG_SKIPCHUNK_PAST
 #define mng_read_past 0
+#endif
 #define mng_read_disc 0
 #define mng_read_back 0
 #define mng_read_fram 0
@@ -156,18 +199,24 @@ READ_CHUNK (mng_read_unknown) ;
 #define mng_read_expi 0
 #define mng_read_fpri 0
 #define mng_read_phyg 0
+#ifdef MNG_INCLUDE_JNG
 #define mng_read_jhdr 0
 #define mng_read_jdaa 0
 #define mng_read_jdat 0
 #define mng_read_jsep 0
+#endif
+#ifndef MNG_NO_DELTA_PNG
 #define mng_read_dhdr 0
 #define mng_read_prom 0
 #define mng_read_ipng 0
 #define mng_read_pplt 0
+#ifdef MNG_INCLUDE_JNG
 #define mng_read_ijng 0
+#endif
 #define mng_read_drop 0
 #define mng_read_dbyk 0
 #define mng_read_ordr 0
+#endif
 #define mng_read_magn 0
 #define mng_read_need 0
 #define mng_read_evnt 0
@@ -206,7 +255,9 @@ WRITE_CHUNK (mng_write_endl) ;
 WRITE_CHUNK (mng_write_defi) ;
 WRITE_CHUNK (mng_write_basi) ;
 WRITE_CHUNK (mng_write_clon) ;
+#ifndef MNG_SKIPCHUNK_PAST
 WRITE_CHUNK (mng_write_past) ;
+#endif
 WRITE_CHUNK (mng_write_disc) ;
 WRITE_CHUNK (mng_write_back) ;
 WRITE_CHUNK (mng_write_fram) ;
@@ -219,18 +270,24 @@ WRITE_CHUNK (mng_write_seek) ;
 WRITE_CHUNK (mng_write_expi) ;
 WRITE_CHUNK (mng_write_fpri) ;
 WRITE_CHUNK (mng_write_phyg) ;
+#ifdef MNG_INCLUDE_JNG
 WRITE_CHUNK (mng_write_jhdr) ;
 WRITE_CHUNK (mng_write_jdaa) ;
 WRITE_CHUNK (mng_write_jdat) ;
 WRITE_CHUNK (mng_write_jsep) ;
+#endif
+#ifndef MNG_NO_DELTA_PNG
 WRITE_CHUNK (mng_write_dhdr) ;
 WRITE_CHUNK (mng_write_prom) ;
 WRITE_CHUNK (mng_write_ipng) ;
 WRITE_CHUNK (mng_write_pplt) ;
+#ifdef MNG_INCLUDE_JNG
 WRITE_CHUNK (mng_write_ijng) ;
+#endif
 WRITE_CHUNK (mng_write_drop) ;
 WRITE_CHUNK (mng_write_dbyk) ;
 WRITE_CHUNK (mng_write_ordr) ;
+#endif
 WRITE_CHUNK (mng_write_magn) ;
 WRITE_CHUNK (mng_write_need) ;
 WRITE_CHUNK (mng_write_evnt) ;
@@ -264,7 +321,9 @@ WRITE_CHUNK (mng_write_unknown) ;
 #define mng_write_defi 0
 #define mng_write_basi 0
 #define mng_write_clon 0
+#ifndef MNG_SKIPCHUNK_PAST
 #define mng_write_past 0
+#endif
 #define mng_write_disc 0
 #define mng_write_back 0
 #define mng_write_fram 0
@@ -277,18 +336,24 @@ WRITE_CHUNK (mng_write_unknown) ;
 #define mng_write_expi 0
 #define mng_write_fpri 0
 #define mng_write_phyg 0
+#ifdef MNG_INCLUDE_JNG
 #define mng_write_jhdr 0
 #define mng_write_jdaa 0
 #define mng_write_jdat 0
 #define mng_write_jsep 0
+#endif
+#ifndef MNG_NO_DELTA_PNG
 #define mng_write_dhdr 0
 #define mng_write_prom 0
 #define mng_write_ipng 0
 #define mng_write_pplt 0
+#ifdef MNG_INCLUDE_JNG
 #define mng_write_ijng 0
+#endif
 #define mng_write_drop 0
 #define mng_write_dbyk 0
 #define mng_write_ordr 0
+#endif
 #define mng_write_magn 0
 #define mng_write_need 0
 #define mng_write_evnt 0

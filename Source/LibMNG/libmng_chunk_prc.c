@@ -4,14 +4,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_chunk_prc.c        copyright (c) 2000-2002 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_chunk_prc.c        copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : Chunk initialization & cleanup (implementation)            * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : implementation of the chunk initialization & cleanup       * */
 /* *             routines                                                   * */
@@ -45,6 +43,16 @@
 /* *             - fixed chunk-storage for evNT chunk                       * */
 /* *             1.0.5 - 10/17/2002 - G.Juyn                                * */
 /* *             - fixed issue in freeing evNT chunk                        * */
+/* *                                                                        * */
+/* *             1.0.6 - 07/07/2003 - G.R-P                                 * */
+/* *             - added MNG_SKIPCHUNK_cHNK footprint optimizations         * */
+/* *             - added MNG_NO_DELTA_PNG reduction feature                 * */
+/* *             1.0.6 - 07/14/2003 - G.R-P                                 * */
+/* *             - added MNG_NO_LOOP_SIGNALS_SUPPORTED conditional          * */
+/* *             1.0.6 - 07/29/2003 - G.R-P                                 * */
+/* *             - added conditionals around PAST chunk support             * */
+/* *             1.0.6 - 08/17/2003 - G.R-P                                 * */
+/* *             - added conditionals around non-VLC chunk support          * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -199,6 +207,7 @@ INIT_CHUNK_HDR (mng_init_trns)
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_gAMA
 INIT_CHUNK_HDR (mng_init_gama)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -214,9 +223,11 @@ INIT_CHUNK_HDR (mng_init_gama)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_cHRM
 INIT_CHUNK_HDR (mng_init_chrm)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -232,9 +243,11 @@ INIT_CHUNK_HDR (mng_init_chrm)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_sRGB
 INIT_CHUNK_HDR (mng_init_srgb)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -250,9 +263,10 @@ INIT_CHUNK_HDR (mng_init_srgb)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
-
+#ifndef MNG_SKIPCHUNK_iCCP
 INIT_CHUNK_HDR (mng_init_iccp)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -268,9 +282,11 @@ INIT_CHUNK_HDR (mng_init_iccp)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_tEXt
 INIT_CHUNK_HDR (mng_init_text)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -286,9 +302,11 @@ INIT_CHUNK_HDR (mng_init_text)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_zTXt
 INIT_CHUNK_HDR (mng_init_ztxt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -304,9 +322,11 @@ INIT_CHUNK_HDR (mng_init_ztxt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_iTXt
 INIT_CHUNK_HDR (mng_init_itxt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -322,9 +342,11 @@ INIT_CHUNK_HDR (mng_init_itxt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_bKGD
 INIT_CHUNK_HDR (mng_init_bkgd)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -340,9 +362,11 @@ INIT_CHUNK_HDR (mng_init_bkgd)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_pHYs
 INIT_CHUNK_HDR (mng_init_phys)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -358,9 +382,11 @@ INIT_CHUNK_HDR (mng_init_phys)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_sBIT
 INIT_CHUNK_HDR (mng_init_sbit)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -376,9 +402,11 @@ INIT_CHUNK_HDR (mng_init_sbit)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_sPLT
 INIT_CHUNK_HDR (mng_init_splt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -394,9 +422,11 @@ INIT_CHUNK_HDR (mng_init_splt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_hIST
 INIT_CHUNK_HDR (mng_init_hist)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -412,9 +442,11 @@ INIT_CHUNK_HDR (mng_init_hist)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_tIME
 INIT_CHUNK_HDR (mng_init_time)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -430,6 +462,7 @@ INIT_CHUNK_HDR (mng_init_time)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -469,6 +502,7 @@ INIT_CHUNK_HDR (mng_init_mend)
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_LOOP
 INIT_CHUNK_HDR (mng_init_loop)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -502,9 +536,11 @@ INIT_CHUNK_HDR (mng_init_endl)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_DEFI
 INIT_CHUNK_HDR (mng_init_defi)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -520,9 +556,11 @@ INIT_CHUNK_HDR (mng_init_defi)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_BASI
 INIT_CHUNK_HDR (mng_init_basi)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -538,9 +576,11 @@ INIT_CHUNK_HDR (mng_init_basi)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_CLON
 INIT_CHUNK_HDR (mng_init_clon)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -556,9 +596,11 @@ INIT_CHUNK_HDR (mng_init_clon)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_PAST
 INIT_CHUNK_HDR (mng_init_past)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -574,9 +616,11 @@ INIT_CHUNK_HDR (mng_init_past)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_DISC
 INIT_CHUNK_HDR (mng_init_disc)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -592,9 +636,11 @@ INIT_CHUNK_HDR (mng_init_disc)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_BACK
 INIT_CHUNK_HDR (mng_init_back)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -610,9 +656,11 @@ INIT_CHUNK_HDR (mng_init_back)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_FRAM
 INIT_CHUNK_HDR (mng_init_fram)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -628,9 +676,11 @@ INIT_CHUNK_HDR (mng_init_fram)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_MOVE
 INIT_CHUNK_HDR (mng_init_move)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -646,9 +696,11 @@ INIT_CHUNK_HDR (mng_init_move)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_CLIP
 INIT_CHUNK_HDR (mng_init_clip)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -664,9 +716,11 @@ INIT_CHUNK_HDR (mng_init_clip)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SHOW
 INIT_CHUNK_HDR (mng_init_show)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -682,9 +736,11 @@ INIT_CHUNK_HDR (mng_init_show)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_TERM
 INIT_CHUNK_HDR (mng_init_term)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -700,9 +756,11 @@ INIT_CHUNK_HDR (mng_init_term)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SAVE
 INIT_CHUNK_HDR (mng_init_save)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -717,10 +775,13 @@ INIT_CHUNK_HDR (mng_init_save)
 #endif
 
   return MNG_NOERROR;
+
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SEEK
 INIT_CHUNK_HDR (mng_init_seek)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -736,9 +797,11 @@ INIT_CHUNK_HDR (mng_init_seek)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_eXPI
 INIT_CHUNK_HDR (mng_init_expi)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -754,9 +817,11 @@ INIT_CHUNK_HDR (mng_init_expi)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_fPRI
 INIT_CHUNK_HDR (mng_init_fpri)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -772,9 +837,11 @@ INIT_CHUNK_HDR (mng_init_fpri)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_nEED
 INIT_CHUNK_HDR (mng_init_need)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -790,9 +857,11 @@ INIT_CHUNK_HDR (mng_init_need)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_pHYg
 INIT_CHUNK_HDR (mng_init_phyg)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -808,6 +877,7 @@ INIT_CHUNK_HDR (mng_init_phyg)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -891,6 +961,7 @@ INIT_CHUNK_HDR (mng_init_jsep)
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 INIT_CHUNK_HDR (mng_init_dhdr)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -906,9 +977,11 @@ INIT_CHUNK_HDR (mng_init_dhdr)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 INIT_CHUNK_HDR (mng_init_prom)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -924,9 +997,11 @@ INIT_CHUNK_HDR (mng_init_prom)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 INIT_CHUNK_HDR (mng_init_ipng)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -942,9 +1017,11 @@ INIT_CHUNK_HDR (mng_init_ipng)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 INIT_CHUNK_HDR (mng_init_pplt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -960,9 +1037,12 @@ INIT_CHUNK_HDR (mng_init_pplt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
+#ifdef MNG_INCLUDE_JNG
 INIT_CHUNK_HDR (mng_init_ijng)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -978,9 +1058,12 @@ INIT_CHUNK_HDR (mng_init_ijng)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 INIT_CHUNK_HDR (mng_init_drop)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -996,9 +1079,13 @@ INIT_CHUNK_HDR (mng_init_drop)
 
   return MNG_NOERROR;
 }
+#endif
+
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
+#ifndef MNG_SKIPCHUNK_DBYK
 INIT_CHUNK_HDR (mng_init_dbyk)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1014,9 +1101,13 @@ INIT_CHUNK_HDR (mng_init_dbyk)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
+#ifndef MNG_SKIPCHUNK_ORDR
 INIT_CHUNK_HDR (mng_init_ordr)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1032,9 +1123,12 @@ INIT_CHUNK_HDR (mng_init_ordr)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_MAGN
 INIT_CHUNK_HDR (mng_init_magn)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1050,9 +1144,11 @@ INIT_CHUNK_HDR (mng_init_magn)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_evNT
 INIT_CHUNK_HDR (mng_init_evnt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1068,6 +1164,7 @@ INIT_CHUNK_HDR (mng_init_evnt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -1182,6 +1279,7 @@ FREE_CHUNK_HDR (mng_free_trns)
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_gAMA
 FREE_CHUNK_HDR (mng_free_gama)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1196,9 +1294,11 @@ FREE_CHUNK_HDR (mng_free_gama)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_cHRM
 FREE_CHUNK_HDR (mng_free_chrm)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1213,9 +1313,11 @@ FREE_CHUNK_HDR (mng_free_chrm)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_sRGB
 FREE_CHUNK_HDR (mng_free_srgb)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1230,9 +1332,11 @@ FREE_CHUNK_HDR (mng_free_srgb)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_iCCP
 FREE_CHUNK_HDR (mng_free_iccp)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1255,9 +1359,11 @@ FREE_CHUNK_HDR (mng_free_iccp)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_tEXt
 FREE_CHUNK_HDR (mng_free_text)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1280,9 +1386,11 @@ FREE_CHUNK_HDR (mng_free_text)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_zTXt
 FREE_CHUNK_HDR (mng_free_ztxt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1305,9 +1413,10 @@ FREE_CHUNK_HDR (mng_free_ztxt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
-
+#ifndef MNG_SKIPCHUNK_iTXt
 FREE_CHUNK_HDR (mng_free_itxt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1338,9 +1447,11 @@ FREE_CHUNK_HDR (mng_free_itxt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_bKGD
 FREE_CHUNK_HDR (mng_free_bkgd)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1355,9 +1466,11 @@ FREE_CHUNK_HDR (mng_free_bkgd)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_pHYs
 FREE_CHUNK_HDR (mng_free_phys)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1372,9 +1485,11 @@ FREE_CHUNK_HDR (mng_free_phys)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_sBIT
 FREE_CHUNK_HDR (mng_free_sbit)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1389,9 +1504,11 @@ FREE_CHUNK_HDR (mng_free_sbit)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_sPLT
 FREE_CHUNK_HDR (mng_free_splt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1415,9 +1532,11 @@ FREE_CHUNK_HDR (mng_free_splt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_hIST
 FREE_CHUNK_HDR (mng_free_hist)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1432,9 +1551,11 @@ FREE_CHUNK_HDR (mng_free_hist)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_tIME
 FREE_CHUNK_HDR (mng_free_time)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1449,6 +1570,7 @@ FREE_CHUNK_HDR (mng_free_time)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -1486,15 +1608,18 @@ FREE_CHUNK_HDR (mng_free_mend)
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_LOOP
 FREE_CHUNK_HDR (mng_free_loop)
 {
 #ifdef MNG_SUPPORT_TRACE
   MNG_TRACE (pData, MNG_FN_FREE_LOOP, MNG_LC_START)
 #endif
 
+#ifndef MNG_NO_LOOP_SIGNALS_SUPPORTED
   if (((mng_loopp)pHeader)->iCount)
     MNG_FREEX (pData, ((mng_loopp)pHeader)->pSignals,
                       ((mng_loopp)pHeader)->iCount * sizeof (mng_uint32) )
+#endif
 
   MNG_FREEX (pData, pHeader, sizeof (mng_loop))
 
@@ -1521,9 +1646,11 @@ FREE_CHUNK_HDR (mng_free_endl)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_DEFI
 FREE_CHUNK_HDR (mng_free_defi)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1538,9 +1665,11 @@ FREE_CHUNK_HDR (mng_free_defi)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_BASI
 FREE_CHUNK_HDR (mng_free_basi)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1555,9 +1684,11 @@ FREE_CHUNK_HDR (mng_free_basi)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_CLON
 FREE_CHUNK_HDR (mng_free_clon)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1572,9 +1703,11 @@ FREE_CHUNK_HDR (mng_free_clon)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_PAST
 FREE_CHUNK_HDR (mng_free_past)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1593,9 +1726,11 @@ FREE_CHUNK_HDR (mng_free_past)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_DISC
 FREE_CHUNK_HDR (mng_free_disc)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1614,9 +1749,11 @@ FREE_CHUNK_HDR (mng_free_disc)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_BACK
 FREE_CHUNK_HDR (mng_free_back)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1631,9 +1768,11 @@ FREE_CHUNK_HDR (mng_free_back)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_FRAM
 FREE_CHUNK_HDR (mng_free_fram)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1656,9 +1795,11 @@ FREE_CHUNK_HDR (mng_free_fram)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_MOVE
 FREE_CHUNK_HDR (mng_free_move)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1673,9 +1814,11 @@ FREE_CHUNK_HDR (mng_free_move)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_CLIP
 FREE_CHUNK_HDR (mng_free_clip)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1690,9 +1833,11 @@ FREE_CHUNK_HDR (mng_free_clip)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SHOW
 FREE_CHUNK_HDR (mng_free_show)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1707,9 +1852,11 @@ FREE_CHUNK_HDR (mng_free_show)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_TERM
 FREE_CHUNK_HDR (mng_free_term)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1724,9 +1871,11 @@ FREE_CHUNK_HDR (mng_free_term)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SAVE
 FREE_CHUNK_HDR (mng_free_save)
 {
   mng_save_entryp pEntry = ((mng_savep)pHeader)->pEntries;
@@ -1756,9 +1905,11 @@ FREE_CHUNK_HDR (mng_free_save)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SEEK
 FREE_CHUNK_HDR (mng_free_seek)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1777,9 +1928,11 @@ FREE_CHUNK_HDR (mng_free_seek)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_eXPI
 FREE_CHUNK_HDR (mng_free_expi)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1798,9 +1951,11 @@ FREE_CHUNK_HDR (mng_free_expi)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_eXPI
 FREE_CHUNK_HDR (mng_free_fpri)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1815,9 +1970,11 @@ FREE_CHUNK_HDR (mng_free_fpri)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_nEED
 FREE_CHUNK_HDR (mng_free_need)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1836,9 +1993,11 @@ FREE_CHUNK_HDR (mng_free_need)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_pHYg
 FREE_CHUNK_HDR (mng_free_phyg)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1853,6 +2012,7 @@ FREE_CHUNK_HDR (mng_free_phyg)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -1940,6 +2100,7 @@ FREE_CHUNK_HDR (mng_free_jsep)
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 FREE_CHUNK_HDR (mng_free_dhdr)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1954,9 +2115,11 @@ FREE_CHUNK_HDR (mng_free_dhdr)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 FREE_CHUNK_HDR (mng_free_prom)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1971,9 +2134,11 @@ FREE_CHUNK_HDR (mng_free_prom)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 FREE_CHUNK_HDR (mng_free_ipng)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -1988,9 +2153,11 @@ FREE_CHUNK_HDR (mng_free_ipng)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 FREE_CHUNK_HDR (mng_free_pplt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2005,9 +2172,12 @@ FREE_CHUNK_HDR (mng_free_pplt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
+#ifdef MNG_INCLUDE_JNG
 FREE_CHUNK_HDR (mng_free_ijng)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2022,9 +2192,12 @@ FREE_CHUNK_HDR (mng_free_ijng)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 FREE_CHUNK_HDR (mng_free_drop)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2043,9 +2216,12 @@ FREE_CHUNK_HDR (mng_free_drop)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
+#ifndef MNG_SKIPCHUNK_DBYK
 FREE_CHUNK_HDR (mng_free_dbyk)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2064,9 +2240,13 @@ FREE_CHUNK_HDR (mng_free_dbyk)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
+#ifndef MNG_SKIPCHUNK_ORDR
 FREE_CHUNK_HDR (mng_free_ordr)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2085,9 +2265,12 @@ FREE_CHUNK_HDR (mng_free_ordr)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_MAGN
 FREE_CHUNK_HDR (mng_free_magn)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2102,9 +2285,11 @@ FREE_CHUNK_HDR (mng_free_magn)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_evNT
 FREE_CHUNK_HDR (mng_free_evnt)
 {
   mng_evnt_entryp pEntry = ((mng_evntp)pHeader)->pEntries;
@@ -2134,6 +2319,7 @@ FREE_CHUNK_HDR (mng_free_evnt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -2165,7 +2351,6 @@ FREE_CHUNK_HDR (mng_free_unknown)
 #ifdef MNG_INCLUDE_WRITE_PROCS
 
 /* ************************************************************************** */
-
 ASSIGN_CHUNK_HDR (mng_assign_ihdr)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2300,6 +2485,7 @@ ASSIGN_CHUNK_HDR (mng_assign_trns)
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_gAMA
 ASSIGN_CHUNK_HDR (mng_assign_gama)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2318,9 +2504,11 @@ ASSIGN_CHUNK_HDR (mng_assign_gama)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_cHRM
 ASSIGN_CHUNK_HDR (mng_assign_chrm)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2346,9 +2534,11 @@ ASSIGN_CHUNK_HDR (mng_assign_chrm)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_sRGB
 ASSIGN_CHUNK_HDR (mng_assign_srgb)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2366,9 +2556,11 @@ ASSIGN_CHUNK_HDR (mng_assign_srgb)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_iCCP
 ASSIGN_CHUNK_HDR (mng_assign_iccp)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2403,9 +2595,11 @@ ASSIGN_CHUNK_HDR (mng_assign_iccp)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_tEXt
 ASSIGN_CHUNK_HDR (mng_assign_text)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2438,9 +2632,11 @@ ASSIGN_CHUNK_HDR (mng_assign_text)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_zTXt
 ASSIGN_CHUNK_HDR (mng_assign_ztxt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2474,9 +2670,11 @@ ASSIGN_CHUNK_HDR (mng_assign_ztxt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_iTXt
 ASSIGN_CHUNK_HDR (mng_assign_itxt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2527,9 +2725,11 @@ ASSIGN_CHUNK_HDR (mng_assign_itxt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_bKGD
 ASSIGN_CHUNK_HDR (mng_assign_bkgd)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2553,9 +2753,11 @@ ASSIGN_CHUNK_HDR (mng_assign_bkgd)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_pHYs
 ASSIGN_CHUNK_HDR (mng_assign_phys)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2576,9 +2778,11 @@ ASSIGN_CHUNK_HDR (mng_assign_phys)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_sBIT
 ASSIGN_CHUNK_HDR (mng_assign_sbit)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2601,9 +2805,11 @@ ASSIGN_CHUNK_HDR (mng_assign_sbit)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_sPLT
 ASSIGN_CHUNK_HDR (mng_assign_splt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2641,9 +2847,11 @@ ASSIGN_CHUNK_HDR (mng_assign_splt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_hIST
 ASSIGN_CHUNK_HDR (mng_assign_hist)
 {
   mng_uint32 iX;
@@ -2666,9 +2874,11 @@ ASSIGN_CHUNK_HDR (mng_assign_hist)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_tIME
 ASSIGN_CHUNK_HDR (mng_assign_time)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2691,6 +2901,7 @@ ASSIGN_CHUNK_HDR (mng_assign_time)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -2738,6 +2949,7 @@ ASSIGN_CHUNK_HDR (mng_assign_mend)
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_LOOP
 ASSIGN_CHUNK_HDR (mng_assign_loop)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2758,8 +2970,10 @@ ASSIGN_CHUNK_HDR (mng_assign_loop)
   {
     mng_uint32 iLen = ((mng_loopp)pChunkto)->iCount * sizeof (mng_uint32);
 
+#ifndef MNG_NO_LOOP_SIGNALS_SUPPORTED
     MNG_ALLOC (pData, ((mng_loopp)pChunkto)->pSignals, iLen)
     MNG_COPY  (((mng_loopp)pChunkto)->pSignals, ((mng_loopp)pChunkfrom)->pSignals, iLen)
+#endif
   }
 #ifdef MNG_SUPPORT_TRACE
   MNG_TRACE (pData, MNG_FN_ASSIGN_LOOP, MNG_LC_END)
@@ -2787,9 +3001,11 @@ ASSIGN_CHUNK_HDR (mng_assign_endl)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_DEFI
 ASSIGN_CHUNK_HDR (mng_assign_defi)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2819,9 +3035,11 @@ ASSIGN_CHUNK_HDR (mng_assign_defi)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_BASI
 ASSIGN_CHUNK_HDR (mng_assign_basi)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2850,9 +3068,11 @@ ASSIGN_CHUNK_HDR (mng_assign_basi)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_CLON
 ASSIGN_CHUNK_HDR (mng_assign_clon)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2878,9 +3098,11 @@ ASSIGN_CHUNK_HDR (mng_assign_clon)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_PAST
 ASSIGN_CHUNK_HDR (mng_assign_past)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2910,9 +3132,11 @@ ASSIGN_CHUNK_HDR (mng_assign_past)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_DISC
 ASSIGN_CHUNK_HDR (mng_assign_disc)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2938,9 +3162,11 @@ ASSIGN_CHUNK_HDR (mng_assign_disc)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_BACK
 ASSIGN_CHUNK_HDR (mng_assign_back)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -2963,9 +3189,11 @@ ASSIGN_CHUNK_HDR (mng_assign_back)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_FRAM
 ASSIGN_CHUNK_HDR (mng_assign_fram)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3012,9 +3240,11 @@ ASSIGN_CHUNK_HDR (mng_assign_fram)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_MOVE
 ASSIGN_CHUNK_HDR (mng_assign_move)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3036,9 +3266,11 @@ ASSIGN_CHUNK_HDR (mng_assign_move)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_CLIP
 ASSIGN_CHUNK_HDR (mng_assign_clip)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3062,9 +3294,11 @@ ASSIGN_CHUNK_HDR (mng_assign_clip)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SHOW
 ASSIGN_CHUNK_HDR (mng_assign_show)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3085,9 +3319,11 @@ ASSIGN_CHUNK_HDR (mng_assign_show)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_TERM
 ASSIGN_CHUNK_HDR (mng_assign_term)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3108,9 +3344,11 @@ ASSIGN_CHUNK_HDR (mng_assign_term)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SAVE
 ASSIGN_CHUNK_HDR (mng_assign_save)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3159,9 +3397,11 @@ ASSIGN_CHUNK_HDR (mng_assign_save)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SEEK
 ASSIGN_CHUNK_HDR (mng_assign_seek)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3186,9 +3426,11 @@ ASSIGN_CHUNK_HDR (mng_assign_seek)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_eXPI
 ASSIGN_CHUNK_HDR (mng_assign_expi)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3214,9 +3456,11 @@ ASSIGN_CHUNK_HDR (mng_assign_expi)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_fPRI
 ASSIGN_CHUNK_HDR (mng_assign_fpri)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3235,9 +3479,11 @@ ASSIGN_CHUNK_HDR (mng_assign_fpri)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_nEED
 ASSIGN_CHUNK_HDR (mng_assign_need)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3262,9 +3508,11 @@ ASSIGN_CHUNK_HDR (mng_assign_need)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_pHYg
 ASSIGN_CHUNK_HDR (mng_assign_phyg)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3285,6 +3533,7 @@ ASSIGN_CHUNK_HDR (mng_assign_phyg)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -3399,6 +3648,7 @@ ASSIGN_CHUNK_HDR (mng_assign_jsep)
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 ASSIGN_CHUNK_HDR (mng_assign_dhdr)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3422,9 +3672,11 @@ ASSIGN_CHUNK_HDR (mng_assign_dhdr)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 ASSIGN_CHUNK_HDR (mng_assign_prom)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3444,9 +3696,11 @@ ASSIGN_CHUNK_HDR (mng_assign_prom)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 ASSIGN_CHUNK_HDR (mng_assign_ipng)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3462,9 +3716,11 @@ ASSIGN_CHUNK_HDR (mng_assign_ipng)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 ASSIGN_CHUNK_HDR (mng_assign_pplt)
 {
   mng_uint32 iX;
@@ -3488,9 +3744,12 @@ ASSIGN_CHUNK_HDR (mng_assign_pplt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
+#ifdef MNG_INCLUDE_JNG
 ASSIGN_CHUNK_HDR (mng_assign_ijng)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3506,9 +3765,12 @@ ASSIGN_CHUNK_HDR (mng_assign_ijng)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 ASSIGN_CHUNK_HDR (mng_assign_drop)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3534,9 +3796,12 @@ ASSIGN_CHUNK_HDR (mng_assign_drop)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
+#ifndef MNG_SKIPCHUNK_DBYK
 ASSIGN_CHUNK_HDR (mng_assign_dbyk)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3563,9 +3828,12 @@ ASSIGN_CHUNK_HDR (mng_assign_dbyk)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
-
+#ifndef MNG_NO_DELTA_PNG
+#ifndef MNG_SKIPCHUNK_ORDR
 ASSIGN_CHUNK_HDR (mng_assign_ordr)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3591,9 +3859,12 @@ ASSIGN_CHUNK_HDR (mng_assign_ordr)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_MAGN
 ASSIGN_CHUNK_HDR (mng_assign_magn)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3620,9 +3891,11 @@ ASSIGN_CHUNK_HDR (mng_assign_magn)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_evNT
 ASSIGN_CHUNK_HDR (mng_assign_evnt)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -3669,6 +3942,7 @@ ASSIGN_CHUNK_HDR (mng_assign_evnt)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 

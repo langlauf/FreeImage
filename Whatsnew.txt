@@ -5,6 +5,13 @@ What's New for FreeImage
 ! : changed
 + : added
 
+October 27, 2003 - 3.0.2
+! FreeImage now uses libMNG 1.0.6
+* [Herve Drolon] fixed a boolean test in PluginCUT returning always false
+* [Herve Drolon] fixed a warning in PluginIFF generated with g++
+* [Linus Tan] fixed a bug in FreeImage_Copy
+* [Herve Drolon] fixed FreeImage not compiling under Linux (thanks to Michal)
+
 October 20, 2003 - 3.0.1
 
 ! FreeImage now uses libTIFF 3.6.0

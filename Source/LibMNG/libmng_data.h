@@ -4,14 +4,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_data.h             copyright (c) 2000-2002 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_data.h             copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : main data structure definition                             * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : Definition of the library main data structure              * */
 /* *                                                                        * */
@@ -127,6 +125,15 @@
 /* *             - added support to get totals after mng_read()             * */
 /* *             1.0.5 - 24/02/2003 - G.Juyn                                * */
 /* *             - B683152 - libjpeg suspension not always honored correctly* */
+/* *                                                                        * */
+/* *             1.0.6 - 04/11/2003 - G.Juyn                                * */
+/* *             - B719420 - fixed several MNG_APP_CMS problems             * */
+/* *             1.0.6 - 07/05/2003 - G. R-P                                * */
+/* *             - optionally use zlib's crc32() function                   * */
+/* *             1.0.6 - 07/29/2003 - G.R-P                                 * */
+/* *             - added conditionals around PAST chunk support             * */
+/* *             1.0.6 - 08/17/2003 - G.R-P                                 * */
+/* *             - added iPNGdepth member to pData structure                * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -319,7 +326,9 @@ typedef struct mng_data_struct {
            mng_processarow   fProcessarow;
 
 #if defined(MNG_SUPPORT_READ) || defined(MNG_SUPPORT_WRITE)
+#ifndef MNG_NO_OLD_VERSIONS
            mng_bool          bPreDraft48;        /* flags ancient style draft */
+#endif
 
            mng_chunkid       iChunkname;         /* read/write-state variables */
            mng_uint32        iChunkseq;
@@ -524,7 +533,7 @@ typedef struct mng_data_struct {
            mng_objectp       pLastevent;         /* event-object structures */
 #endif
 
-#if defined(MNG_GAMMA_ONLY) || defined(MNG_FULL_CMS)
+#if defined(MNG_GAMMA_ONLY) || defined(MNG_FULL_CMS) || defined(MNG_APP_CMS)
            mng_uint8         aGammatab[256];     /* precomputed gamma lookup table */
            mng_float         dLastgamma;         /* last gamma used to compute table */
 #endif
@@ -549,10 +558,12 @@ typedef struct mng_data_struct {
                                                     delta-row to the bitdepth of its target */
            mng_fptr          fDeltarow;          /* internal callback to execute a
                                                     delta-row onto a target */
+#ifndef MNG_SKIPCHUNK_PAST
            mng_fptr          fFliprow;           /* internal callback to flip a row of pixels
                                                     left<->right for a PAST operation */
            mng_fptr          fTilerow;           /* internal callback to tile a row of pixels
                                                     during a PAST operation */
+#endif
            mng_fptr          fInitrowproc;       /* internal callback to initialize
                                                     the row processing */
 
@@ -664,9 +675,11 @@ typedef struct mng_data_struct {
            mng_uint16        iMAGNcurrentid;
            mng_uint16        iMAGNtoid;
 
+#ifndef MNG_SKIPCHUNK_PAST
            mng_uint16        iPASTid;
            mng_int32         iPastx;             /* target x/y of last PAST */
            mng_int32         iPasty;
+#endif
 
            mng_objectp       pLastseek;          /* last processed ani_seek object */  
 #endif /* MNG_SUPPORT_DISPLAY */
@@ -756,8 +769,19 @@ typedef struct mng_data_struct {
 
 #endif /* MNG_INCLUDE_JNG */
 
-           mng_uint32        aCRCtable [256];    /* CRC prefab table */
-           mng_bool          bCRCcomputed;       /* "has been build" indicator */
+#ifndef MNG_USE_ZLIB_CRC
+           mng_uint32        aCRCtable [256];  /* CRC prefab table */
+           mng_bool          bCRCcomputed;     /* "has been built" indicator */
+#endif
+
+#ifdef MNG_OPTIMIZE_FOOTPRINT_INIT
+           png_imgtype       ePng_imgtype;
+#endif
+
+#if defined(MNG_NO_16BIT_SUPPORT)
+           mng_uint8         iPNGdepth;     /* Real input depth */
+           mng_uint8         iPNGmult;
+#endif
 
         } mng_data;
 

@@ -29,7 +29,7 @@ FreeImage_Rescale(FIBITMAP *src, int dst_width, int dst_height, FREE_IMAGE_FILTE
 			FIBITMAP *dst = FreeImage_Allocate(dst_width, dst_height, 32, 0xFF, 0xFF00, 0xFF0000);
 
 			// select the filter
-			CGenericFilter *pFilter;
+			CGenericFilter *pFilter = NULL;
 			switch(filter) {
 				case FILTER_BOX:
 					pFilter = new CBoxFilter();

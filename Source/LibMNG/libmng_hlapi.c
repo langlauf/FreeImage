@@ -4,14 +4,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_hlapi.c            copyright (c) 2000-2002 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_hlapi.c            copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : high-level application API (implementation)                * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : implementation of the high-level function interface        * */
 /* *             for applications.                                          * */
@@ -155,6 +153,16 @@
 /* *             1.0.5 - 11/29/2002 - G.Juyn                                * */
 /* *             - fixed goxxxxx() support for zero values                  * */
 /* *                                                                        * */
+/* *             1.0.6 - 05/25/2003 - G.R-P                                 * */
+/* *             - added MNG_SKIPCHUNK_cHNK footprint optimizations         * */
+/* *             1.0.6 - 07/11/2003 - G.R-P                                 * */
+/* *             - added conditionals zlib and jpeg property accessors      * */
+/* *             1.0.6 - 07/14/2003 - G.R-P                                 * */
+/* *             - added conditionals around "mng_display_go*" and other    * */
+/* *               unused functions                                         * */
+/* *             1.0.6 - 07/29/2003 - G.R-P                                 * */
+/* *             - added conditionals around PAST chunk support             * */
+/* *                                                                        * */
 /* ************************************************************************** */
 
 #include "libmng.h"
@@ -292,6 +300,7 @@ mng_retcode mng_drop_objects (mng_datap pData,
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_SKIPCHUNK_SAVE
 mng_retcode mng_drop_savedata (mng_datap pData)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -314,6 +323,7 @@ mng_retcode mng_drop_savedata (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
@@ -322,7 +332,9 @@ mng_retcode mng_drop_savedata (mng_datap pData)
 mng_retcode mng_reset_rundata (mng_datap pData)
 {
   mng_drop_invalid_objects (pData);    /* drop invalidly stored objects */
+#ifndef MNG_SKIPCHUNK_SAVE
   mng_drop_savedata        (pData);    /* drop stored savedata */
+#endif
   mng_reset_objzero        (pData);    /* reset object 0 */
                                        /* drop stored objects (if any) */
   mng_drop_objects         (pData, MNG_FALSE);
@@ -424,6 +436,7 @@ mng_retcode mng_reset_rundata (mng_datap pData)
 
   pData->iGlobalGamma          = 0;    /* reset global gAMA data */
 
+#ifndef MNG_SKIPCHUNK_cHRM
   pData->iGlobalWhitepointx    = 0;    /* reset global cHRM data */
   pData->iGlobalWhitepointy    = 0;
   pData->iGlobalPrimaryredx    = 0;
@@ -432,17 +445,22 @@ mng_retcode mng_reset_rundata (mng_datap pData)
   pData->iGlobalPrimarygreeny  = 0;
   pData->iGlobalPrimarybluex   = 0;
   pData->iGlobalPrimarybluey   = 0;
+#endif
 
   pData->iGlobalRendintent     = 0;    /* reset global sRGB data */
 
+#ifndef MNG_SKIPCHUNK_iCCP
   if (pData->iGlobalProfilesize)       /* drop global profile (if any) */
     MNG_FREE (pData, pData->pGlobalProfile, pData->iGlobalProfilesize)
 
   pData->iGlobalProfilesize    = 0;    
+#endif
 
+#ifndef MNG_SKIPCHUNK_bKGD
   pData->iGlobalBKGDred        = 0;    /* reset global bKGD data */
   pData->iGlobalBKGDgreen      = 0;
   pData->iGlobalBKGDblue       = 0;
+#endif
                                        /* reset delta-image */
   pData->pDeltaImage           = MNG_NULL;
   pData->iDeltaImagetype       = 0;
@@ -471,8 +489,10 @@ mng_retcode mng_reset_rundata (mng_datap pData)
   pData->iMAGNfromid           = 0;
   pData->iMAGNtoid             = 0;
 
+#ifndef MNG_SKIPCHUNK_PAST
   pData->iPastx                = 0;
   pData->iPasty                = 0;
+#endif
 
   pData->pLastseek             = MNG_NULL;
   
@@ -568,9 +588,11 @@ MNG_LOCAL mng_func_entry const func_table [] =
     {"mng_create",                 1, 0, 0},
     {"mng_display",                1, 0, 0},
     {"mng_display_freeze",         1, 0, 0},
+#ifndef MNG_NO_DISPLAY_GO_SUPPORTED
     {"mng_display_goframe",        1, 0, 0},
     {"mng_display_golayer",        1, 0, 0},
     {"mng_display_gotime",         1, 0, 0},
+#endif
     {"mng_display_reset",          1, 0, 0},
     {"mng_display_resume",         1, 0, 0},
     {"mng_get_alphabitdepth",      1, 0, 0},
@@ -585,11 +607,15 @@ MNG_LOCAL mng_func_entry const func_table [] =
     {"mng_get_canvasstyle",        1, 0, 0},
     {"mng_get_colortype",          1, 0, 0},
     {"mng_get_compression",        1, 0, 0},
+#ifndef MNG_NO_CURRENT_INFO
     {"mng_get_currentframe",       1, 0, 0},
     {"mng_get_currentlayer",       1, 0, 0},
     {"mng_get_currentplaytime",    1, 0, 0},
+#endif
+#ifndef MNG_NO_DFLT_INFO
     {"mng_get_dfltimggamma",       1, 0, 0},
     {"mng_get_dfltimggammaint",    1, 0, 0},
+#endif
     {"mng_get_displaygamma",       1, 0, 0},
     {"mng_get_displaygammaint",    1, 0, 0},
     {"mng_get_doprogressive",      1, 0, 2},
@@ -600,17 +626,21 @@ MNG_LOCAL mng_func_entry const func_table [] =
     {"mng_get_imagetype",          1, 0, 0},
     {"mng_get_imagewidth",         1, 0, 0},
     {"mng_get_interlace",          1, 0, 0},
+#ifdef MNG_ACCESS_JPEG
     {"mng_get_jpeg_dctmethod",     1, 0, 0},
     {"mng_get_jpeg_maxjdat",       1, 0, 0},
     {"mng_get_jpeg_optimized",     1, 0, 0},
     {"mng_get_jpeg_progressive",   1, 0, 0},
     {"mng_get_jpeg_quality",       1, 0, 0},
     {"mng_get_jpeg_smoothing",     1, 0, 0},
+#endif
     {"mng_get_lastbackchunk",      1, 0, 3},
     {"mng_get_lastseekname",       1, 0, 5},
     {"mng_get_layercount",         1, 0, 0},
+#ifndef MNG_SKIP_MAXCANVAS
     {"mng_get_maxcanvasheight",    1, 0, 0},
     {"mng_get_maxcanvaswidth",     1, 0, 0},
+#endif
     {"mng_get_playtime",           1, 0, 0},
     {"mng_get_refreshpass",        1, 0, 0},
     {"mng_get_runtime",            1, 0, 0},
@@ -623,19 +653,23 @@ MNG_LOCAL mng_func_entry const func_table [] =
     {"mng_get_storechunks",        1, 0, 0},
     {"mng_get_suspensionmode",     1, 0, 0},
     {"mng_get_ticks",              1, 0, 0},
+#ifndef MNG_NO_CURRENT_INFO
     {"mng_get_totalframes",        1, 0, 5},
     {"mng_get_totallayers",        1, 0, 5},
     {"mng_get_totalplaytime",      1, 0, 5},
+#endif
     {"mng_get_usebkgd",            1, 0, 0},
     {"mng_get_userdata",           1, 0, 0},
     {"mng_get_viewgamma",          1, 0, 0},
     {"mng_get_viewgammaint",       1, 0, 0},
+#ifdef MNG_ACCESS_ZLIB
     {"mng_get_zlib_level",         1, 0, 0},
     {"mng_get_zlib_maxidat",       1, 0, 0},
     {"mng_get_zlib_memlevel",      1, 0, 0},
     {"mng_get_zlib_method",        1, 0, 0},
     {"mng_get_zlib_strategy",      1, 0, 0},
     {"mng_get_zlib_windowbits",    1, 0, 0},
+#endif
     {"mng_getcb_closestream",      1, 0, 0},
     {"mng_getcb_errorproc",        1, 0, 0},
     {"mng_getcb_getalphaline",     1, 0, 0},
@@ -665,63 +699,119 @@ MNG_LOCAL mng_func_entry const func_table [] =
     {"mng_getcb_writedata",        1, 0, 0},
     {"mng_getchunk_back",          1, 0, 0},
     {"mng_getchunk_basi",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_bKGD
     {"mng_getchunk_bkgd",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_cHRM
     {"mng_getchunk_chrm",          1, 0, 0},
+#endif
     {"mng_getchunk_clip",          1, 0, 0},
     {"mng_getchunk_clon",          1, 0, 0},
+#ifndef MNG_NO_DELTA_PNG
+#ifndef MNG_SKIPCHUNK_dBYK
     {"mng_getchunk_dbyk",          1, 0, 0},
+#endif
+#endif
     {"mng_getchunk_defi",          1, 0, 0},
+#ifndef MNG_NO_DELTA_PNG
     {"mng_getchunk_dhdr",          1, 0, 0},
+#endif
     {"mng_getchunk_disc",          1, 0, 0},
     {"mng_getchunk_drop",          1, 0, 0},
     {"mng_getchunk_endl",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_evNT
     {"mng_getchunk_evnt",          1, 0, 5},
     {"mng_getchunk_evnt_entry",    1, 0, 5},
+#endif
+#ifndef MNG_SKIPCHUNK_eXPI
     {"mng_getchunk_expi",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_fPRI
     {"mng_getchunk_fpri",          1, 0, 0},
+#endif
     {"mng_getchunk_fram",          1, 0, 0},
     {"mng_getchunk_gama",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_hIST
     {"mng_getchunk_hist",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_iCCP
     {"mng_getchunk_iccp",          1, 0, 0},
+#endif
     {"mng_getchunk_idat",          1, 0, 0},
     {"mng_getchunk_iend",          1, 0, 0},
     {"mng_getchunk_ihdr",          1, 0, 0},
+#ifndef MNG_NO_DELTA_PNG
+#ifdef MNG_INCLUDE_JNG
     {"mng_getchunk_ijng",          1, 0, 0},
+#endif
     {"mng_getchunk_ipng",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_iTXt
     {"mng_getchunk_itxt",          1, 0, 0},
+#endif
+#ifdef MNG_INCLUDE_JNG
     {"mng_getchunk_jdaa",          1, 0, 0},
     {"mng_getchunk_jdat",          1, 0, 0},
     {"mng_getchunk_jhdr",          1, 0, 0},
     {"mng_getchunk_jsep",          1, 0, 0},
+#endif
     {"mng_getchunk_loop",          1, 0, 0},
     {"mng_getchunk_magn",          1, 0, 0},
     {"mng_getchunk_mend",          1, 0, 0},
     {"mng_getchunk_mhdr",          1, 0, 0},
     {"mng_getchunk_move",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_nEED
     {"mng_getchunk_need",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_ORDR
+#ifndef MNG_NO_DELTA_PNG
     {"mng_getchunk_ordr",          1, 0, 0},
     {"mng_getchunk_ordr_entry",    1, 0, 0},
+#endif
+#endif
+#ifndef MNG_SKIPCHUNK_PAST
     {"mng_getchunk_past",          1, 0, 0},
     {"mng_getchunk_past_src",      1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_pHYg
     {"mng_getchunk_phyg",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_pHYs
     {"mng_getchunk_phys",          1, 0, 0},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {"mng_getchunk_plte",          1, 0, 0},
     {"mng_getchunk_pplt",          1, 0, 0},
     {"mng_getchunk_pplt_entry",    1, 0, 0},
     {"mng_getchunk_prom",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_SAVE
     {"mng_getchunk_save",          1, 0, 0},
     {"mng_getchunk_save_entry",    1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_sBIT
     {"mng_getchunk_sbit",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_SEEK
     {"mng_getchunk_seek",          1, 0, 0},
+#endif
     {"mng_getchunk_show",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_sPLT
     {"mng_getchunk_splt",          1, 0, 0},
+#endif
     {"mng_getchunk_srgb",          1, 0, 0},
     {"mng_getchunk_term",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_tEXt
     {"mng_getchunk_text",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_tIME
     {"mng_getchunk_time",          1, 0, 0},
+#endif
     {"mng_getchunk_trns",          1, 0, 0},
     {"mng_getchunk_unkown",        1, 0, 0},
+#ifndef MNG_SKIPCHUNK_zTXt
     {"mng_getchunk_ztxt",          1, 0, 0},
+#endif
     {"mng_getimgdata_chunk",       0, 0, 0},
     {"mng_getimgdata_chunkseq",    0, 0, 0},
     {"mng_getimgdata_seq",         0, 0, 0},
@@ -730,63 +820,119 @@ MNG_LOCAL mng_func_entry const func_table [] =
     {"mng_iterate_chunks",         1, 0, 0},
     {"mng_putchunk_back",          1, 0, 0},
     {"mng_putchunk_basi",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_bKGD
     {"mng_putchunk_bkgd",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_cHRM
     {"mng_putchunk_chrm",          1, 0, 0},
+#endif
     {"mng_putchunk_clip",          1, 0, 0},
     {"mng_putchunk_clon",          1, 0, 0},
+#ifndef MNG_NO_DELTA_PNG
+#ifndef MNG_SKIPCHUNK_DBYK
     {"mng_putchunk_dbyk",          1, 0, 0},
+#endif
+#endif
     {"mng_putchunk_defi",          1, 0, 0},
+#ifndef MNG_NO_DELTA_PNG
     {"mng_putchunk_dhdr",          1, 0, 0},
+#endif
     {"mng_putchunk_disc",          1, 0, 0},
     {"mng_putchunk_drop",          1, 0, 0},
     {"mng_putchunk_endl",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_evNT
     {"mng_putchunk_evnt",          1, 0, 5},
     {"mng_putchunk_evnt_entry",    1, 0, 5},
+#endif
+#ifndef MNG_SKIPCHUNK_eXPI
     {"mng_putchunk_expi",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_fPRI
     {"mng_putchunk_fpri",          1, 0, 0},
+#endif
     {"mng_putchunk_fram",          1, 0, 0},
     {"mng_putchunk_gama",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_hIST
     {"mng_putchunk_hist",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_iCCP
     {"mng_putchunk_iccp",          1, 0, 0},
+#endif
     {"mng_putchunk_idat",          1, 0, 0},
     {"mng_putchunk_iend",          1, 0, 0},
     {"mng_putchunk_ihdr",          1, 0, 0},
+#ifndef MNG_NO_DELTA_PNG
+#ifdef MNG_INCLUDE_JNG
     {"mng_putchunk_ijng",          1, 0, 0},
+#endif
     {"mng_putchunk_ipng",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_iTXt
     {"mng_putchunk_itxt",          1, 0, 0},
+#endif
+#ifdef MNG_INCLUDE_JNG
     {"mng_putchunk_jdaa",          1, 0, 0},
     {"mng_putchunk_jdat",          1, 0, 0},
     {"mng_putchunk_jhdr",          1, 0, 0},
     {"mng_putchunk_jsep",          1, 0, 0},
+#endif
     {"mng_putchunk_loop",          1, 0, 0},
     {"mng_putchunk_magn",          1, 0, 0},
     {"mng_putchunk_mend",          1, 0, 0},
     {"mng_putchunk_mhdr",          1, 0, 0},
     {"mng_putchunk_move",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_nEED
     {"mng_putchunk_need",          1, 0, 0},
+#endif
+#ifndef MNG_NO_DELTA_PNG
+#ifndef MNG_SKIPCHUNK_ORDR
     {"mng_putchunk_ordr",          1, 0, 0},
     {"mng_putchunk_ordr_entry",    1, 0, 0},
+#endif
+#endif
+#ifndef MNG_SKIPCHUNK_PAST
     {"mng_putchunk_past",          1, 0, 0},
     {"mng_putchunk_past_src",      1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_pHYg
     {"mng_putchunk_phyg",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_pHYs
     {"mng_putchunk_phys",          1, 0, 0},
+#endif
+#ifndef MNG_NO_DELTA_PNG
     {"mng_putchunk_plte",          1, 0, 0},
     {"mng_putchunk_pplt",          1, 0, 0},
     {"mng_putchunk_pplt_entry",    1, 0, 0},
     {"mng_putchunk_prom",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_SAVE
     {"mng_putchunk_save",          1, 0, 0},
     {"mng_putchunk_save_entry",    1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_sBIT
     {"mng_putchunk_sbit",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_SEEK
     {"mng_putchunk_seek",          1, 0, 0},
+#endif
     {"mng_putchunk_show",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_sPLT
     {"mng_putchunk_splt",          1, 0, 0},
+#endif
     {"mng_putchunk_srgb",          1, 0, 0},
     {"mng_putchunk_term",          1, 0, 0},
+#ifndef MNG_SKIPCHUNK_tEXt
     {"mng_putchunk_text",          1, 0, 0},
+#endif
+#ifndef MNG_SKIPCHUNK_tIME
     {"mng_putchunk_time",          1, 0, 0},
+#endif
     {"mng_putchunk_trns",          1, 0, 0},
     {"mng_putchunk_unkown",        1, 0, 0},
+#ifndef MNG_SKIPCHUNK_zTXT
     {"mng_putchunk_ztxt",          1, 0, 0},
+#endif
     {"mng_putimgdata_ihdr",        0, 0, 0},
     {"mng_putimgdata_jhdr",        0, 0, 0},
     {"mng_reset",                  1, 0, 0},
@@ -798,19 +944,25 @@ MNG_LOCAL mng_func_entry const func_table [] =
     {"mng_set_cacheplayback",      1, 0, 2},
     {"mng_set_canvasstyle",        1, 0, 0},
     {"mng_set_dfltimggamma",       1, 0, 0},
+#ifndef MNG_NO_DFLT_INFO
     {"mng_set_dfltimggammaint",    1, 0, 0},
+#endif
     {"mng_set_displaygamma",       1, 0, 0},
     {"mng_set_displaygammaint",    1, 0, 0},
     {"mng_set_doprogressive",      1, 0, 2},
+#ifdef MNG_ACCESS_JPEG
     {"mng_set_jpeg_dctmethod",     1, 0, 0},
     {"mng_set_jpeg_maxjdat",       1, 0, 0},
     {"mng_set_jpeg_optimized",     1, 0, 0},
     {"mng_set_jpeg_progressive",   1, 0, 0},
     {"mng_set_jpeg_quality",       1, 0, 0},
     {"mng_set_jpeg_smoothing",     1, 0, 0},
+#endif
+#ifndef MNG_SKIP_MAXCANVAS
     {"mng_set_maxcanvasheight",    1, 0, 0},
     {"mng_set_maxcanvassize",      1, 0, 0},
     {"mng_set_maxcanvaswidth",     1, 0, 0},
+#endif
     {"mng_set_outputprofile",      1, 0, 0},
     {"mng_set_outputprofile2",     1, 0, 0},
     {"mng_set_outputsrgb",         1, 0, 1},
@@ -826,12 +978,14 @@ MNG_LOCAL mng_func_entry const func_table [] =
     {"mng_set_userdata",           1, 0, 0},
     {"mng_set_viewgamma",          1, 0, 0},
     {"mng_set_viewgammaint",       1, 0, 0},
+#ifdef MNG_ACCESS_ZLIB
     {"mng_set_zlib_level",         1, 0, 0},
     {"mng_set_zlib_maxidat",       1, 0, 0},
     {"mng_set_zlib_memlevel",      1, 0, 0},
     {"mng_set_zlib_method",        1, 0, 0},
     {"mng_set_zlib_strategy",      1, 0, 0},
     {"mng_set_zlib_windowbits",    1, 0, 0},
+#endif
     {"mng_setcb_closestream",      1, 0, 0},
     {"mng_setcb_errorproc",        1, 0, 0},
     {"mng_setcb_getalphaline",     1, 0, 0},
@@ -1121,7 +1275,9 @@ mng_retcode MNG_DECL mng_reset (mng_handle hHandle)
   pData = ((mng_datap)(hHandle));      /* address main structure */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_SKIPCHUNK_SAVE
   mng_drop_savedata (pData);           /* cleanup saved-data from SAVE/SEEK */
+#endif
 #endif
 
 #if defined(MNG_SUPPORT_DISPLAY) && defined(MNG_FULL_CMS)
@@ -1193,7 +1349,9 @@ mng_retcode MNG_DECL mng_reset (mng_handle hHandle)
 
 #if defined(MNG_SUPPORT_READ) || defined(MNG_SUPPORT_WRITE)
                                        /* let's assume the best scenario */
+#ifndef MNG_NO_OLD_VERSIONS
   pData->bPreDraft48           = MNG_FALSE;
+#endif
                                        /* the unknown chunk */
   pData->iChunkname            = MNG_UINT_HUH;
   pData->iChunkseq             = 0;
@@ -1389,8 +1547,10 @@ mng_retcode MNG_DECL mng_reset (mng_handle hHandle)
   pData->fDifferrow            = MNG_NULL;
   pData->fScalerow             = MNG_NULL;
   pData->fDeltarow             = MNG_NULL;
+#ifndef MNG_SKIPCHUNK_PAST
   pData->fFliprow              = MNG_NULL;
   pData->fTilerow              = MNG_NULL;
+#endif
   pData->fInitrowproc          = MNG_NULL;
 
   pData->iPLTEcount            = 0;    /* no PLTE data */
@@ -1448,6 +1608,7 @@ mng_retcode MNG_DECL mng_reset (mng_handle hHandle)
 
   pData->iGlobalGamma          = 0;    /* no global gAMA data */
 
+#ifndef MNG_SKIPCHUNK_cHRM
   pData->iGlobalWhitepointx    = 0;    /* no global cHRM data */
   pData->iGlobalWhitepointy    = 0;
   pData->iGlobalPrimaryredx    = 0;
@@ -1456,16 +1617,20 @@ mng_retcode MNG_DECL mng_reset (mng_handle hHandle)
   pData->iGlobalPrimarygreeny  = 0;
   pData->iGlobalPrimarybluex   = 0;
   pData->iGlobalPrimarybluey   = 0;
+#endif
 
   pData->iGlobalRendintent     = 0;    /* no global sRGB data */
 
   pData->iGlobalProfilesize    = 0;    /* no global iCCP data */
   pData->pGlobalProfile        = MNG_NULL;
 
+#ifndef MNG_SKIPCHUNK_bKGD
   pData->iGlobalBKGDred        = 0;    /* no global bKGD data */
   pData->iGlobalBKGDgreen      = 0;
   pData->iGlobalBKGDblue       = 0;
+#endif
                                        /* no delta-image */
+#ifndef MNG_NO_DELTA_PNG
   pData->pDeltaImage           = MNG_NULL;
   pData->iDeltaImagetype       = 0;
   pData->iDeltatype            = 0;
@@ -1489,12 +1654,15 @@ mng_retcode MNG_DECL mng_reset (mng_handle hHandle)
   pData->iPromWidth            = 0;
   pData->pPromSrc              = MNG_NULL;
   pData->pPromDst              = MNG_NULL;
+#endif
 
   pData->iMAGNfromid           = 0;
   pData->iMAGNtoid             = 0;
 
+#ifndef MNG_SKIPCHUNK_PAST
   pData->iPastx                = 0;
   pData->iPasty                = 0;
+#endif
 
   pData->pLastseek             = MNG_NULL;
 #endif
@@ -2164,6 +2332,7 @@ mng_retcode MNG_DECL mng_display_reset (mng_handle hHandle)
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_NO_DISPLAY_GO_SUPPORTED
 mng_retcode MNG_DECL mng_display_goframe (mng_handle hHandle,
                                           mng_uint32 iFramenr)
 {
@@ -2218,11 +2387,13 @@ mng_retcode MNG_DECL mng_display_goframe (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_NO_DISPLAY_GO_SUPPORTED
 mng_retcode MNG_DECL mng_display_golayer (mng_handle hHandle,
                                           mng_uint32 iLayernr)
 {
@@ -2277,11 +2448,13 @@ mng_retcode MNG_DECL mng_display_golayer (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */
 
 #ifdef MNG_SUPPORT_DISPLAY
+#ifndef MNG_NO_DISPLAY_GO_SUPPORTED
 mng_retcode MNG_DECL mng_display_gotime (mng_handle hHandle,
                                          mng_uint32 iPlaytime)
 {
@@ -2336,6 +2509,7 @@ mng_retcode MNG_DECL mng_display_gotime (mng_handle hHandle,
 
   return MNG_NOERROR;
 }
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* ************************************************************************** */

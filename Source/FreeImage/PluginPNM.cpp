@@ -171,8 +171,8 @@ static FIBITMAP * DLL_CALLCONV
 Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	char id_one, id_two;
 	WORD x, y;
-	FIBITMAP *dib;
-    BYTE *bits;		// pointer to dib data
+	FIBITMAP *dib = NULL;
+    	BYTE *bits;		// pointer to dib data
 	RGBQUAD *pal;	// pointer to dib palette
 	int i, max, level;
 
@@ -543,7 +543,6 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			case 1:		// 1-bit B & W
 			{
-				RGBQUAD *pal = FreeImage_GetPalette(dib);
 				int color;
 
 				if (flags == PNM_SAVE_RAW)  {

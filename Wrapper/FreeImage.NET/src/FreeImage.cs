@@ -83,13 +83,14 @@ namespace FreeImageAPI
 
 	public enum FIF
 	{
-		FIF_UNKNOWN	= -1,
+		FIF_UNKNOWN = -1,
 		FIF_BMP		= 0,
 		FIF_ICO		= 1,
 		FIF_JPEG	= 2,
 		FIF_JNG		= 3,
 		FIF_KOALA	= 4,
 		FIF_LBM		= 5,
+		FIF_IFF = FIF_LBM,
 		FIF_MNG		= 6,
 		FIF_PBM		= 7,
 		FIF_PBMRAW	= 8,
@@ -106,7 +107,6 @@ namespace FreeImageAPI
 		FIF_WBMP	= 19,
 		FIF_PSD		= 20,
 		FIF_CUT		= 21,
-		FIF_IFF		= FIF_LBM,
 		FIF_XBM		= 22,
 		FIF_XPM		= 23
 	}

@@ -49,7 +49,7 @@ CacheFile::~CacheFile() {
 	}
 }
 
-bool
+BOOL
 CacheFile::open() {
 	if ((m_filename) && (!m_keep_in_memory)) {
 		m_file = fopen(m_filename, "w+b");
@@ -154,18 +154,18 @@ CacheFile::lockBlock(int nr) {
 	return NULL;
 }
 
-bool
+BOOL
 CacheFile::unlockBlock(int nr) {
 	if (m_current_block) {
 		m_current_block = NULL;
 
-		return true;
+		return TRUE;
 	}
 
-	return false;
+	return FALSE;
 }
 
-bool
+BOOL
 CacheFile::deleteBlock(int nr) {
 	if (!m_current_block) {
 		PageMapIt it = m_page_map.find(nr);
@@ -179,13 +179,13 @@ CacheFile::deleteBlock(int nr) {
 
 		m_free_pages.push_back(nr);
 
-		return true;
+		return TRUE;
 	}
 
-	return false;
+	return FALSE;
 }
 
-bool
+BOOL
 CacheFile::readFile(BYTE *data, int nr, int size) {
 	if ((data) && (size > 0)) {
 		int block_size = sizeof(Block) - 4;
@@ -206,10 +206,10 @@ CacheFile::readFile(BYTE *data, int nr, int size) {
 			s += block_size;
 		} while (block_nr != 0);
 
-		return true;
+		return TRUE;
 	}
 
-	return false;
+	return FALSE;
 }
 
 int

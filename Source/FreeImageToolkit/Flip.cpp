@@ -26,7 +26,7 @@
 /**
 Flip the image horizontally along the vertical axis.
 @param src Input image to be processed.
-@return Returns the processed bitmap if successful, NULL otherwise.
+@return Returns TRUE if successful, FALSE otherwise.
 */
 BOOL DLL_CALLCONV 
 FreeImage_FlipHorizontal(FIBITMAP *src) {
@@ -113,7 +113,7 @@ FreeImage_FlipHorizontal(FIBITMAP *src) {
 /**
 Flip the image vertically along the horizontal axis.
 @param src Input image to be processed.
-@return Returns the processed bitmap if successful, NULL otherwise.
+@return Returns TRUE if successful, FALSE otherwise.
 */
 BOOL DLL_CALLCONV 
 FreeImage_FlipVertical(FIBITMAP *src) {

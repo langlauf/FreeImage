@@ -1,7 +1,132 @@
 -----------------------------------------------------------
 
+1.0.6 (oct 19th 2003)
+---------------------
+
+in short:
+
+Final release from beta1. No feedback is good feedback I presume,
+so here's 1.0.6-final!
+
+
+-------------------
+
+bugfixes:
+
+core:
+
+samples:
+
+contrib:
+
+doc:
+
+makefiles:
+
+autoconf:
+
+-----------------------------------------------------------
+
+1.0.6-beta1 (sep 14th 2003)
+---------------------------
+
+in short:
+
+further footprint-reductions
+removing email-addresses
+
+1.0.6 (final) will be out shortly
+
+-------------------
+
+bugfixes:
+
+core:
+- added support for reducing the footprint of libmng by macros that optionally
+  skip unused chunks, remove 16-bit sample support, remove Delta support, and
+  remove JNG support, to accomodate Mozilla/Firebird.
+- further optional removal of unused functions
+- added MNG_NO_SUPPORT_FUNCQUERY conditional
+- added iPNGdepth member to pData structure
+- added conditionals around MAGN chunk support
+- added conditionals around non-VLC chunk support
+- added conditionals around "mng_display_go*" and other unused functions
+- added more conditionals around "promote" functions
+- removed email references as appropriate
+
+samples:
+
+contrib:
+
+doc:
+
+makefiles:
+
+autoconf:
+
+-----------------------------------------------------------
+
+1.0.6-alpha1 (aug 2nd 2003)
+---------------------------
+
+in short:
+
+This is mostly in the light of footprint-reduction to please the Mozilla
+crew with a leaner and meaner libmng. See bug 18574 if you're interested:
+http://bugzilla.mozilla.org/show_bug.cgi?id=18574
+
+-------------------
+
+bugfixes:
+- B719420 - fixed several MNG_APP_CMS problems
+
+core:
+- removed some compiler-warnings
+- hiding 12-bit JPEG stuff
+- fixed problem with infinite loops during readdisplay()
+- added size-optimiation COMPOSE routine usage
+- added conditionals around canvas update routines
+- added MNG_SKIPCHUNK_cHNK footprint optimizations
+- added conditionals around some JNG-supporting code      
+- added conditionals around 16-bit supporting code        
+- combined init functions into one function
+- replaced nested switches with simple init setup function
+- added conditionals zlib and jpeg property accessors
+- added size-optimization DIV255B8 routine usage
+- added conditionals around 8-bit magn routines
+- removed conditionals around 8-bit magn routines
+- added MNG_NO_16BIT_SUPPORT and MNG_NO_DELTA_PNG conditionals
+- reversed many loops to use decrementing counter
+- converted some switches to array references
+- removed some redundant checks for iRawlen==0
+- optionally use zlib's crc32 function instead of local mng_update_crc
+- bugfix empty "if" statement when 16-bit code is enabled
+- restored two misplaced #else/#endif blocks
+- added conditionals around "mng_display_go*" and other unused functions
+- added MNG_NO_LOOP_SIGNALS_SUPPORTED conditional
+- fixed duplicate for-loop
+- fixed invalid test in promote_imageobject
+- added conditionals around PAST chunk support
+- fixed "FOOTPRINT_COMPOSEIV" typo (now "FOOTPRINT_DIV")
+
+samples:
+
+contrib:
+- updated xmngview
+- added MSVC project for creating delta-MNGs: makemng (thanks Alex!)
+- added MSVC lib-file for use with the standard libmng.dll (again thanks Alex)
+
+doc:
+- updated readme.contrib
+
+makefiles:
+
+autoconf:
+
+-----------------------------------------------------------
+
 1.0.5 (mar 1st 2003)
--------------------------
+--------------------
 
 in short:
 

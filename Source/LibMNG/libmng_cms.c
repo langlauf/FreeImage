@@ -4,14 +4,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_cms.c              copyright (c) 2000-2002 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_cms.c              copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : color management routines (implementation)                 * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : implementation of the color management routines            * */
 /* *                                                                        * */
@@ -63,6 +61,11 @@
 /* *             - added in-memory color-correction of abstract images      * */
 /* *             1.0.5 - 11/08/2002 - G.Juyn                                * */
 /* *             - fixed issues in init_app_cms()                           * */
+/* *                                                                        * */
+/* *             1.0.6 - 04/11/2003 - G.Juyn                                * */
+/* *             - B719420 - fixed several MNG_APP_CMS problems             * */
+/* *             1.0.6 - 07/11/2003 - G. R-P                                * */
+/* *             - added conditional MNG_SKIPCHUNK_cHRM/iCCP                * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -222,6 +225,7 @@ mng_retcode mng_init_full_cms (mng_datap pData,
 
   if ((!pBuf) || (!pBuf->bCorrected))  /* is the buffer already corrected ? */
   {
+#ifndef MNG_SKIPCHUNK_iCCP
     if (((pBuf) && (pBuf->bHasICCP)) || ((bGlobal) && (pData->bHasglobalICCP)))
     {
       if (!pData->hProf2)              /* output profile not defined ? */
@@ -261,6 +265,7 @@ mng_retcode mng_init_full_cms (mng_datap pData,
       return MNG_NOERROR;              /* and done */
     }
     else
+#endif
     if (((pBuf) && (pBuf->bHasSRGB)) || ((bGlobal) && (pData->bHasglobalSRGB)))
     {
       mng_uint8 iIntent;
@@ -319,6 +324,7 @@ mng_retcode mng_init_full_cms (mng_datap pData,
           MNG_ERRORL (pData, MNG_LCMS_NOHANDLE)
       }
 
+#ifndef MNG_SKIPCHUNK_cHRM
       if ((pBuf) && (pBuf->bHasCHRM))  /* local cHRM ? */
       {
         sWhitepoint.x      = (mng_float)pBuf->iWhitepointx   / 100000;
@@ -341,6 +347,7 @@ mng_retcode mng_init_full_cms (mng_datap pData,
         sPrimaries.Blue.x  = (mng_float)pData->iGlobalPrimarybluex  / 100000;
         sPrimaries.Blue.y  = (mng_float)pData->iGlobalPrimarybluey  / 100000;
       }
+#endif
 
       sWhitepoint.Y      =             /* Y component is always 1.0 */
       sPrimaries.Red.Y   =
@@ -555,7 +562,8 @@ mng_retcode mng_init_app_cms (mng_datap pData,
   mng_imagep     pImage = MNG_NULL;
   mng_imagedatap pBuf   = MNG_NULL;
   mng_bool       bDone  = MNG_FALSE;
-
+  mng_retcode    iRetcode;
+  
 #ifdef MNG_SUPPORT_TRACE
   MNG_TRACE (pData, MNG_FN_INIT_APP_CMS, MNG_LC_START)
 #endif
@@ -576,23 +584,7 @@ mng_retcode mng_init_app_cms (mng_datap pData,
 
   if ((!pBuf) || (!pBuf->bCorrected))  /* is the buffer already corrected ? */
   {
-    if ( (pData->fProcesssrgb) &&
-         (((pBuf) && (pBuf->bHasSRGB)) || ((bGlobal) && (pData->bHasglobalSRGB))) )
-    {
-      mng_uint8 iIntent;
-
-      if ((pBuf) && (pBuf->bHasSRGB))  /* determine rendering intent */
-        iIntent = pBuf->iRenderingintent;
-      else
-        iIntent = pData->iGlobalRendintent;
-                                       /* inform the app */
-      if (!pData->fProcesssrgb ((mng_handle)pData, iIntent))
-        MNG_ERROR (pData, MNG_APPCMSERROR)
-                                       /* load color-correction routine */
-      pData->fCorrectrow = (mng_fptr)mng_correct_app_cms;
-      bDone              = MNG_TRUE;
-    }
-
+#ifndef MNG_SKIPCHUNK_iCCP
     if ( (pData->fProcessiccp) &&
          (((pBuf) && (pBuf->bHasICCP)) || ((bGlobal) && (pData->bHasglobalICCP))) )
     {
@@ -616,7 +608,26 @@ mng_retcode mng_init_app_cms (mng_datap pData,
       pData->fCorrectrow = (mng_fptr)mng_correct_app_cms;
       bDone              = MNG_TRUE;
     }
+#endif
 
+    if ( (pData->fProcesssrgb) &&
+         (((pBuf) && (pBuf->bHasSRGB)) || ((bGlobal) && (pData->bHasglobalSRGB))) )
+    {
+      mng_uint8 iIntent;
+
+      if ((pBuf) && (pBuf->bHasSRGB))  /* determine rendering intent */
+        iIntent = pBuf->iRenderingintent;
+      else
+        iIntent = pData->iGlobalRendintent;
+                                       /* inform the app */
+      if (!pData->fProcesssrgb ((mng_handle)pData, iIntent))
+        MNG_ERROR (pData, MNG_APPCMSERROR)
+                                       /* load color-correction routine */
+      pData->fCorrectrow = (mng_fptr)mng_correct_app_cms;
+      bDone              = MNG_TRUE;
+    }
+
+#ifndef MNG_SKIPCHUNK_cHRM
     if ( (pData->fProcesschroma) &&
          (((pBuf) && (pBuf->bHasCHRM)) || ((bGlobal) && (pData->bHasglobalCHRM))) )
     {
@@ -657,6 +668,7 @@ mng_retcode mng_init_app_cms (mng_datap pData,
       pData->fCorrectrow = (mng_fptr)mng_correct_app_cms;
       bDone              = MNG_TRUE;
     }
+#endif
 
     if ( (pData->fProcessgamma) &&
          (((pBuf) && (pBuf->bHasGAMA)) || ((bGlobal) && (pData->bHasglobalGAMA))) )
@@ -669,10 +681,17 @@ mng_retcode mng_init_app_cms (mng_datap pData,
         iGamma = pData->iGlobalGamma;
                                        /* inform the app */
       if (!pData->fProcessgamma ((mng_handle)pData, iGamma))
-        MNG_ERROR (pData, MNG_APPCMSERROR)
-                                       /* load color-correction routine */
-      pData->fCorrectrow = (mng_fptr)mng_correct_app_cms;
-      bDone              = MNG_TRUE;
+      {                                /* app wants us to use internal routines ! */
+        iRetcode = mng_init_gamma_only (pData, bGlobal, bObject, bRetrobj);
+        if (iRetcode)                  /* on error bail out */
+          return iRetcode;
+      }
+      else
+      {                                /* load color-correction routine */
+        pData->fCorrectrow = (mng_fptr)mng_correct_app_cms;
+      }
+
+      bDone = MNG_TRUE;
     }
 
     if (!bDone)                        /* no color-info at all ? */
@@ -680,9 +699,15 @@ mng_retcode mng_init_app_cms (mng_datap pData,
                                        /* then use default image gamma ! */
       if (!pData->fProcessgamma ((mng_handle)pData,
                                  (mng_uint32)((pData->dDfltimggamma * 100000) + 0.5)))
-        MNG_ERROR (pData, MNG_APPCMSERROR)
-                                       /* load color-correction routine */
-      pData->fCorrectrow = (mng_fptr)mng_correct_app_cms;
+      {                                /* app wants us to use internal routines ! */
+        iRetcode = mng_init_gamma_only (pData, bGlobal, bObject, bRetrobj);
+        if (iRetcode)                  /* on error bail out */
+          return iRetcode;
+      }
+      else
+      {                                /* load color-correction routine */
+        pData->fCorrectrow = (mng_fptr)mng_correct_app_cms;
+      }  
     }
   }
 

@@ -99,8 +99,6 @@ LoadWindowsBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bit
 	FIBITMAP *dib = NULL;
 
 	try {
-		long info_header_position = io->tell_proc(handle);
-
 		// load the info header
 
 		BITMAPINFOHEADER bih;
@@ -751,7 +749,6 @@ LoadOS21XBMP(FreeImageIO *io, fi_handle handle, int flags, unsigned bitmap_bits_
 		int width       = bios2_1x.biWidth;
 		int height      = bios2_1x.biHeight;
 		int bit_count   = bios2_1x.biBitCount;
-		int compression = 0;
 		int pitch       = CalculatePitch(CalculateLine(width, bit_count));
 		
 		switch (bit_count) {

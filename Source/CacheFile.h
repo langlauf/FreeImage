@@ -65,17 +65,17 @@ public :
 	CacheFile(const char *filename, BOOL keep_in_memory);
 	~CacheFile();
 
-	bool open();
+	BOOL open();
 	void close();
-	bool readFile(BYTE *data, int nr, int size);
+	BOOL readFile(BYTE *data, int nr, int size);
 	int writeFile(BYTE *data, int size);
 	void deleteFile(int nr);
 
 private :
 	int allocateBlock();
 	Block *lockBlock(int nr);
-	bool unlockBlock(int nr);
-	bool deleteBlock(int nr);
+	BOOL unlockBlock(int nr);
+	BOOL deleteBlock(int nr);
 
 private :
 	FILE *m_file;

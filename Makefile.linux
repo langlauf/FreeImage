@@ -1,0 +1,222 @@
+.SUFFIXES: .cpp .o .c
+
+
+VPATH = ./Source/FreeImageToolkit ./Source/LibTIFF ./Source/LibPNG ./Source/ZLib ./Source/LibMNG ./Source/LibJPEG ./Source/FreeImage
+INSTALLDIR = /usr/lib
+
+CC = gcc
+CPP = g++
+CC_FLAGS = -O3   
+CPP_FLAGS = -O3 -finline-functions 
+CC_INCLUDES = -ISource/LibJPEG -ISource/LibMNG -ISource/LibPNG -ISource/LibTIFF -ISource/ZLib
+CPP_INCLUDES = -I./Source -ISource/FreeImageToolkit
+CC_DEFINES = 
+CPP_DEFINES = 
+LIBRARIES = 
+LINKER = ar
+LINKER_FLAGS = 
+LINKER_ENTRY = 
+
+TARGET  = freeimage
+VER_MAJOR = 3
+VER_MINOR = 0.2
+MODULES = BitmapAccess.o CacheFile.o Conversion.o Conversion16_555.o Conversion16_565.o Conversion24.o Conversion32.o Conversion8.o FreeImage.o FreeImageIO.o GetType.o Halftoning.o MultiPage.o NNQuantizer.o Plugin.o PluginBMP.o PluginCUT.o PluginICO.o PluginIFF.o PluginJPEG.o PluginKOALA.o PluginMNG.o PluginPCD.o PluginPCX.o PluginPNG.o PluginPNM.o PluginPSD.o PluginRAS.o PluginTARGA.o PluginTIFF.o PluginWBMP.o PluginXBM.o PluginXPM.o WuQuantizer.o ZLibInterface.o BSplineRotate.o ClassicRotate.o Colors.o CopyPaste.o Flip.o Rescale.o jcapimin.o jcapistd.o jccoefct.o jccolor.o jcdctmgr.o jchuff.o jcinit.o jcmainct.o jcmarker.o jcmaster.o jcomapi.o jcparam.o jcphuff.o jcprepct.o jcsample.o jctrans.o jdapimin.o jdapistd.o jdatadst.o jdatasrc.o jdcoefct.o jdcolor.o jddctmgr.o jdhuff.o jdinput.o jdmainct.o jdmarker.o jdmaster.o jdmerge.o jdphuff.o jdpostct.o jdsample.o jdtrans.o jerror.o jfdctflt.o jfdctfst.o jfdctint.o jidctflt.o jidctfst.o jidctint.o jidctred.o jmemmgr.o jmemnobs.o jpegtran.o jquant1.o jquant2.o jutils.o libmng_callback_xs.o libmng_chunk_io.o libmng_chunk_prc.o libmng_chunk_xs.o libmng_cms.o libmng_display.o libmng_dither.o libmng_error.o libmng_filter.o libmng_hlapi.o libmng_jpeg.o libmng_object_prc.o libmng_pixels.o libmng_prop_xs.o libmng_read.o libmng_trace.o libmng_write.o libmng_zlib.o png.o pngerror.o pnggccrd.o pngget.o pngmem.o pngpread.o pngread.o pngrio.o pngrtran.o pngrutil.o pngset.o pngtrans.o pngvcrd.o pngwio.o pngwrite.o pngwtran.o pngwutil.o fax3sm_winnt.o tif_aux.o tif_close.o tif_codec.o tif_compress.o tif_dir.o tif_dirinfo.o tif_dirread.o tif_dirwrite.o tif_dumpmode.o tif_error.o tif_extension.o tif_fax3.o tif_flush.o tif_getimage.o tif_jpeg.o tif_luv.o tif_lzw.o tif_next.o tif_open.o tif_packbits.o tif_pixarlog.o tif_predict.o tif_print.o tif_read.o tif_strip.o tif_swab.o tif_thunder.o tif_tile.o tif_version.o tif_warning.o tif_write.o tif_zip.o adler32.o compress.o crc32.o deflate.o gzio.o infblock.o infcodes.o inffast.o inflate.o inftrees.o infutil.o trees.o uncompr.o zutil.o
+
+STATICLIB = lib$(TARGET).a
+SHAREDLIB = lib$(TARGET)-$(VER_MAJOR).$(VER_MINOR).so
+LIBNAME = lib$(TARGET).so.$(VER_MAJOR)
+
+all: default
+
+default: $(STATICLIB) $(SHAREDLIB)
+
+.c.o:
+	$(CC) -c $< $(CC_FLAGS) $(CC_DEFINES) $(CC_INCLUDES)
+
+.cpp.o:
+	$(CPP) -c $< $(CPP_FLAGS) $(CPP_DEFINES) $(CPP_INCLUDES)
+
+BitmapAccess.o: /usr/include/stdlib.h ./Source/DeprecationManager/DeprecationMgr.h ./Source/FreeImage.h ./Source/FreeImageIO.h ./Source/Utilities.h
+CacheFile.o: /usr/include/math.h ./Source/CacheFile.h
+Conversion.o: /usr/include/memory.h ./Source/FreeImage.h ./Source/Quantizers.h
+Conversion16_555.o: ./Source/FreeImage.h ./Source/Utilities.h
+Conversion16_565.o: ./Source/FreeImage.h ./Source/Utilities.h
+Conversion24.o: ./Source/FreeImage.h ./Source/Utilities.h
+Conversion32.o: ./Source/FreeImage.h ./Source/Utilities.h
+Conversion8.o: ./Source/FreeImage.h ./Source/Utilities.h
+FreeImage.o: /usr/include/assert.h /usr/include/ctype.h /usr/include/stdlib.h ./Source/FreeImage.h ./Source/Utilities.h
+FreeImageIO.o: /usr/include/stdio.h ./Source/FreeImageIO.h
+GetType.o: /usr/include/stdio.h /usr/include/string.h ./Source/DeprecationManager/DeprecationMgr.h ./Source/FreeImage.h ./Source/FreeImageIO.h ./Source/Plugin.h
+Halftoning.o: ./Source/FreeImage.h ./Source/Utilities.h
+MultiPage.o: /usr/include/malloc.h ./Source/CacheFile.h ./Source/FreeImage.h ./Source/FreeImageIO.h ./Source/Plugin.h ./Source/Utilities.h
+NNQuantizer.o: ./Source/FreeImage.h
+Plugin.o: /usr/include/ctype.h /usr/include/malloc.h /usr/include/stdio.h /usr/include/string.h ./Source/FreeImage.h ./Source/FreeImageIO.h ./Source/Plugin.h
+PluginBMP.o: /usr/include/assert.h ./Source/FreeImage.h ./Source/Utilities.h
+PluginCUT.o: /usr/include/stdlib.h ./Source/FreeImage.h ./Source/Utilities.h
+PluginICO.o: /usr/include/stdlib.h ./Source/FreeImage.h ./Source/Utilities.h
+PluginIFF.o: ./Source/FreeImage.h ./Source/Utilities.h
+PluginJPEG.o: /usr/include/ctype.h /usr/include/setjmp.h /usr/include/string.h ./Source/FreeImage.h jerror.h jinclude.h jpeglib.h jpeglib.h ./Source/Utilities.h
+PluginKOALA.o: ./Source/FreeImage.h ./Source/Utilities.h
+PluginMNG.o: /usr/include/stdio.h /usr/include/stdlib.h ./Source/FreeImage.h libmng.h ./Source/Utilities.h
+PluginPCD.o: /usr/include/memory.h /usr/include/stdlib.h ./Source/FreeImage.h ./Source/Utilities.h
+PluginPCX.o: ./Source/FreeImage.h ./Source/Utilities.h
+PluginPNG.o: /usr/include/memory.h /usr/include/stdlib.h ./Source/FreeImage.h png.h ./Source/Utilities.h
+PluginPNM.o: /usr/include/stdio.h /usr/include/string.h ./Source/FreeImage.h ./Source/Utilities.h
+PluginPSD.o: ./Source/FreeImage.h
+PluginRAS.o: /usr/include/memory.h /usr/include/stdlib.h ./Source/FreeImage.h ./Source/Utilities.h
+PluginTARGA.o: /usr/include/assert.h ./Source/FreeImage.h ./Source/Utilities.h
+PluginTIFF.o: ./Source/FreeImage.h tiffiop.h ./Source/Utilities.h
+PluginWBMP.o: ./Source/FreeImage.h ./Source/Utilities.h
+PluginXBM.o: ./Source/FreeImage.h ./Source/Utilities.h
+PluginXPM.o: /usr/include/stdlib.h /usr/include/string.h ./Source/FreeImage.h ./Source/Utilities.h
+WuQuantizer.o: /usr/include/memory.h /usr/include/stdlib.h ./Source/FreeImage.h ./Source/Quantizers.h
+ZLibInterface.o: ./Source/FreeImage.h zlib.h
+BSplineRotate.o: ./Source/FreeImage.h ./Source/Utilities.h
+ClassicRotate.o: ./Source/FreeImage.h ./Source/Utilities.h
+Colors.o: ./Source/FreeImage.h ./Source/Utilities.h
+CopyPaste.o: ./Source/FreeImage.h ./Source/Utilities.h
+Flip.o: ./Source/FreeImage.h ./Source/Utilities.h
+Rescale.o: Resize.h
+jcapimin.o: jinclude.h jpeglib.h
+jcapistd.o: jinclude.h jpeglib.h
+jccoefct.o: jinclude.h jpeglib.h
+jccolor.o: jinclude.h jpeglib.h
+jcdctmgr.o: jdct.h jinclude.h jpeglib.h
+jchuff.o: jchuff.h jinclude.h jpeglib.h
+jcinit.o: jinclude.h jpeglib.h
+jcmainct.o: jinclude.h jpeglib.h
+jcmarker.o: jinclude.h jpeglib.h
+jcmaster.o: jinclude.h jpeglib.h
+jcomapi.o: jinclude.h jpeglib.h
+jcparam.o: jinclude.h jpeglib.h
+jcphuff.o: jchuff.h jinclude.h jpeglib.h
+jcprepct.o: jinclude.h jpeglib.h
+jcsample.o: jinclude.h jpeglib.h
+jctrans.o: jinclude.h jpeglib.h
+jdapimin.o: jinclude.h jpeglib.h
+jdapistd.o: jinclude.h jpeglib.h
+jdatadst.o: jerror.h jinclude.h jpeglib.h
+jdatasrc.o: jerror.h jinclude.h jpeglib.h
+jdcoefct.o: jinclude.h jpeglib.h
+jdcolor.o: jinclude.h jpeglib.h
+jddctmgr.o: jdct.h jinclude.h jpeglib.h
+jdhuff.o: jdhuff.h jinclude.h jpeglib.h
+jdinput.o: jinclude.h jpeglib.h
+jdmainct.o: jinclude.h jpeglib.h
+jdmarker.o: jinclude.h jpeglib.h
+jdmaster.o: jinclude.h jpeglib.h
+jdmerge.o: jinclude.h jpeglib.h
+jdphuff.o: jdhuff.h jinclude.h jpeglib.h
+jdpostct.o: jinclude.h jpeglib.h
+jdsample.o: jinclude.h jpeglib.h
+jdtrans.o: jinclude.h jpeglib.h
+jerror.o: jerror.h jerror.h jinclude.h jpeglib.h jversion.h
+jfdctflt.o: jdct.h jinclude.h jpeglib.h
+jfdctfst.o: jdct.h jinclude.h jpeglib.h
+jfdctint.o: jdct.h jinclude.h jpeglib.h
+jidctflt.o: jdct.h jinclude.h jpeglib.h
+jidctfst.o: jdct.h jinclude.h jpeglib.h
+jidctint.o: jdct.h jinclude.h jpeglib.h
+jidctred.o: jdct.h jinclude.h jpeglib.h
+jmemmgr.o: jinclude.h jmemsys.h jpeglib.h
+jmemnobs.o: jinclude.h jmemsys.h jpeglib.h
+jpegtran.o: cdjpeg.h jversion.h transupp.h
+jquant1.o: jinclude.h jpeglib.h
+jquant2.o: jinclude.h jpeglib.h
+jutils.o: jinclude.h jpeglib.h
+libmng_callback_xs.o: libmng.h libmng_data.h libmng_error.h libmng_trace.h
+libmng_chunk_io.o: libmng.h libmng_chunk_io.h libmng_chunk_prc.h libmng_chunks.h libmng_data.h libmng_display.h libmng_error.h libmng_memory.h libmng_object_prc.h libmng_objects.h libmng_pixels.h libmng_trace.h libmng_zlib.h
+libmng_chunk_prc.o: libmng.h libmng_chunk_prc.h libmng_chunks.h libmng_data.h libmng_error.h libmng_memory.h libmng_trace.h
+libmng_chunk_xs.o: libmng.h libmng_chunk_io.h libmng_chunk_prc.h libmng_chunks.h libmng_data.h libmng_error.h libmng_memory.h libmng_trace.h
+libmng_cms.o: libmng.h libmng_cms.h libmng_data.h libmng_error.h libmng_objects.h libmng_trace.h
+libmng_display.o: libmng.h libmng_chunks.h libmng_cms.h libmng_data.h libmng_display.h libmng_error.h libmng_jpeg.h libmng_memory.h libmng_object_prc.h libmng_objects.h libmng_pixels.h libmng_trace.h libmng_zlib.h
+libmng_dither.o: libmng.h libmng_data.h libmng_dither.h libmng_error.h libmng_trace.h
+libmng_error.o: libmng.h libmng_data.h libmng_error.h libmng_trace.h
+libmng_filter.o: libmng.h libmng_data.h libmng_error.h libmng_filter.h libmng_trace.h
+libmng_hlapi.o: libmng.h libmng_chunks.h libmng_cms.h libmng_data.h libmng_display.h libmng_error.h libmng_jpeg.h libmng_memory.h libmng_object_prc.h libmng_objects.h libmng_pixels.h libmng_read.h libmng_trace.h libmng_write.h libmng_zlib.h
+libmng_jpeg.o: libmng.h libmng_data.h libmng_error.h libmng_jpeg.h libmng_memory.h libmng_pixels.h libmng_trace.h
+libmng_object_prc.o: libmng.h libmng_chunks.h libmng_cms.h libmng_data.h libmng_display.h libmng_error.h libmng_memory.h libmng_object_prc.h libmng_objects.h libmng_pixels.h libmng_trace.h
+libmng_pixels.o: libmng.h libmng_cms.h libmng_data.h libmng_error.h libmng_filter.h libmng_memory.h libmng_object_prc.h libmng_objects.h libmng_pixels.h libmng_trace.h
+libmng_prop_xs.o: libmng.h libmng_cms.h libmng_data.h libmng_error.h libmng_memory.h libmng_objects.h libmng_trace.h
+libmng_read.o: libmng.h libmng_chunk_io.h libmng_chunk_prc.h libmng_chunks.h libmng_data.h libmng_display.h libmng_error.h libmng_memory.h libmng_object_prc.h libmng_objects.h libmng_read.h libmng_trace.h
+libmng_trace.o: libmng.h libmng_data.h libmng_error.h libmng_trace.h
+libmng_write.o: libmng.h libmng_chunk_io.h libmng_chunks.h libmng_data.h libmng_error.h libmng_memory.h libmng_trace.h libmng_write.h
+libmng_zlib.o: libmng.h libmng_data.h libmng_error.h libmng_filter.h libmng_memory.h libmng_pixels.h libmng_trace.h libmng_zlib.h
+png.o: png.h
+pngerror.o: png.h
+pnggccrd.o: png.h
+pngget.o: png.h
+pngmem.o: png.h
+pngpread.o: png.h
+pngread.o: png.h
+pngrio.o: png.h
+pngrtran.o: png.h
+pngrutil.o: png.h
+pngset.o: png.h
+pngtrans.o: png.h
+pngvcrd.o: png.h
+pngwio.o: png.h
+pngwrite.o: png.h
+pngwtran.o: png.h
+pngwutil.o: png.h
+tif_aux.o: /usr/include/math.h tif_predict.h tiffiop.h
+tif_close.o: tiffiop.h
+tif_codec.o: tiffiop.h
+tif_compress.o: tiffiop.h
+tif_dir.o: tiffiop.h
+tif_dirinfo.o: /usr/include/assert.h /usr/include/stdio.h /usr/include/stdlib.h tiffiop.h
+tif_dirread.o: tiffiop.h
+tif_dirwrite.o: tiffiop.h
+tif_dumpmode.o: /usr/include/assert.h tiffiop.h
+tif_error.o: tiffiop.h
+tif_extension.o: tiffiop.h
+tif_fax3.o: /usr/include/assert.h /usr/include/stdio.h t4.h tif_fax3.h tiffiop.h
+tif_flush.o: tiffiop.h
+tif_getimage.o: /usr/include/assert.h /usr/include/stdio.h tiffiop.h
+tif_jpeg.o: /usr/include/assert.h /usr/include/setjmp.h /usr/include/stdio.h jerror.h jpeglib.h tiffiop.h
+tif_luv.o: /usr/include/assert.h /usr/include/math.h /usr/include/stdio.h /usr/include/stdlib.h tiffiop.h uvcode.h
+tif_lzw.o: /usr/include/assert.h /usr/include/stdio.h tif_predict.h tiffiop.h
+tif_next.o: tiffiop.h
+tif_open.o: tiffiop.h
+tif_packbits.o: /usr/include/assert.h /usr/include/stdio.h tiffiop.h
+tif_pixarlog.o: /usr/include/assert.h /usr/include/math.h /usr/include/stdio.h /usr/include/stdlib.h tif_predict.h tiffiop.h zlib.h
+tif_predict.o: /usr/include/assert.h tif_predict.h tiffiop.h
+tif_print.o: /usr/include/ctype.h /usr/include/stdio.h tiffiop.h
+tif_read.o: /usr/include/assert.h /usr/include/stdio.h tiffiop.h
+tif_strip.o: tiffiop.h
+tif_swab.o: tiffiop.h
+tif_thunder.o: tiffiop.h
+tif_tile.o: tiffiop.h
+tif_version.o: tiffiop.h
+tif_warning.o: tiffiop.h
+tif_write.o: /usr/include/assert.h /usr/include/stdio.h tiffiop.h
+tif_zip.o: /usr/include/assert.h /usr/include/stdio.h tif_predict.h tiffiop.h zlib.h
+adler32.o: zlib.h
+compress.o: zlib.h
+crc32.o: zlib.h
+deflate.o: deflate.h
+gzio.o: /usr/include/stdio.h zutil.h
+infblock.o: infblock.h infcodes.h inftrees.h infutil.h zutil.h
+infcodes.o: infblock.h infcodes.h inffast.h inftrees.h infutil.h zutil.h
+inffast.o: infblock.h infcodes.h inffast.h inftrees.h infutil.h zutil.h
+inflate.o: infblock.h zutil.h
+inftrees.o: inffixed.h inftrees.h zutil.h
+infutil.o: infblock.h infcodes.h inftrees.h infutil.h zutil.h
+trees.o: /usr/include/ctype.h /usr/include/stdio.h deflate.h trees.h
+uncompr.o: zlib.h
+zutil.o: zutil.h
+
+$(STATICLIB): $(MODULES)
+	$(LINKER) r $@ $?
+
+$(SHAREDLIB): $(MODULES)
+	$(CC) -s -shared -Wl,-soname,$(LIBNAME) -o $@ $? $(LIBRARIES) 
+
+install: $(STATICLIB) $(SHAREDLIB)
+	install -m 644 -o root -g root $(STATICLIB) $(INSTALLDIR)
+	install -m 755 -o root -g root $(SHAREDLIB) $(INSTALLDIR)
+	ln -sf $(SHAREDLIB) $(INSTALLDIR)/$(LIBNAME)
+	ldconfig
+
+clean:
+	rm -f *.o core d2utmp* $(STATICLIB) $(SHAREDLIB) $(LIBNAME)

@@ -4,14 +4,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_display.c          copyright (c) 2000-2002 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_display.c          copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : Display management (implementation)                        * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : implementation of the display management routines          * */
 /* *                                                                        * */
@@ -184,6 +182,22 @@
 /* *             - B654627 - fixed SEGV when no gettickcount callback       * */
 /* *             - B664383 - fixed typo                                     * */
 /* *             - finalized changes in TERM/final_delay to elected proposal* */
+/* *                                                                        * */
+/* *             1.0.6 - 05/11/2003 - G. Juyn                               * */
+/* *             - added conditionals around canvas update routines         * */
+/* *             1.0.6 - 05/25/2003 - G.R-P                                 * */
+/* *             - added MNG_SKIPCHUNK_cHNK footprint optimizations         * */
+/* *             1.0.6 - 07/07/2003 - G.R-P                                 * */
+/* *             - added conditionals around some JNG-supporting code       * */
+/* *             - added conditionals around 16-bit supporting code         * */
+/* *             - reversed some loops to use decrementing counter          * */
+/* *             - combined init functions into one function                * */
+/* *             1.0.6 - 07/10/2003 - G.R-P                                 * */
+/* *             - replaced nested switches with simple init setup function * */
+/* *             1.0.6 - 07/29/2003 - G.R-P                                 * */
+/* *             - added conditionals around PAST chunk support             * */
+/* *             1.0.6 - 08/17/2003 - G.R-P                                 * */
+/* *             - added conditionals around non-VLC chunk support          * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -419,30 +433,52 @@ MNG_LOCAL void set_display_routine (mng_datap pData)
   {
     switch (pData->iCanvasstyle)         /* determine display routine */
     {
+#ifndef MNG_SKIPCANVAS_RGB8
       case MNG_CANVAS_RGB8    : { pData->fDisplayrow = (mng_fptr)mng_display_rgb8;     break; }
+#endif
+#ifndef MNG_SKIPCANVAS_RGBA8
       case MNG_CANVAS_RGBA8   : { pData->fDisplayrow = (mng_fptr)mng_display_rgba8;    break; }
+#endif
+#ifndef MNG_SKIPCANVAS_ARGB8
       case MNG_CANVAS_ARGB8   : { pData->fDisplayrow = (mng_fptr)mng_display_argb8;    break; }
+#endif
+#ifndef MNG_SKIPCANVAS_RGB8_A8
       case MNG_CANVAS_RGB8_A8 : { pData->fDisplayrow = (mng_fptr)mng_display_rgb8_a8;  break; }
+#endif
+#ifndef MNG_SKIPCANVAS_BGR8
       case MNG_CANVAS_BGR8    : { pData->fDisplayrow = (mng_fptr)mng_display_bgr8;     break; }
+#endif
+#ifndef MNG_SKIPCANVAS_BGRX8
       case MNG_CANVAS_BGRX8   : { pData->fDisplayrow = (mng_fptr)mng_display_bgrx8;    break; }
+#endif
+#ifndef MNG_SKIPCANVAS_BGRA8
       case MNG_CANVAS_BGRA8   : { pData->fDisplayrow = (mng_fptr)mng_display_bgra8;    break; }
+#endif
+#ifndef MNG_SKIPCANVAS_BGRA8_PM
       case MNG_CANVAS_BGRA8PM : { pData->fDisplayrow = (mng_fptr)mng_display_bgra8_pm; break; }
+#endif
+#ifndef MNG_SKIPCANVAS_ABGR8
       case MNG_CANVAS_ABGR8   : { pData->fDisplayrow = (mng_fptr)mng_display_abgr8;    break; }
+#endif
+#ifndef MNG_NO_16BIT_SUPPORT
 /*      case MNG_CANVAS_RGB16   : { pData->fDisplayrow = (mng_fptr)mng_display_rgb16;    break; } */
 /*      case MNG_CANVAS_RGBA16  : { pData->fDisplayrow = (mng_fptr)mng_display_rgba16;   break; } */
 /*      case MNG_CANVAS_ARGB16  : { pData->fDisplayrow = (mng_fptr)mng_display_argb16;   break; } */
 /*      case MNG_CANVAS_BGR16   : { pData->fDisplayrow = (mng_fptr)mng_display_bgr16;    break; } */
 /*      case MNG_CANVAS_BGRA16  : { pData->fDisplayrow = (mng_fptr)mng_display_bgra16;   break; } */
 /*      case MNG_CANVAS_ABGR16  : { pData->fDisplayrow = (mng_fptr)mng_display_abgr16;   break; } */
+#endif
 /*      case MNG_CANVAS_INDEX8  : { pData->fDisplayrow = (mng_fptr)mng_display_index8;   break; } */
 /*      case MNG_CANVAS_INDEXA8 : { pData->fDisplayrow = (mng_fptr)mng_display_indexa8;  break; } */
 /*      case MNG_CANVAS_AINDEX8 : { pData->fDisplayrow = (mng_fptr)mng_display_aindex8;  break; } */
 /*      case MNG_CANVAS_GRAY8   : { pData->fDisplayrow = (mng_fptr)mng_display_gray8;    break; } */
 /*      case MNG_CANVAS_GRAY16  : { pData->fDisplayrow = (mng_fptr)mng_display_gray16;   break; } */
 /*      case MNG_CANVAS_GRAYA8  : { pData->fDisplayrow = (mng_fptr)mng_display_graya8;   break; } */
+#ifndef MNG_NO_16BIT_SUPPORT
 /*      case MNG_CANVAS_GRAYA16 : { pData->fDisplayrow = (mng_fptr)mng_display_graya16;  break; } */
 /*      case MNG_CANVAS_AGRAY8  : { pData->fDisplayrow = (mng_fptr)mng_display_agray8;   break; } */
 /*      case MNG_CANVAS_AGRAY16 : { pData->fDisplayrow = (mng_fptr)mng_display_agray16;  break; } */
+#endif
 /*      case MNG_CANVAS_DX15    : { pData->fDisplayrow = (mng_fptr)mng_display_dx15;     break; } */
 /*      case MNG_CANVAS_DX16    : { pData->fDisplayrow = (mng_fptr)mng_display_dx16;     break; } */
     }
@@ -524,6 +560,7 @@ MNG_LOCAL mng_retcode load_bkgdlayer (mng_datap pData)
                                        /* default restore using preset BG color */
       pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_bgcolor;
 
+#ifndef MNG_SKIPCHUNK_bKGD
       if (((pData->eImagetype == mng_it_png) || (pData->eImagetype == mng_it_jng)) &&
           (pData->bUseBKGD))
       {                                /* prefer bKGD in PNG/JNG */
@@ -536,19 +573,30 @@ MNG_LOCAL mng_retcode load_bkgdlayer (mng_datap pData)
           bColorcorr          = MNG_TRUE;
         }
       }
+#endif
 
       if (pData->fGetbkgdline)         /* background-canvas-access callback set ? */
       {
         switch (pData->iBkgdstyle)
         {
+#ifndef MNG_SKIPCANVAS_RGB8
           case MNG_CANVAS_RGB8    : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_rgb8;    break; }
+#endif
+#ifndef MNG_SKIPCANVAS_BGR8
           case MNG_CANVAS_BGR8    : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_bgr8;    break; }
+#endif
+#ifndef MNG_SKIPCANVAS_BGRX8
           case MNG_CANVAS_BGRX8   : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_bgrx8;   break; }
+#endif
+#ifndef MNG_NO_16BIT_SUPPORT
   /*        case MNG_CANVAS_RGB16   : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_rgb16;   break; } */
   /*        case MNG_CANVAS_BGR16   : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_bgr16;   break; } */
+#endif
   /*        case MNG_CANVAS_INDEX8  : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_index8;  break; } */
   /*        case MNG_CANVAS_GRAY8   : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_gray8;   break; } */
+#ifndef MNG_NO_16BIT_SUPPORT
   /*        case MNG_CANVAS_GRAY16  : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_gray16;  break; } */
+#endif
   /*        case MNG_CANVAS_DX15    : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_dx15;    break; } */
   /*        case MNG_CANVAS_DX16    : { pData->fRestbkgdrow = (mng_fptr)mng_restore_bkgd_dx16;    break; } */
         }
@@ -623,6 +671,7 @@ MNG_LOCAL mng_retcode load_bkgdlayer (mng_datap pData)
           return iRetcode;
       }
 #endif
+#ifndef MNG_SKIPCHUNK_BACK
                                        /* background image ? */
       if ((pData->bHasBACK) && (pData->iBACKmandatory & 0x02) && (pData->iBACKimageid))
       {
@@ -682,18 +731,24 @@ MNG_LOCAL mng_retcode load_bkgdlayer (mng_datap pData)
                                        /* determine background object retrieval routine */
             switch (pImage->pImgbuf->iColortype)
             {
-              case  0 : { if (pImage->pImgbuf->iBitdepth > 8)
+              case  0 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                          if (pImage->pImgbuf->iBitdepth > 8)
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_g16;
                           else
+#endif
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_g8;
 
                           pData->bIsOpaque      = (mng_bool)(!pImage->pImgbuf->bHasTRNS);
                           break;
                         }
 
-              case  2 : { if (pImage->pImgbuf->iBitdepth > 8)
+              case  2 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                          if (pImage->pImgbuf->iBitdepth > 8)
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb16;
                           else
+#endif
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb8;
 
                           pData->bIsOpaque      = (mng_bool)(!pImage->pImgbuf->bHasTRNS);
@@ -705,54 +760,72 @@ MNG_LOCAL mng_retcode load_bkgdlayer (mng_datap pData)
                           break;
                         }
 
-              case  4 : { if (pImage->pImgbuf->iBitdepth > 8)
+              case  4 : { 
+#ifndef MNG_NO_16BIT_SUPPORT
+			if (pImage->pImgbuf->iBitdepth > 8)
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_ga16;
                           else
+#endif
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_ga8;
 
                           pData->bIsOpaque      = MNG_FALSE;
                           break;
                         }
 
-              case  6 : { if (pImage->pImgbuf->iBitdepth > 8)
+              case  6 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                          if (pImage->pImgbuf->iBitdepth > 8)
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba16;
                           else
+#endif
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba8;
 
                           pData->bIsOpaque      = MNG_FALSE;
                           break;
                         }
 
-              case  8 : { if (pImage->pImgbuf->iBitdepth > 8)
+              case  8 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                          if (pImage->pImgbuf->iBitdepth > 8)
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_g16;
                           else
+#endif
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_g8;
 
                           pData->bIsOpaque      = MNG_TRUE;
                           break;
                         }
 
-              case 10 : { if (pImage->pImgbuf->iBitdepth > 8)
+              case 10 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                          if (pImage->pImgbuf->iBitdepth > 8)
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb16;
                           else
+#endif
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb8;
 
                           pData->bIsOpaque      = MNG_TRUE;
                           break;
                         }
 
-              case 12 : { if (pImage->pImgbuf->iBitdepth > 8)
+              case 12 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                          if (pImage->pImgbuf->iBitdepth > 8)
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_ga16;
                           else
+#endif
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_ga8;
 
                           pData->bIsOpaque      = MNG_FALSE;
                           break;
                         }
 
-              case 14 : { if (pImage->pImgbuf->iBitdepth > 8)
+              case 14 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                          if (pImage->pImgbuf->iBitdepth > 8)
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba16;
                           else
+#endif
                             pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba8;
 
                           pData->bIsOpaque      = MNG_FALSE;
@@ -811,6 +884,7 @@ MNG_LOCAL mng_retcode load_bkgdlayer (mng_datap pData)
           }
         }
       }
+#endif
     }
 
     pData->iDestl       = iDestl;      /* restore values */
@@ -932,6 +1006,7 @@ MNG_LOCAL mng_retcode next_frame (mng_datap  pData,
   {
     mng_uint8 iOldmode = pData->iFramemode;
                                        /* interframe delay required ? */
+#ifndef MNG_SKIPCHUNK_FRAM
     if ((iOldmode == 2) || (iOldmode == 4))
     {
       if ((pData->iFrameseq) && (iFramemode != 1) && (iFramemode != 3))
@@ -1031,6 +1106,7 @@ MNG_LOCAL mng_retcode next_frame (mng_datap  pData,
       pData->iFrameclipt    = pData->iFRAMclipt;
       pData->iFrameclipb    = pData->iFRAMclipb;
     }
+#endif
   }
 
   if (!pData->bTimerset)               /* timer still off ? */
@@ -1225,18 +1301,24 @@ mng_retcode mng_display_image (mng_datap  pData,
                                        /* and image-buffer retrieval routine */
         switch (pImage->pImgbuf->iColortype)
         {
-          case  0 : { if (pImage->pImgbuf->iBitdepth > 8)
+          case  0 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                      if (pImage->pImgbuf->iBitdepth > 8)
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_g16;
                       else
+#endif
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_g8;
 
                       pData->bIsOpaque      = (mng_bool)(!pImage->pImgbuf->bHasTRNS);
                       break;
                     }
 
-          case  2 : { if (pImage->pImgbuf->iBitdepth > 8)
+          case  2 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                      if (pImage->pImgbuf->iBitdepth > 8)
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb16;
                       else
+#endif
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb8;
 
                       pData->bIsOpaque      = (mng_bool)(!pImage->pImgbuf->bHasTRNS);
@@ -1250,9 +1332,12 @@ mng_retcode mng_display_image (mng_datap  pData,
                     }
 
 
-          case  4 : { if (pImage->pImgbuf->iBitdepth > 8)
+          case  4 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                      if (pImage->pImgbuf->iBitdepth > 8)
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_ga16;
                       else
+#endif
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_ga8;
 
                       pData->bIsOpaque      = MNG_FALSE;
@@ -1260,27 +1345,36 @@ mng_retcode mng_display_image (mng_datap  pData,
                     }
 
 
-          case  6 : { if (pImage->pImgbuf->iBitdepth > 8)
+          case  6 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                      if (pImage->pImgbuf->iBitdepth > 8)
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba16;
                       else
+#endif
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba8;
 
                       pData->bIsOpaque      = MNG_FALSE;
                       break;
                     }
 
-          case  8 : { if (pImage->pImgbuf->iBitdepth > 8)
+          case  8 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                      if (pImage->pImgbuf->iBitdepth > 8)
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_g16;
                       else
+#endif
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_g8;
 
                       pData->bIsOpaque      = MNG_TRUE;
                       break;
                     }
 
-          case 10 : { if (pImage->pImgbuf->iBitdepth > 8)
+          case 10 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                      if (pImage->pImgbuf->iBitdepth > 8)
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb16;
                       else
+#endif
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb8;
 
                       pData->bIsOpaque      = MNG_TRUE;
@@ -1288,9 +1382,12 @@ mng_retcode mng_display_image (mng_datap  pData,
                     }
 
 
-          case 12 : { if (pImage->pImgbuf->iBitdepth > 8)
+          case 12 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                      if (pImage->pImgbuf->iBitdepth > 8)
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_ga16;
                       else
+#endif
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_ga8;
 
                       pData->bIsOpaque      = MNG_FALSE;
@@ -1298,9 +1395,12 @@ mng_retcode mng_display_image (mng_datap  pData,
                     }
 
 
-          case 14 : { if (pImage->pImgbuf->iBitdepth > 8)
+          case 14 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                      if (pImage->pImgbuf->iBitdepth > 8)
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba16;
                       else
+#endif
                         pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba8;
 
                       pData->bIsOpaque      = MNG_FALSE;
@@ -1318,11 +1418,13 @@ mng_retcode mng_display_image (mng_datap  pData,
         pData->iRowsize    = pData->iRowsamples << 2;
         pData->bIsRGBA16   = MNG_FALSE;
                                        /* adjust for 16-bit object ? */
+#ifndef MNG_NO_16BIT_SUPPORT
         if (pImage->pImgbuf->iBitdepth > 8)
         {
           pData->bIsRGBA16 = MNG_TRUE;
           pData->iRowsize  = pData->iRowsamples << 3;
         }
+#endif
 
         pData->fCorrectrow = MNG_NULL; /* default no color-correction */
 
@@ -1384,6 +1486,7 @@ mng_retcode mng_display_image (mng_datap  pData,
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 mng_retcode mng_execute_delta_image (mng_datap  pData,
                                      mng_imagep pTarget,
                                      mng_imagep pDelta)
@@ -1454,6 +1557,7 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
       pBuftarget->bHasTRNS = MNG_TRUE; /* tell it it's got a tRNS now */
     }
 
+#ifndef MNG_SKIPCHUNK_bKGD
     if (pBufdelta->bHasBKGD)           /* bkgd in source ? */
     {                                  /* drop it onto the target */
       pBuftarget->bHasBKGD   = MNG_TRUE;
@@ -1463,6 +1567,7 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
       pBuftarget->iBKGDgreen = pBufdelta->iBKGDgreen;
       pBuftarget->iBKGDblue  = pBufdelta->iBKGDblue;
     }
+#endif
 
     if (pBufdelta->bHasGAMA)           /* gamma in source ? */
     {
@@ -1470,6 +1575,7 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
       pBuftarget->iGamma   = pBufdelta->iGamma;
     }
 
+#ifndef MNG_SKIPCHUNK_cHRM
     if (pBufdelta->bHasCHRM)           /* chroma in delta ? */
     {                                  /* drop it onto the target */
       pBuftarget->bHasCHRM       = MNG_TRUE;
@@ -1482,6 +1588,7 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
       pBuftarget->iPrimarybluex  = pBufdelta->iPrimarybluex;
       pBuftarget->iPrimarybluey  = pBufdelta->iPrimarybluey;
     }
+#endif
 
     if (pBufdelta->bHasSRGB)           /* sRGB in delta ? */
     {                                  /* drop it onto the target */
@@ -1489,6 +1596,7 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
       pBuftarget->iRenderingintent = pBufdelta->iRenderingintent;
     }
 
+#ifndef MNG_SKIPCHUNK_iCCP
     if (pBufdelta->bHasICCP)           /* ICC profile in delta ? */
     {
       pBuftarget->bHasICCP = MNG_TRUE; /* drop it onto the target */
@@ -1501,6 +1609,7 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                                        /* store it's length as well */
       pBuftarget->iProfilesize = pBufdelta->iProfilesize;
     }
+#endif
                                        /* need to execute delta pixels ? */
     if ((!pData->bDeltaimmediate) && (pData->iDeltatype != MNG_DELTATYPE_NOCHANGE))
     {
@@ -1514,7 +1623,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                       case  2 : { pData->fScalerow = (mng_fptr)mng_scale_g1_g2;  break; }
                       case  4 : { pData->fScalerow = (mng_fptr)mng_scale_g1_g4;  break; }
                       case  8 : { pData->fScalerow = (mng_fptr)mng_scale_g1_g8;  break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                       case 16 : { pData->fScalerow = (mng_fptr)mng_scale_g1_g16; break; }
+#endif
                     }
                     break;
                   }
@@ -1525,7 +1636,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                       case  1 : { pData->fScalerow = (mng_fptr)mng_scale_g2_g1;  break; }
                       case  4 : { pData->fScalerow = (mng_fptr)mng_scale_g2_g4;  break; }
                       case  8 : { pData->fScalerow = (mng_fptr)mng_scale_g2_g8;  break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                       case 16 : { pData->fScalerow = (mng_fptr)mng_scale_g2_g16; break; }
+#endif
                     }
                     break;
                   }
@@ -1536,7 +1649,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                       case  1 : { pData->fScalerow = (mng_fptr)mng_scale_g4_g1;  break; }
                       case  2 : { pData->fScalerow = (mng_fptr)mng_scale_g4_g2;  break; }
                       case  8 : { pData->fScalerow = (mng_fptr)mng_scale_g4_g8;  break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                       case 16 : { pData->fScalerow = (mng_fptr)mng_scale_g4_g16; break; }
+#endif
                     }
                     break;
                   }
@@ -1552,32 +1667,41 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                                     case  1 : { pData->fScalerow = (mng_fptr)mng_scale_g8_g1;  break; }
                                     case  2 : { pData->fScalerow = (mng_fptr)mng_scale_g8_g2;  break; }
                                     case  4 : { pData->fScalerow = (mng_fptr)mng_scale_g8_g4;  break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                                     case 16 : { pData->fScalerow = (mng_fptr)mng_scale_g8_g16; break; }
+#endif
                                   }
                                   break;
                                 }
                       case  2 : ;
                       case 10 : {
+#ifndef MNG_NO_16BIT_SUPPORT
                                   if (pBuftarget->iBitdepth == 16)
                                     pData->fScalerow = (mng_fptr)mng_scale_rgb8_rgb16;
+#endif
                                   break;
                                 }
                       case  4 : ;
                       case 12 : {
+#ifndef MNG_NO_16BIT_SUPPORT
                                   if (pBuftarget->iBitdepth == 16)
                                     pData->fScalerow = (mng_fptr)mng_scale_ga8_ga16;
+#endif
                                   break;
                                 }
                       case  6 : ;
                       case 14 : {
+#ifndef MNG_NO_16BIT_SUPPORT
                                   if (pBuftarget->iBitdepth == 16)
                                     pData->fScalerow = (mng_fptr)mng_scale_rgba8_rgba16;
+#endif
                                   break;
                                 }
                     }
                     break;
                   }
 
+#ifndef MNG_NO_16BIT_SUPPORT
         case 16 : {
                     switch (pBufdelta->iColortype)
                     {
@@ -1614,6 +1738,7 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                     }
                     break;
                   }
+#endif
 
       }
 
@@ -1636,7 +1761,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                           case  2 : { pData->fDeltarow = (mng_fptr)mng_delta_g2_g2;   break; }
                           case  4 : { pData->fDeltarow = (mng_fptr)mng_delta_g4_g4;   break; }
                           case  8 : { pData->fDeltarow = (mng_fptr)mng_delta_g8_g8;   break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                           case 16 : { pData->fDeltarow = (mng_fptr)mng_delta_g16_g16; break; }
+#endif
                         }
                       }
                     }
@@ -1655,7 +1782,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                         switch (pBuftarget->iBitdepth)
                         {
                           case  8 : { pData->fDeltarow = (mng_fptr)mng_delta_rgb8_rgb8;   break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                           case 16 : { pData->fDeltarow = (mng_fptr)mng_delta_rgb16_rgb16; break; }
+#endif
                         }
                       }
                     }
@@ -1694,7 +1823,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                         switch (pBuftarget->iBitdepth)
                         {
                           case  8 : { pData->fDeltarow = (mng_fptr)mng_delta_ga8_ga8;   break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                           case 16 : { pData->fDeltarow = (mng_fptr)mng_delta_ga16_ga16; break; }
+#endif
                         }
                       }
                     }
@@ -1708,7 +1839,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                         switch (pBuftarget->iBitdepth)
                         {
                           case  8 : { pData->fDeltarow = (mng_fptr)mng_delta_ga8_g8;   break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                           case 16 : { pData->fDeltarow = (mng_fptr)mng_delta_ga16_g16; break; }
+#endif
                         }
                       }
                     }
@@ -1721,7 +1854,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                         switch (pBuftarget->iBitdepth)
                         {
                           case  8 : { pData->fDeltarow = (mng_fptr)mng_delta_ga8_a8;   break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                           case 16 : { pData->fDeltarow = (mng_fptr)mng_delta_ga16_a16; break; }
+#endif
                         }
                       }
                     }
@@ -1740,7 +1875,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                         switch (pBuftarget->iBitdepth)
                         {
                           case  8 : { pData->fDeltarow = (mng_fptr)mng_delta_rgba8_rgba8;   break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                           case 16 : { pData->fDeltarow = (mng_fptr)mng_delta_rgba16_rgba16; break; }
+#endif
                         }
                       }
                     }
@@ -1753,7 +1890,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                         switch (pBuftarget->iBitdepth)
                         {
                           case  8 : { pData->fDeltarow = (mng_fptr)mng_delta_rgba8_rgb8;   break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                           case 16 : { pData->fDeltarow = (mng_fptr)mng_delta_rgba16_rgb16; break; }
+#endif
                         }
                       }
                     }
@@ -1766,7 +1905,9 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
                         switch (pBuftarget->iBitdepth)
                         {
                           case  8 : { pData->fDeltarow = (mng_fptr)mng_delta_rgba8_a8;   break; }
+#ifndef MNG_NO_16BIT_SUPPORT
                           case 16 : { pData->fDeltarow = (mng_fptr)mng_delta_rgba16_a16; break; }
+#endif
                         }
                       }
                     }
@@ -1833,9 +1974,11 @@ mng_retcode mng_execute_delta_image (mng_datap  pData,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_NO_DELTA_PNG */
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SAVE
 MNG_LOCAL mng_retcode save_state (mng_datap pData)
 {
   mng_savedatap pSave;
@@ -1887,6 +2030,7 @@ MNG_LOCAL mng_retcode save_state (mng_datap pData)
 
   pSave->iGlobalGamma         = pData->iGlobalGamma;
 
+#ifndef MNG_SKIPCHUNK_cHRM
   pSave->iGlobalWhitepointx   = pData->iGlobalWhitepointx;
   pSave->iGlobalWhitepointy   = pData->iGlobalWhitepointy;
   pSave->iGlobalPrimaryredx   = pData->iGlobalPrimaryredx;
@@ -1895,9 +2039,11 @@ MNG_LOCAL mng_retcode save_state (mng_datap pData)
   pSave->iGlobalPrimarygreeny = pData->iGlobalPrimarygreeny;
   pSave->iGlobalPrimarybluex  = pData->iGlobalPrimarybluex;
   pSave->iGlobalPrimarybluey  = pData->iGlobalPrimarybluey;
+#endif
 
   pSave->iGlobalRendintent    = pData->iGlobalRendintent;
 
+#ifndef MNG_SKIPCHUNK_iCCP
   pSave->iGlobalProfilesize   = pData->iGlobalProfilesize;
 
   if (pSave->iGlobalProfilesize)       /* has a profile ? */
@@ -1905,10 +2051,13 @@ MNG_LOCAL mng_retcode save_state (mng_datap pData)
     MNG_ALLOC (pData, pSave->pGlobalProfile, pSave->iGlobalProfilesize)
     MNG_COPY (pSave->pGlobalProfile, pData->pGlobalProfile, pSave->iGlobalProfilesize)
   }
+#endif
 
+#ifndef MNG_SKIPCHUNK_bKGD
   pSave->iGlobalBKGDred       = pData->iGlobalBKGDred;
   pSave->iGlobalBKGDgreen     = pData->iGlobalBKGDgreen;
   pSave->iGlobalBKGDblue      = pData->iGlobalBKGDblue;
+#endif
 
                                        /* freeze current image objects */
   pImage = (mng_imagep)pData->pFirstimgobj;
@@ -1927,6 +2076,7 @@ MNG_LOCAL mng_retcode save_state (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -1964,7 +2114,9 @@ mng_retcode mng_reset_objzero (mng_datap pData)
 
 MNG_LOCAL mng_retcode restore_state (mng_datap pData)
 {
+#ifndef MNG_SKIPCHUNK_SAVE
   mng_savedatap pSave;
+#endif
   mng_imagep    pImage;
   mng_retcode   iRetcode;
 
@@ -1979,6 +2131,7 @@ MNG_LOCAL mng_retcode restore_state (mng_datap pData)
                                        /* fresh cycle; fake no frames done yet */
   pData->bFramedone             = MNG_FALSE;
 
+#ifndef MNG_SKIPCHUNK_SAVE
   if (pData->pSavedata)                /* do we have a saved state ? */
   {
     pSave = pData->pSavedata;          /* address it more directly */
@@ -2029,6 +2182,7 @@ MNG_LOCAL mng_retcode restore_state (mng_datap pData)
 
     pData->iGlobalGamma         = pSave->iGlobalGamma;
 
+#ifndef MNG_SKIPCHUNK_cHRM
     pData->iGlobalWhitepointx   = pSave->iGlobalWhitepointx;
     pData->iGlobalWhitepointy   = pSave->iGlobalWhitepointy;
     pData->iGlobalPrimaryredx   = pSave->iGlobalPrimaryredx;
@@ -2037,9 +2191,11 @@ MNG_LOCAL mng_retcode restore_state (mng_datap pData)
     pData->iGlobalPrimarygreeny = pSave->iGlobalPrimarygreeny;
     pData->iGlobalPrimarybluex  = pSave->iGlobalPrimarybluex;
     pData->iGlobalPrimarybluey  = pSave->iGlobalPrimarybluey;
+#endif
 
     pData->iGlobalRendintent    = pSave->iGlobalRendintent;
 
+#ifndef MNG_SKIPCHUNK_iCCP
     pData->iGlobalProfilesize   = pSave->iGlobalProfilesize;
 
     if (pData->iGlobalProfilesize)     /* has a profile ? */
@@ -2047,12 +2203,16 @@ MNG_LOCAL mng_retcode restore_state (mng_datap pData)
       MNG_ALLOC (pData, pData->pGlobalProfile, pData->iGlobalProfilesize)
       MNG_COPY (pData->pGlobalProfile, pSave->pGlobalProfile, pData->iGlobalProfilesize)
     }
+#endif
 
+#ifndef MNG_SKIPCHUNK_bKGD
     pData->iGlobalBKGDred       = pSave->iGlobalBKGDred;
     pData->iGlobalBKGDgreen     = pSave->iGlobalBKGDgreen;
     pData->iGlobalBKGDblue      = pSave->iGlobalBKGDblue;
+#endif
   }
   else                                 /* no saved-data; so reset the lot */
+#endif /* SKIPCHUNK_SAVE */
   {
 #if defined(MNG_SUPPORT_READ) || defined(MNG_SUPPORT_WRITE)
     pData->bHasglobalPLTE       = MNG_FALSE;
@@ -2101,6 +2261,7 @@ MNG_LOCAL mng_retcode restore_state (mng_datap pData)
 
     pData->iGlobalGamma         = 0;
 
+#ifndef MNG_SKIPCHUNK_cHRM
     pData->iGlobalWhitepointx   = 0;
     pData->iGlobalWhitepointy   = 0;
     pData->iGlobalPrimaryredx   = 0;
@@ -2109,17 +2270,22 @@ MNG_LOCAL mng_retcode restore_state (mng_datap pData)
     pData->iGlobalPrimarygreeny = 0;
     pData->iGlobalPrimarybluex  = 0;
     pData->iGlobalPrimarybluey  = 0;
+#endif
 
     pData->iGlobalRendintent    = 0;
 
+#ifndef MNG_SKIPCHUNK_iCCP
     if (pData->iGlobalProfilesize)     /* free a previous profile ? */
       MNG_FREE (pData, pData->pGlobalProfile, pData->iGlobalProfilesize)
 
     pData->iGlobalProfilesize   = 0;
+#endif
 
+#ifndef MNG_SKIPCHUNK_bKGD
     pData->iGlobalBKGDred       = 0;
     pData->iGlobalBKGDgreen     = 0;
     pData->iGlobalBKGDblue      = 0;
+#endif
   }
 
   if (!pData->bMisplacedTERM)          /* backward compatible ugliness !!! */
@@ -2213,13 +2379,23 @@ mng_retcode mng_process_display (mng_datap pData)
     {
       switch (pData->iBreakpoint)      /* return to broken display routine */
       {
+#ifndef MNG_SKIPCHUNK_FRAM
         case  1 : { iRetcode = mng_process_display_fram2 (pData); break; }
+#endif
+#ifndef MNG_SKIPCHUNK_SHOW
         case  3 : ;                    /* same as 4 !!! */
         case  4 : { iRetcode = mng_process_display_show  (pData); break; }
+#endif
+#ifndef MNG_SKIPCHUNK_CLON
         case  5 : { iRetcode = mng_process_display_clon2 (pData); break; }
+#endif
+#ifndef MNG_SKIPCHUNK_MAGN
         case  9 : { iRetcode = mng_process_display_magn2 (pData); break; }
         case 10 : { iRetcode = mng_process_display_mend2 (pData); break; }
+#endif
+#ifndef MNG_SKIPCHUNK_PAST
         case 11 : { iRetcode = mng_process_display_past2 (pData); break; }
+#endif
         default : MNG_ERROR (pData, MNG_INTERNALERROR)
       }
     }
@@ -2302,6 +2478,54 @@ mng_retcode mng_process_display (mng_datap pData)
 /* *                                                                        * */
 /* ************************************************************************** */
 
+#ifdef MNG_OPTIMIZE_FOOTPRINT_INIT
+png_imgtype mng_png_imgtype(mng_uint8 colortype, mng_uint8 bitdepth)
+{
+  png_imgtype ret;
+  switch (bitdepth)
+  {
+    case 1:
+    {
+      png_imgtype imgtype[]={png_g1,png_none,png_none,png_idx1};
+      ret=imgtype[colortype];
+      break;
+    }
+    case 2:
+    {
+      png_imgtype imgtype[]={png_g2,png_none,png_none,png_idx2};
+      ret=imgtype[colortype];
+      break;
+    }
+    case 4:
+    {
+      png_imgtype imgtype[]={png_g4,png_none,png_none,png_idx4};
+      ret=imgtype[colortype];
+      break;
+    }
+    case 8:
+    {
+      png_imgtype imgtype[]={png_g8,png_none,png_rgb8,png_idx8,png_ga8,
+          png_none,png_rgba8};
+      ret=imgtype[colortype];
+      break;
+    }
+#ifndef MNG_NO_16BIT_SUPPORT
+    case 16:
+    {
+      png_imgtype imgtype[]={png_g16,png_none,png_rgb16,png_none,png_ga16,
+          png_none,png_rgba16};
+      ret=imgtype[colortype];
+      break;
+    }
+#endif
+    default:
+      ret=png_none;
+      break;
+  }
+  return (ret);
+}
+#endif /* MNG_OPTIMIZE_FOOTPRINT_INIT */
+
 mng_retcode mng_process_display_ihdr (mng_datap pData)
 {                                      /* address the current "object" if any */
   mng_imagep pImage = (mng_imagep)pData->pCurrentobj;
@@ -2325,6 +2549,7 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
   {
     mng_retcode iRetcode = MNG_NOERROR;
 
+#ifndef MNG_NO_DELTA_PNG
     if (pData->bHasDHDR)               /* is a delta-image ? */
     {
       if (pData->iDeltatype == MNG_DELTATYPE_REPLACE)
@@ -2363,6 +2588,7 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
       }
     }
     else
+#endif
     {
       if (pImage)                      /* update object buffer ? */
         iRetcode = mng_reset_object_details (pData, pImage,
@@ -2410,6 +2636,10 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
 
   if (!pData->bTimerset)               /* no timer break ? */
   {
+#ifdef MNG_OPTIMIZE_FOOTPRINT_INIT
+    pData->fInitrowproc = (mng_fptr)mng_init_rowproc;
+    pData->ePng_imgtype=mng_png_imgtype(pData->iColortype,pData->iBitdepth);
+#else
     switch (pData->iColortype)         /* determine row initialization routine */
     {
       case 0 : {                       /* gray */
@@ -2436,7 +2666,6 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
                                  pData->fInitrowproc = (mng_fptr)mng_init_g4_ni;
                                else
                                  pData->fInitrowproc = (mng_fptr)mng_init_g4_i;
-
                                break;
                              }
                    case  8 : {
@@ -2447,6 +2676,7 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
 
                                break;
                              }
+#ifndef MNG_NO_16BIT_SUPPORT
                    case 16 : {
                                if (!pData->iInterlace)
                                  pData->fInitrowproc = (mng_fptr)mng_init_g16_ni;
@@ -2455,6 +2685,7 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
 
                                break;
                              }
+#endif
                  }
 
                  break;
@@ -2467,9 +2698,9 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
                                  pData->fInitrowproc = (mng_fptr)mng_init_rgb8_ni;
                                else
                                  pData->fInitrowproc = (mng_fptr)mng_init_rgb8_i;
-
                                break;
                              }
+#ifndef MNG_NO_16BIT_SUPPORT
                    case 16 : {
                                if (!pData->iInterlace)
                                  pData->fInitrowproc = (mng_fptr)mng_init_rgb16_ni;
@@ -2478,6 +2709,7 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
 
                                break;
                              }
+#endif
                  }
 
                  break;
@@ -2532,14 +2764,15 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
 
                                break;
                              }
+#ifndef MNG_NO_16BIT_SUPPORT
                    case 16 : {
                                if (!pData->iInterlace)
                                  pData->fInitrowproc = (mng_fptr)mng_init_ga16_ni;
                                else
                                  pData->fInitrowproc = (mng_fptr)mng_init_ga16_i;
-
                                break;
                              }
+#endif
                  }
 
                  break;
@@ -2555,6 +2788,7 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
 
                                break;
                              }
+#ifndef MNG_NO_16BIT_SUPPORT
                    case 16 : {
                                if (!pData->iInterlace)
                                  pData->fInitrowproc = (mng_fptr)mng_init_rgba16_ni;
@@ -2563,11 +2797,13 @@ mng_retcode mng_process_display_ihdr (mng_datap pData)
 
                                break;
                              }
+#endif
                  }
 
                  break;
                }
     }
+#endif /* MNG_OPTIMIZE_FOOTPRINT_INIT */
 
     pData->iFilterofs = 0;             /* determine filter characteristics */
     pData->iLevel0    = 0;             /* default levels */
@@ -2738,6 +2974,7 @@ mng_retcode mng_process_display_iend (mng_datap pData)
   {
     mng_imagep pImage = (mng_imagep)pData->pDeltaImage;
 
+#ifndef MNG_NO_DELTA_PNG
     if (!pData->iBreakpoint)
     {                                  /* perform the delta operations needed */
       iRetcode = mng_execute_delta_image (pData, pImage, (mng_imagep)pData->pObjzero);
@@ -2745,6 +2982,7 @@ mng_retcode mng_process_display_iend (mng_datap pData)
       if (iRetcode)                    /* on error bail out */
         return iRetcode;
     }
+#endif
                                        /* display it now then ? */
     if ((pImage->bVisible) && (pImage->bViewable))
     {                                  /* ok, so do it */
@@ -3041,6 +3279,7 @@ mng_retcode mng_process_display_mend2 (mng_datap pData)
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_DEFI
 mng_retcode mng_process_display_defi (mng_datap pData)
 {
   mng_imagep pImage;
@@ -3127,9 +3366,11 @@ mng_retcode mng_process_display_defi (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_BASI
 mng_retcode mng_process_display_basi (mng_datap  pData,
                                       mng_uint16 iRed,
                                       mng_uint16 iGreen,
@@ -3174,17 +3415,29 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
   switch (pData->iColortype)           /* depending on color_type & bit_depth */
   {
     case 0 : {                         /* gray */
+#ifndef MNG_NO_16BIT_SUPPORT
                if (pData->iBitdepth == 16)
                {
+#ifdef MNG_DECREMENT_LOOPS
+                 for (iX = pData->iDatawidth * pData->iDataheight;
+                    iX > 0;iX--)
+#else
                  for (iX = 0; iX < pData->iDatawidth * pData->iDataheight; iX++)
+#endif
                  {
                    mng_put_uint16 (pWork, iRed);
                    pWork += 2;
                  }
                }
                else
+#endif
                {
+#ifdef MNG_DECREMENT_LOOPS
+                 for (iX = pData->iDatawidth * pData->iDataheight;
+                    iX > 0;iX--)
+#else
                  for (iX = 0; iX < pData->iDatawidth * pData->iDataheight; iX++)
+#endif
                  {
                    *pWork = (mng_uint8)iRed;
                    pWork++;
@@ -3201,9 +3454,15 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
              }
 
     case 2 : {                         /* rgb */
+#ifndef MNG_NO_16BIT_SUPPORT
                if (pData->iBitdepth == 16)
                {
+#ifdef MNG_DECREMENT_LOOPS
+                 for (iX = pData->iDatawidth * pData->iDataheight;
+                    iX > 0;iX--)
+#else
                  for (iX = 0; iX < pData->iDatawidth * pData->iDataheight; iX++)
+#endif
                  {
                    mng_put_uint16 (pWork,   iRed  );
                    mng_put_uint16 (pWork+2, iGreen);
@@ -3212,8 +3471,14 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
                  }
                }
                else
+#endif
                {
+#ifdef MNG_DECREMENT_LOOPS
+                 for (iX = pData->iDatawidth * pData->iDataheight;
+                    iX > 0;iX--)
+#else
                  for (iX = 0; iX < pData->iDatawidth * pData->iDataheight; iX++)
+#endif
                  {
                    *pWork     = (mng_uint8)iRed;
                    *(pWork+1) = (mng_uint8)iGreen;
@@ -3267,9 +3532,15 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
              }
 
     case 4 : {                         /* gray+alpha */
+#ifndef MNG_NO_16BIT_SUPPORT
                if (pData->iBitdepth == 16)
                {
+#ifdef MNG_DECREMENT_LOOPS
+                 for (iX = pData->iDatawidth * pData->iDataheight;
+                    iX > 0;iX--)
+#else
                  for (iX = 0; iX < pData->iDatawidth * pData->iDataheight; iX++)
+#endif
                  {
                    mng_put_uint16 (pWork,   iRed);
                    mng_put_uint16 (pWork+2, iAlpha);
@@ -3277,8 +3548,14 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
                  }
                }
                else
+#endif
                {
+#ifdef MNG_DECREMENT_LOOPS
+                 for (iX = pData->iDatawidth * pData->iDataheight;
+                    iX > 0;iX--)
+#else
                  for (iX = 0; iX < pData->iDatawidth * pData->iDataheight; iX++)
+#endif
                  {
                    *pWork     = (mng_uint8)iRed;
                    *(pWork+1) = (mng_uint8)iAlpha;
@@ -3290,9 +3567,15 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
              }
 
     case 6 : {                         /* rgb+alpha */
+#ifndef MNG_NO_16BIT_SUPPORT
                if (pData->iBitdepth == 16)
                {
+#ifdef MNG_DECREMENT_LOOPS
+                 for (iX = pData->iDatawidth * pData->iDataheight;
+                    iX > 0;iX--)
+#else
                  for (iX = 0; iX < pData->iDatawidth * pData->iDataheight; iX++)
+#endif
                  {
                    mng_put_uint16 (pWork,   iRed);
                    mng_put_uint16 (pWork+2, iGreen);
@@ -3302,8 +3585,14 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
                  }
                }
                else
+#endif
                {
+#ifdef MNG_DECREMENT_LOOPS
+                 for (iX = pData->iDatawidth * pData->iDataheight;
+                    iX > 0;iX--)
+#else
                  for (iX = 0; iX < pData->iDatawidth * pData->iDataheight; iX++)
+#endif
                  {
                    *pWork     = (mng_uint8)iRed;
                    *(pWork+1) = (mng_uint8)iGreen;
@@ -3318,6 +3607,10 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
   }
 
+#ifdef MNG_OPTIMIZE_FOOTPRINT_INIT
+  pData->fInitrowproc = (mng_fptr)mng_init_rowproc;
+  pData->ePng_imgtype=mng_png_imgtype(pData->iColortype,pData->iBitdepth);
+#else
   switch (pData->iColortype)           /* determine row initialization routine */
   {                                    /* just to accomodate IDAT if it arrives */
     case 0 : {                         /* gray */
@@ -3355,6 +3648,7 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
                              break;
                            }
+#ifndef MNG_NO_16BIT_SUPPORT
                  case 16 : {
                              if (!pData->iInterlace)
                                pData->fInitrowproc = (mng_fptr)mng_init_g16_ni;
@@ -3363,6 +3657,7 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
                              break;
                            }
+#endif
                }
 
                break;
@@ -3378,6 +3673,7 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
                              break;
                            }
+#ifndef MNG_NO_16BIT_SUPPORT
                  case 16 : {
                              if (!pData->iInterlace)
                                pData->fInitrowproc = (mng_fptr)mng_init_rgb16_ni;
@@ -3386,6 +3682,7 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
                              break;
                            }
+#endif
                }
 
                break;
@@ -3440,6 +3737,7 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
                              break;
                            }
+#ifndef MNG_NO_16BIT_SUPPORT
                  case 16 : {
                              if (!pData->iInterlace)
                                pData->fInitrowproc = (mng_fptr)mng_init_ga16_ni;
@@ -3448,6 +3746,7 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
                              break;
                            }
+#endif
                }
 
                break;
@@ -3463,6 +3762,7 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
                              break;
                            }
+#ifndef MNG_NO_16BIT_SUPPORT
                  case 16 : {
                              if (!pData->iInterlace)
                                pData->fInitrowproc = (mng_fptr)mng_init_rgba16_ni;
@@ -3471,11 +3771,13 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
                              break;
                            }
+#endif
                }
 
                break;
              }
   }
+#endif /* MNG_OPTIMIZE_FOOTPRINT_INIT */
 
   pData->iFilterofs = 0;               /* determine filter characteristics */
   pData->iLevel0    = 0;               /* default levels */
@@ -3489,18 +3791,26 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
     switch (pData->iColortype)
     {
       case 0 : {
+#ifndef MNG_NO_16BIT_SUPPORT
                  if (pData->iBitdepth <= 8)
+#endif
                    pData->iFilterofs = 1;
+#ifndef MNG_NO_16BIT_SUPPORT
                  else
                    pData->iFilterofs = 2;
+#endif
 
                  break;
                }
       case 2 : {
+#ifndef MNG_NO_16BIT_SUPPORT
                  if (pData->iBitdepth <= 8)
+#endif
                    pData->iFilterofs = 3;
+#ifndef MNG_NO_16BIT_SUPPORT
                  else
                    pData->iFilterofs = 6;
+#endif
 
                  break;
                }
@@ -3509,18 +3819,26 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
                  break;
                }
       case 4 : {
+#ifndef MNG_NO_16BIT_SUPPORT
                  if (pData->iBitdepth <= 8)
+#endif
                    pData->iFilterofs = 2;
+#ifndef MNG_NO_16BIT_SUPPORT
                  else
                    pData->iFilterofs = 4;
+#endif
 
                  break;
                }
       case 6 : {
+#ifndef MNG_NO_16BIT_SUPPORT
                  if (pData->iBitdepth <= 8)
+#endif
                    pData->iFilterofs = 4;
+#ifndef MNG_NO_16BIT_SUPPORT
                  else
                    pData->iFilterofs = 8;
+#endif
 
                  break;
                }
@@ -3541,9 +3859,11 @@ mng_retcode mng_process_display_basi (mng_datap  pData,
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_CLON
 mng_retcode mng_process_display_clon (mng_datap  pData,
                                       mng_uint16 iSourceid,
                                       mng_uint16 iCloneid,
@@ -3647,9 +3967,11 @@ mng_retcode mng_process_display_clon2 (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_DISC
 mng_retcode mng_process_display_disc (mng_datap   pData,
                                       mng_uint32  iCount,
                                       mng_uint16p pIds)
@@ -3665,7 +3987,11 @@ mng_retcode mng_process_display_disc (mng_datap   pData,
   {
     mng_uint16p pWork = pIds;
 
+#ifdef MNG_DECREMENT_LOOPS
+    for (iX = iCount; iX > 0;iX--)
+#else
     for (iX = 0; iX < iCount; iX++)    /* iterate the list */
+#endif
     {
       pImage = mng_find_imageobject (pData, *pWork++);
                    
@@ -3703,9 +4029,11 @@ mng_retcode mng_process_display_disc (mng_datap   pData,
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_FRAM
 mng_retcode mng_process_display_fram (mng_datap  pData,
                                       mng_uint8  iFramemode,
                                       mng_uint8  iChangedelay,
@@ -3758,9 +4086,11 @@ mng_retcode mng_process_display_fram2 (mng_datap pData)
 
   return iRetcode;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_MOVE
 mng_retcode mng_process_display_move (mng_datap  pData,
                                       mng_uint16 iFromid,
                                       mng_uint16 iToid,
@@ -3806,9 +4136,11 @@ mng_retcode mng_process_display_move (mng_datap  pData,
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_CLIP
 mng_retcode mng_process_display_clip (mng_datap  pData,
                                       mng_uint16 iFromid,
                                       mng_uint16 iToid,
@@ -3862,9 +4194,11 @@ mng_retcode mng_process_display_clip (mng_datap  pData,
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SHOW
 mng_retcode mng_process_display_show (mng_datap pData)
 {
   mng_int16  iX, iS, iFrom, iTo;
@@ -4067,9 +4401,11 @@ mng_retcode mng_process_display_show (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SAVE
 mng_retcode mng_process_display_save (mng_datap pData)
 {
   mng_retcode iRetcode;
@@ -4089,9 +4425,11 @@ mng_retcode mng_process_display_save (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_SEEK
 mng_retcode mng_process_display_seek (mng_datap pData)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -4127,6 +4465,7 @@ mng_retcode mng_process_display_seek (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
@@ -4161,6 +4500,7 @@ mng_retcode mng_process_display_jhdr (mng_datap pData)
 
   if (!pData->iBreakpoint)             /* not previously broken ? */
   {
+#ifndef MNG_NO_DELTA_PNG
     if (pData->bHasDHDR)               /* delta-image ? */
     {
       if (pData->iDeltatype == MNG_DELTATYPE_REPLACE)
@@ -4194,6 +4534,7 @@ mng_retcode mng_process_display_jhdr (mng_datap pData)
         
     }
     else
+#endif /* MNG_NO_DELTA_PNG */
     {
       if (pImage)                      /* update object buffer ? */
       {
@@ -4260,6 +4601,9 @@ mng_retcode mng_process_display_jhdr (mng_datap pData)
 
   if (!pData->bTimerset)               /* no timer break ? */
   {                                    /* default row initialization ! */
+#ifdef MNG_OPTIMIZE_FOOTPRINT_INIT
+    pData->ePng_imgtype=png_none;
+#endif
     pData->fInitrowproc = (mng_fptr)mng_init_rowproc;
 
     if ((!pData->bHasDHDR) || (pData->iDeltatype == MNG_DELTATYPE_REPLACE))
@@ -4313,13 +4657,28 @@ mng_retcode mng_process_display_jhdr (mng_datap pData)
       if (pData->iJHDRalphacompression == MNG_COMPRESSION_DEFLATE)
       {
                                        /* determine alpha processing routine */
+#ifdef MNG_OPTIMIZE_FOOTPRINT_INIT
+        pData->fInitrowproc = (mng_fptr)mng_init_rowproc;
+#endif
         switch (pData->iJHDRalphabitdepth)
         {
+#ifndef MNG_OPTIMIZE_FOOTPRINT_INIT
           case  1 : { pData->fInitrowproc = (mng_fptr)mng_init_jpeg_a1_ni;  break; }
           case  2 : { pData->fInitrowproc = (mng_fptr)mng_init_jpeg_a2_ni;  break; }
           case  4 : { pData->fInitrowproc = (mng_fptr)mng_init_jpeg_a4_ni;  break; }
           case  8 : { pData->fInitrowproc = (mng_fptr)mng_init_jpeg_a8_ni;  break; }
+#ifndef MNG_NO_16BIT_SUPPORT
           case 16 : { pData->fInitrowproc = (mng_fptr)mng_init_jpeg_a16_ni; break; }
+#endif
+#else
+          case  1 : { pData->ePng_imgtype = png_jpeg_a1;  break; }
+          case  2 : { pData->ePng_imgtype = png_jpeg_a2;  break; }
+          case  4 : { pData->ePng_imgtype = png_jpeg_a4;  break; }
+          case  8 : { pData->ePng_imgtype = png_jpeg_a8;  break; }
+#ifndef MNG_NO_16BIT_SUPPORT
+          case 16 : { pData->ePng_imgtype = png_jpeg_a16; break; }
+#endif
+#endif
         }
       }
       else                             /* possible JDAA alpha-channel ? */
@@ -4350,13 +4709,28 @@ mng_retcode mng_process_display_jhdr (mng_datap pData)
           (pData->iDeltatype != MNG_DELTATYPE_BLOCKALPHAREPLACE)    )
         MNG_ERROR (pData, MNG_INVDELTATYPE)
                                        /* determine alpha processing routine */
+#ifdef MNG_OPTIMIZE_FOOTPRINT_INIT
+        pData->fInitrowproc = (mng_fptr)mng_init_rowproc;
+#endif
       switch (pData->iJHDRalphabitdepth)
       {
+#ifndef MNG_OPTIMIZE_FOOTPRINT_INIT
         case  1 : { pData->fInitrowproc = (mng_fptr)mng_init_g1_ni;  break; }
         case  2 : { pData->fInitrowproc = (mng_fptr)mng_init_g2_ni;  break; }
         case  4 : { pData->fInitrowproc = (mng_fptr)mng_init_g4_ni;  break; }
         case  8 : { pData->fInitrowproc = (mng_fptr)mng_init_g8_ni;  break; }
+#ifndef MNG_NO_16BIT_SUPPORT
         case 16 : { pData->fInitrowproc = (mng_fptr)mng_init_g16_ni; break; }
+#endif
+#else
+        case  1 : { pData->ePng_imgtype = png_jpeg_a1;  break; }
+        case  2 : { pData->ePng_imgtype = png_jpeg_a2;  break; }
+        case  4 : { pData->ePng_imgtype = png_jpeg_a4;  break; }
+        case  8 : { pData->ePng_imgtype = png_jpeg_a8;  break; }
+#ifndef MNG_NO_16BIT_SUPPORT
+        case 16 : { pData->ePng_imgtype = png_jpeg_a16; break; }
+#endif
+#endif /* MNG_OPTIMIZE_FOOTPRINT_INIT */
       }
     }
 
@@ -4484,6 +4858,7 @@ mng_retcode mng_process_display_jdat (mng_datap  pData,
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 mng_retcode mng_process_display_dhdr (mng_datap  pData,
                                       mng_uint16 iObjectid,
                                       mng_uint8  iImagetype,
@@ -4708,7 +5083,11 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
                      (pData->iBitdepth  == ((mng_imagep)pData->pDeltaImage)->pImgbuf->iBitdepth ) &&
                      (pData->iColortype == ((mng_imagep)pData->pDeltaImage)->pImgbuf->iColortype)    );
       }
-
+ 
+#ifdef MNG_OPTIMIZE_FOOTPRINT_INIT
+  pData->fInitrowproc = (mng_fptr)mng_init_rowproc;
+  pData->ePng_imgtype=mng_png_imgtype(pData->iColortype,pData->iBitdepth);
+#else
       switch (pData->iColortype)       /* determine row initialization routine */
       {
         case 0 : {                     /* gray */
@@ -4746,6 +5125,7 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
 
                                  break;
                                }
+#ifndef MNG_NO_16BIT_SUPPORT
                      case 16 : {
                                  if (!pData->iInterlace)
                                    pData->fInitrowproc = (mng_fptr)mng_init_g16_ni;
@@ -4754,6 +5134,7 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
 
                                  break;
                                }
+#endif
                    }
 
                    break;
@@ -4769,6 +5150,7 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
 
                                  break;
                                }
+#ifndef MNG_NO_16BIT_SUPPORT
                      case 16 : {
                                  if (!pData->iInterlace)
                                    pData->fInitrowproc = (mng_fptr)mng_init_rgb16_ni;
@@ -4777,6 +5159,7 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
 
                                  break;
                                }
+#endif
                    }
 
                    break;
@@ -4831,6 +5214,7 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
 
                                  break;
                                }
+#ifndef MNG_NO_16BIT_SUPPORT
                      case 16 : {
                                  if (!pData->iInterlace)
                                    pData->fInitrowproc = (mng_fptr)mng_init_ga16_ni;
@@ -4839,6 +5223,7 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
 
                                  break;
                                }
+#endif
                    }
 
                    break;
@@ -4854,6 +5239,7 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
 
                                  break;
                                }
+#ifndef MNG_NO_16BIT_SUPPORT
                      case 16 : {
                                  if (!pData->iInterlace)
                                    pData->fInitrowproc = (mng_fptr)mng_init_rgba16_ni;
@@ -4862,11 +5248,13 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
 
                                  break;
                                }
+#endif
                    }
 
                    break;
                  }
       }
+#endif /* MNG_OPTIMIZE_FOOTPRINT_INIT */
     }
     else
       MNG_ERROR (pData, MNG_OBJNOTCONCRETE)
@@ -4881,9 +5269,11 @@ mng_retcode mng_process_display_dhdr (mng_datap  pData,
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 mng_retcode mng_process_display_prom (mng_datap  pData,
                                       mng_uint8  iBitdepth,
                                       mng_uint8  iColortype,
@@ -4951,9 +5341,11 @@ mng_retcode mng_process_display_prom (mng_datap  pData,
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 mng_retcode mng_process_display_ipng (mng_datap pData)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -4968,9 +5360,12 @@ mng_retcode mng_process_display_ipng (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
+#ifdef MNG_INCLUDE_JNG
 mng_retcode mng_process_display_ijng (mng_datap pData)
 {
 #ifdef MNG_SUPPORT_TRACE
@@ -4985,9 +5380,12 @@ mng_retcode mng_process_display_ijng (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_NO_DELTA_PNG
 mng_retcode mng_process_display_pplt (mng_datap      pData,
                                       mng_uint8      iType,
                                       mng_uint32     iCount,
@@ -5003,11 +5401,19 @@ mng_retcode mng_process_display_pplt (mng_datap      pData,
   MNG_TRACE (pData, MNG_FN_PROCESS_DISPLAY_PPLT, MNG_LC_START)
 #endif
 
+#ifdef MNG_DECREMENT_LOOPS
+   iX = iCount;
+#endif
+
   switch (iType)
   {
     case MNG_DELTATYPE_REPLACERGB :
       {
+#ifdef MNG_DECREMENT_LOOPS
+        for (; iX > 0;iX--)
+#else
         for (iX = 0; iX < iCount; iX++)
+#endif
         {
           if (paUsedentries [iX])
           {
@@ -5021,7 +5427,11 @@ mng_retcode mng_process_display_pplt (mng_datap      pData,
       }
     case MNG_DELTATYPE_DELTARGB :
       {
+#ifdef MNG_DECREMENT_LOOPS
+        for (; iX > 0;iX--)
+#else
         for (iX = 0; iX < iCount; iX++)
+#endif
         {
           if (paUsedentries [iX])
           {
@@ -5041,7 +5451,11 @@ mng_retcode mng_process_display_pplt (mng_datap      pData,
       }
     case MNG_DELTATYPE_REPLACEALPHA :
       {
+#ifdef MNG_DECREMENT_LOOPS
+        for (; iX > 0;iX--)
+#else
         for (iX = 0; iX < iCount; iX++)
+#endif
         {
           if (paUsedentries [iX])
             pBuf->aTRNSentries [iX] = paAlphaentries [iX];
@@ -5051,7 +5465,11 @@ mng_retcode mng_process_display_pplt (mng_datap      pData,
       }
     case MNG_DELTATYPE_DELTAALPHA :
       {
+#ifdef MNG_DECREMENT_LOOPS
+        for (; iX > 0;iX--)
+#else
         for (iX = 0; iX < iCount; iX++)
+#endif
         {
           if (paUsedentries [iX])
             pBuf->aTRNSentries [iX] =
@@ -5063,7 +5481,11 @@ mng_retcode mng_process_display_pplt (mng_datap      pData,
       }
     case MNG_DELTATYPE_REPLACERGBA :
       {
+#ifdef MNG_DECREMENT_LOOPS
+        for (; iX > 0;iX--)
+#else
         for (iX = 0; iX < iCount; iX++)
+#endif
         {
           if (paUsedentries [iX])
           {
@@ -5078,7 +5500,11 @@ mng_retcode mng_process_display_pplt (mng_datap      pData,
       }
     case MNG_DELTATYPE_DELTARGBA :
       {
+#ifdef MNG_DECREMENT_LOOPS
+        for (; iX > 0;iX--)
+#else
         for (iX = 0; iX < iCount; iX++)
+#endif
         {
           if (paUsedentries [iX])
           {
@@ -5127,9 +5553,11 @@ mng_retcode mng_process_display_pplt (mng_datap      pData,
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_MAGN
 mng_retcode mng_process_display_magn (mng_datap  pData,
                                       mng_uint16 iFirstid,
                                       mng_uint16 iLastid,
@@ -5269,9 +5697,11 @@ mng_retcode mng_process_display_magn2 (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_PAST
 mng_retcode mng_process_display_past (mng_datap  pData,
                                       mng_uint16 iTargetid,
                                       mng_uint8  iTargettype,
@@ -5299,7 +5729,7 @@ mng_retcode mng_process_display_past (mng_datap  pData,
                                        /* it's gotta be abstract !!! */
     if (pTargetimg->pImgbuf->bConcrete)
       MNG_ERROR (pData, MNG_OBJNOTABSTRACT)
-                                       /* whe want 32-/64-bit RGBA to play with ! */
+                                       /* we want 32-/64-bit RGBA to play with ! */
     if ((pTargetimg->pImgbuf->iBitdepth <= MNG_BITDEPTH_8)          ||
         (pTargetimg->pImgbuf->iColortype ==  MNG_COLORTYPE_GRAY)    ||
         (pTargetimg->pImgbuf->iColortype ==  MNG_COLORTYPE_RGB)     ||
@@ -5316,6 +5746,7 @@ mng_retcode mng_process_display_past (mng_datap  pData,
       iRetcode = mng_promote_imageobject (pData, pTargetimg, MNG_BITDEPTH_16,
                                           MNG_COLORTYPE_RGBA,
                                           MNG_FILLMETHOD_LEFTBITREPLICATE);
+#ifdef MNG_INCLUDE_JNG
     else
     if ((pTargetimg->pImgbuf->iColortype ==  MNG_COLORTYPE_JPEGGRAY)  ||
         (pTargetimg->pImgbuf->iColortype ==  MNG_COLORTYPE_JPEGCOLOR) ||
@@ -5324,6 +5755,7 @@ mng_retcode mng_process_display_past (mng_datap  pData,
                                           pTargetimg->pImgbuf->iBitdepth,
                                           MNG_COLORTYPE_JPEGCOLORA,
                                           MNG_FILLMETHOD_LEFTBITREPLICATE);
+#endif
 
     if (iRetcode)                      /* on error bail out */
       return iRetcode;
@@ -5436,18 +5868,24 @@ mng_retcode mng_process_display_past (mng_datap  pData,
 
           switch (pBuf->iColortype)
           {
-            case  0 : { if (bSourceRGBA16)
+            case  0 : { 
+#ifndef MNG_NO_16BIT_SUPPORT
+                         if (bSourceRGBA16)
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_g16;
                         else
+#endif
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_g8;
 
                         pData->bIsOpaque      = (mng_bool)(!pBuf->bHasTRNS);
                         break;
                       }
 
-            case  2 : { if (bSourceRGBA16)
+            case  2 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                        if (bSourceRGBA16)
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb16;
                         else
+#endif
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb8;
 
                         pData->bIsOpaque      = (mng_bool)(!pBuf->bHasTRNS);
@@ -5461,9 +5899,12 @@ mng_retcode mng_process_display_past (mng_datap  pData,
                       }
 
 
-            case  4 : { if (bSourceRGBA16)
+            case  4 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                        if (bSourceRGBA16)
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_ga16;
                         else
+#endif
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_ga8;
 
                         pData->bIsOpaque      = MNG_FALSE;
@@ -5471,27 +5912,36 @@ mng_retcode mng_process_display_past (mng_datap  pData,
                       }
 
 
-            case  6 : { if (bSourceRGBA16)
+            case  6 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                         if (bSourceRGBA16)
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba16;
                         else
+#endif
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba8;
 
                         pData->bIsOpaque      = MNG_FALSE;
                         break;
                       }
 
-            case  8 : { if (bSourceRGBA16)
+            case  8 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                         if (bSourceRGBA16)
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_g16;
                         else
+#endif
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_g8;
 
                         pData->bIsOpaque      = MNG_TRUE;
                         break;
                       }
 
-            case 10 : { if (bSourceRGBA16)
+            case 10 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                         if (bSourceRGBA16)
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb16;
                         else
+#endif
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_rgb8;
 
                         pData->bIsOpaque      = MNG_TRUE;
@@ -5499,9 +5949,12 @@ mng_retcode mng_process_display_past (mng_datap  pData,
                       }
 
 
-            case 12 : { if (bSourceRGBA16)
+            case 12 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                         if (bSourceRGBA16)
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_ga16;
                         else
+#endif
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_ga8;
 
                         pData->bIsOpaque      = MNG_FALSE;
@@ -5509,9 +5962,12 @@ mng_retcode mng_process_display_past (mng_datap  pData,
                       }
 
 
-            case 14 : { if (bSourceRGBA16)
+            case 14 : {
+#ifndef MNG_NO_16BIT_SUPPORT
+                         if (bSourceRGBA16)
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba16;
                         else
+#endif
                           pData->fRetrieverow = (mng_fptr)mng_retrieve_rgba8;
 
                         pData->bIsOpaque      = MNG_FALSE;
@@ -5519,12 +5975,16 @@ mng_retcode mng_process_display_past (mng_datap  pData,
                       }
           }
                                        /* determine scaling */
+#ifndef MNG_NO_16BIT_SUPPORT
+#ifndef MNG_NO_DELTA_PNG
           if ((!bSourceRGBA16) && (bTargetRGBA16))
             pData->fScalerow = (mng_fptr)mng_scale_rgba8_rgba16;
           else
           if ((bSourceRGBA16) && (!bTargetRGBA16))
             pData->fScalerow = (mng_fptr)mng_scale_rgba16_rgba8;
           else
+#endif
+#endif
             pData->fScalerow = MNG_NULL;
 
                                        /* default no color-correction */
@@ -5548,17 +6008,21 @@ mng_retcode mng_process_display_past (mng_datap  pData,
           {
             case 2 : ;
             case 4 : {
+#ifndef MNG_NO_16BIT_SUPPORT
                        if (bTargetRGBA16)
                          pData->fFliprow = (mng_fptr)mng_flip_rgba16;
                        else
+#endif
                          pData->fFliprow = (mng_fptr)mng_flip_rgba8;
                        break;
                      }
 
             case 8 : {
+#ifndef MNG_NO_16BIT_SUPPORT
                        if (bTargetRGBA16)
                          pData->fTilerow = (mng_fptr)mng_tile_rgba16;
                        else
+#endif
                          pData->fTilerow = (mng_fptr)mng_tile_rgba8;
                        break;
                      }
@@ -5568,25 +6032,31 @@ mng_retcode mng_process_display_past (mng_datap  pData,
           switch (pSource->iComposition)
           {
             case 0 : {                 /* composite over */
+#ifndef MNG_NO_16BIT_SUPPORT
                        if (bTargetRGBA16)
                          pData->fDeltarow = (mng_fptr)mng_composeover_rgba16;
                        else
+#endif
                          pData->fDeltarow = (mng_fptr)mng_composeover_rgba8;
                        break;
                      }
 
             case 1 : {                 /* replace */
+#ifndef MNG_NO_16BIT_SUPPORT
                        if (bTargetRGBA16)
                          pData->fDeltarow = (mng_fptr)mng_delta_rgba16_rgba16;
                        else
+#endif
                          pData->fDeltarow = (mng_fptr)mng_delta_rgba8_rgba8;
                        break;
                      }
 
             case 2 : {                 /* composite under */
+#ifndef MNG_NO_16BIT_SUPPORT
                        if (bTargetRGBA16)
                          pData->fDeltarow = (mng_fptr)mng_composeunder_rgba16;
                        else
+#endif
                          pData->fDeltarow = (mng_fptr)mng_composeunder_rgba8;
                        break;
                      }
@@ -5649,9 +6119,11 @@ mng_retcode mng_process_display_past (mng_datap  pData,
 
           if (pData->iSourcel)         /* indent source ? */
           {
+#ifndef MNG_NO_16BIT_SUPPORT
              if (bTargetRGBA16)        /* abuse tiling routine to shift source-pixels */
                pData->fTilerow = (mng_fptr)mng_tile_rgba16;
              else
+#endif
                pData->fTilerow = (mng_fptr)mng_tile_rgba8;
           }
                                        /* anything to display ? */
@@ -5673,9 +6145,11 @@ mng_retcode mng_process_display_past (mng_datap  pData,
 
             iTargetsamples         = pData->iDestr - pData->iDestl;
 
+#ifndef MNG_NO_16BIT_SUPPORT
             if (bTargetRGBA16)
               iTargetrowsize       = (iTargetsamples << 3);
             else
+#endif
               iTargetrowsize       = (iTargetsamples << 2);
 
             while ((!iRetcode) && (iTargetY < pData->iDestb))
@@ -5766,9 +6240,11 @@ mng_retcode mng_process_display_past (mng_datap  pData,
 
   return MNG_NOERROR;
 }
+#endif /* MNG_SKIPCHUNK_PAST */
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_PAST
 mng_retcode mng_process_display_past2 (mng_datap pData)
 {
   mng_retcode iRetcode;
@@ -5795,6 +6271,7 @@ mng_retcode mng_process_display_past2 (mng_datap pData)
 
   return MNG_NOERROR;
 }
+#endif /* MNG_SKIPCHUNK_PAST */
 
 /* ************************************************************************** */
 
@@ -5803,4 +6280,5 @@ mng_retcode mng_process_display_past2 (mng_datap pData)
 /* ************************************************************************** */
 /* * end of file                                                            * */
 /* ************************************************************************** */
+
 

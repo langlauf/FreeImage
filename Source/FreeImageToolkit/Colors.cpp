@@ -116,7 +116,7 @@ plane (R,G, and B). Otherwise, the LUT is applied to the specified channel only.
 @param src Input image to be processed.
 @param LUT Lookup table. <b>The size of 'LUT' is assumed to be 256.</b>
 @param channel The color channel to be processed (only used with 24 & 32-bit DIB).
-@return Returns the processed bitmap if successful, NULL otherwise.
+@return Returns TRUE if successful, FALSE otherwise.
 @see FREE_IMAGE_COLOR_CHANNEL
 */
 BOOL DLL_CALLCONV 
@@ -211,6 +211,9 @@ FreeImage_AdjustCurve(FIBITMAP *src, BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel
 						}
 					}
 					break;
+					
+				default:
+					break;
 			}
 			break;
 		}
@@ -224,7 +227,7 @@ FreeImage_AdjustCurve(FIBITMAP *src, BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel
 @param src Input image to be processed.
 @param gamma Gamma value to use. A value of 1.0 leaves the image alone, 
 less than one darkens it, and greater than one lightens it.
-@return Returns the processed bitmap if successful, NULL otherwise.
+@return Returns TRUE if successful, FALSE otherwise.
 */
 BOOL DLL_CALLCONV 
 FreeImage_AdjustGamma(FIBITMAP *src, double gamma) {
@@ -254,7 +257,7 @@ FreeImage_AdjustGamma(FIBITMAP *src, double gamma) {
 @param percentage Where -100 <= percentage <= 100<br>
 A value 0 means no change, less than 0 will make the image darker 
 and greater than 0 will make the image brighter.
-@return Returns the processed bitmap if successful, NULL otherwise.
+@return Returns TRUE if successful, FALSE otherwise.
 */
 BOOL DLL_CALLCONV 
 FreeImage_AdjustBrightness(FIBITMAP *src, double percentage) {
@@ -279,7 +282,7 @@ FreeImage_AdjustBrightness(FIBITMAP *src, double percentage) {
 @param percentage Where -100 <= percentage <= 100<br>
 A value 0 means no change, less than 0 will decrease the contrast 
 and greater than 0 will increase the contrast of the image.
-@return Returns the processed bitmap if successful, NULL otherwise.
+@return Returns TRUE if successful, FALSE otherwise.
 */
 BOOL DLL_CALLCONV 
 FreeImage_AdjustContrast(FIBITMAP *src, double percentage) {
@@ -389,6 +392,9 @@ FreeImage_GetHistogram(FIBITMAP *src, DWORD *histo, FREE_IMAGE_COLOR_CHANNEL cha
 					}
 				}
 				return TRUE;
+				
+			default:
+				return FALSE;
 		}
 	}
 

@@ -4,14 +4,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_cms.h              copyright (c) 2000-2002 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_cms.h              copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : color management routines (definition)                     * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : Definition of color management routines                    * */
 /* *                                                                        * */
@@ -32,6 +30,9 @@
 /* *             - B597134 - libmng pollutes the linker namespace           * */
 /* *             1.0.5 - 09/19/2002 - G.Juyn                                * */
 /* *             - optimized color-correction routines                      * */
+/* *                                                                        * */
+/* *             1.0.6 - 04/11/2003 - G.Juyn                                * */
+/* *             - B719420 - fixed several MNG_APP_CMS problems             * */
 /* *                                                                        * */
 /* ************************************************************************** */
 
@@ -66,7 +67,7 @@ mng_retcode mng_init_full_cms          (mng_datap pData,
 mng_retcode mng_correct_full_cms       (mng_datap pData);
 #endif
 
-#if defined(MNG_FULL_CMS) || defined(MNG_GAMMA_ONLY)
+#if defined(MNG_FULL_CMS) || defined(MNG_GAMMA_ONLY) || defined(MNG_APP_CMS)
 mng_retcode mng_init_gamma_only        (mng_datap pData,
                                         mng_bool  bGlobal,
                                         mng_bool  bObject,

@@ -10,8 +10,6 @@
 /* * purpose   : Internal object structures (definition)                    * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : Definition of the internal object structures               * */
 /* *                                                                        * */
@@ -193,8 +191,10 @@ typedef struct {                                 /* MNG specification "object" *
            mng_uint16        iMAGN_MR;
            mng_uint16        iMAGN_MT;
            mng_uint16        iMAGN_MB;
+#ifndef MNG_SKIPCHUNK_PAST
            mng_int32         iPastx;             /* target x/y from previous PAST */
            mng_int32         iPasty;
+#endif
            mng_imagedatap    pImgbuf;            /* the image-data buffer */
         } mng_image;
 typedef mng_image * mng_imagep;
@@ -516,6 +516,7 @@ typedef mng_ani_magn * mng_ani_magnp;
 
 /* ************************************************************************** */
 
+#ifndef MNG_SKIPCHUNK_PAST
 typedef struct {                                 /* PAST object */
            mng_object_header sHeader;            /* default header (DO NOT REMOVE) */
            mng_uint16        iTargetid;
@@ -526,6 +527,7 @@ typedef struct {                                 /* PAST object */
            mng_ptr           pSources;
         } mng_ani_past;
 typedef mng_ani_past * mng_ani_pastp;
+#endif
 
 /* ************************************************************************** */
 

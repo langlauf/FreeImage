@@ -1,20 +1,14 @@
-
-# configure your options in Makefile.cfg
-
-include Makefile.cfg
-
-
+#converts cr/lf to just lf
+DOS2UNIX = dos2unix
 
 all: default
 
-default: dist examples
+default: dist
 
 dist: FreeImage
-	cp Source/FreeImage/*.a Dist
-	cp Source/FreeImage/*.so Dist
-
-examples: FreeImage
-	make -C Examples/Linux all
+	cp *.a Dist
+	cp *.so Dist
+	cp Source/FreeImage.h Dist
 
 FreeImage:
 	@if [ ! -f .nodos2unix ]; then \
@@ -24,15 +18,15 @@ FreeImage:
 	Examples/Linux/*.[ch]* ; \
 	touch .nodos2unix; \
 	fi
-	make -C Source/FreeImage all
+	make -f Makefile.linux all
 
 refix:
 	rm .nodos2unix
 
 install:
-	make -C Source/FreeImage install
+	make -f Makefile.linux install
 
 clean:
 	rm -f Dist/* u2dtmp* .nodos2unix
-	make -C Source/FreeImage clean
+	make -f Makefile.linux clean
 	make -C Examples clean

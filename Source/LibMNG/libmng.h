@@ -2,14 +2,15 @@
 /* *                                                                        * */
 /* * COPYRIGHT NOTICE:                                                      * */
 /* *                                                                        * */
-/* * Copyright (c) 2000-2003 Gerard Juyn (gerard@libmng.com)                * */
+/* * Copyright (c) 2000-2003 Gerard Juyn                                    * */
 /* * [You may insert additional notices after this sentence if you modify   * */
 /* *  this source]                                                          * */
 /* *                                                                        * */
 /* * For the purposes of this copyright and license, "Contributing Authors" * */
 /* * is defined as the following set of individuals:                        * */
 /* *                                                                        * */
-/* *    Gerard Juyn (gerard@libmng.com)                                     * */
+/* *    Gerard Juyn                 - gjuyn :at: users.sourceforge.net      * */
+/* *    Glenn Randers-Pehrson       - glennrp :at: users.sourceforge.net    * */
 /* *                                                                        * */
 /* * The MNG Library is supplied "AS IS".  The Contributing Authors         * */
 /* * disclaim all warranties, expressed or implied, including, without      * */
@@ -100,13 +101,11 @@
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
 /* * file      : libmng.h                  copyright (c) 2000-2003 G.Juyn   * */
-/* * version   : 1.0.5                                                      * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : main application interface                                 * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : The main application interface. An application should not  * */
 /* *             need access to any of the other modules!                   * */
@@ -253,6 +252,14 @@
 /* *             1.0.5 - 11/07/2002 - G.Juyn                                * */
 /* *             - added support to get totals after mng_read()             * */
 /* *                                                                        * */
+/* *             1.0.6 - 07/07/2003 - G. Randers-Pehrson                    * */
+/* *             - added support for reducing the footprint of libmng       * */
+/* *               by macros that optionally skip unused chunks, remove     * */
+/* *               16-bit sample support, remove Delta support, and         * */
+/* *               remove JNG support, to accomodate Mozilla/Firebird.      * */
+/* *             1.0.6 - 07/14/2003 - G. Randers-Pehrson                    * */
+/* *             - further optional removal of unused functions             * */
+/* *                                                                        * */
 /* ************************************************************************** */
 
 #if defined(__BORLANDC__) && defined(MNG_STRICT_ANSI)
@@ -391,12 +398,12 @@ extern "C" {
 /* *                                                                        * */
 /* ************************************************************************** */
 
-#define MNG_VERSION_TEXT    "1.0.5"
+#define MNG_VERSION_TEXT    "1.0.6"
 #define MNG_VERSION_SO      1          /* eg. libmng.so.1  */
 #define MNG_VERSION_DLL     1          /* but: libmng.dll (!) */
 #define MNG_VERSION_MAJOR   1
 #define MNG_VERSION_MINOR   0
-#define MNG_VERSION_RELEASE 5
+#define MNG_VERSION_RELEASE 6
 #define MNG_VERSION_BETA    MNG_FALSE
 
 MNG_EXT mng_pchar MNG_DECL mng_version_text      (void);
@@ -501,12 +508,14 @@ MNG_EXT mng_retcode MNG_DECL mng_display         (mng_handle    hHandle);
 MNG_EXT mng_retcode MNG_DECL mng_display_resume  (mng_handle    hHandle);
 MNG_EXT mng_retcode MNG_DECL mng_display_freeze  (mng_handle    hHandle);
 MNG_EXT mng_retcode MNG_DECL mng_display_reset   (mng_handle    hHandle);
+#ifndef MNG_NO_DISPLAY_GO_SUPPORTED
 MNG_EXT mng_retcode MNG_DECL mng_display_goframe (mng_handle    hHandle,
                                                   mng_uint32    iFramenr);
 MNG_EXT mng_retcode MNG_DECL mng_display_golayer (mng_handle    hHandle,
                                                   mng_uint32    iLayernr);
 MNG_EXT mng_retcode MNG_DECL mng_display_gotime  (mng_handle    hHandle,
                                                   mng_uint32    iPlaytime);
+#endif
 #endif /* MNG_SUPPORT_DISPLAY */
 
 /* event processing function */
@@ -880,6 +889,7 @@ MNG_EXT mng_retcode MNG_DECL mng_set_displaygammaint (mng_handle        hHandle,
 MNG_EXT mng_retcode MNG_DECL mng_set_dfltimggammaint (mng_handle        hHandle,
                                                       mng_uint32        iGamma);
 
+#ifndef MNG_SKIP_MAXCANVAS
 /* Ultimate clipping size */
 /* used to limit extreme graphics from overloading the system */
 /* if a graphic exceeds these limits a warning is issued, which can
@@ -893,6 +903,7 @@ MNG_EXT mng_retcode MNG_DECL mng_set_maxcanvasheight (mng_handle        hHandle,
 MNG_EXT mng_retcode MNG_DECL mng_set_maxcanvassize   (mng_handle        hHandle,
                                                       mng_uint32        iMaxwidth,
                                                       mng_uint32        iMaxheight);
+#endif
 
 /* ZLIB default compression parameters */
 /* these are used when writing out chunks */
@@ -1053,9 +1064,11 @@ MNG_EXT mng_uint32  MNG_DECL mng_get_viewgammaint    (mng_handle        hHandle)
 MNG_EXT mng_uint32  MNG_DECL mng_get_displaygammaint (mng_handle        hHandle);
 MNG_EXT mng_uint32  MNG_DECL mng_get_dfltimggammaint (mng_handle        hHandle);
 
+#ifndef MNG_SKIP_MAXCANVAS
 /* see _set_ */
 MNG_EXT mng_uint32  MNG_DECL mng_get_maxcanvaswidth  (mng_handle        hHandle);
 MNG_EXT mng_uint32  MNG_DECL mng_get_maxcanvasheight (mng_handle        hHandle);
+#endif
 
 /* see _set_ */
 #ifdef MNG_INCLUDE_ZLIB
@@ -1132,12 +1145,14 @@ MNG_EXT mng_retcode MNG_DECL mng_get_lastseekname    (mng_handle        hHandle,
 #ifdef MNG_SUPPORT_DISPLAY
 MNG_EXT mng_uint32  MNG_DECL mng_get_starttime       (mng_handle        hHandle);
 MNG_EXT mng_uint32  MNG_DECL mng_get_runtime         (mng_handle        hHandle);
+#ifndef MNG_NO_CURRENT_INFO
 MNG_EXT mng_uint32  MNG_DECL mng_get_currentframe    (mng_handle        hHandle);
 MNG_EXT mng_uint32  MNG_DECL mng_get_currentlayer    (mng_handle        hHandle);
 MNG_EXT mng_uint32  MNG_DECL mng_get_currentplaytime (mng_handle        hHandle);
 MNG_EXT mng_uint32  MNG_DECL mng_get_totalframes     (mng_handle        hHandle);
 MNG_EXT mng_uint32  MNG_DECL mng_get_totallayers     (mng_handle        hHandle);
 MNG_EXT mng_uint32  MNG_DECL mng_get_totalplaytime   (mng_handle        hHandle);
+#endif
 #endif
 
 /* Status variables */
@@ -1407,6 +1422,7 @@ MNG_EXT mng_retcode MNG_DECL mng_getchunk_clon       (mng_handle       hHandle,
                                                       mng_int32        *iLocationx,
                                                       mng_int32        *iLocationy);
 
+#ifndef MNG_SKIPCHUNK_PAST
 MNG_EXT mng_retcode MNG_DECL mng_getchunk_past       (mng_handle       hHandle,
                                                       mng_handle       hChunk,
                                                       mng_uint16       *iDestid,
@@ -1429,6 +1445,7 @@ MNG_EXT mng_retcode MNG_DECL mng_getchunk_past_src   (mng_handle       hHandle,
                                                       mng_int32        *iBoundaryr,
                                                       mng_int32        *iBoundaryt,
                                                       mng_int32        *iBoundaryb);
+#endif
 
 MNG_EXT mng_retcode MNG_DECL mng_getchunk_disc       (mng_handle       hHandle,
                                                       mng_handle       hChunk,
@@ -1843,6 +1860,7 @@ MNG_EXT mng_retcode MNG_DECL mng_putchunk_clon       (mng_handle       hHandle,
                                                       mng_int32        iLocationx,
                                                       mng_int32        iLocationy);
 
+#ifndef MNG_SKIPCHUNK_PAST
 MNG_EXT mng_retcode MNG_DECL mng_putchunk_past       (mng_handle       hHandle,
                                                       mng_uint16       iDestid,
                                                       mng_uint8        iTargettype,
@@ -1863,6 +1881,7 @@ MNG_EXT mng_retcode MNG_DECL mng_putchunk_past_src   (mng_handle       hHandle,
                                                       mng_int32        iBoundaryr,
                                                       mng_int32        iBoundaryt,
                                                       mng_int32        iBoundaryb);
+#endif
 
 MNG_EXT mng_retcode MNG_DECL mng_putchunk_disc       (mng_handle       hHandle,
                                                       mng_uint32       iCount,
@@ -2497,6 +2516,7 @@ MNG_EXT mng_retcode MNG_DECL mng_updatemngsimplicity (mng_handle        hHandle,
 #define MNG_LOCATION_ABSOLUTE            0       /* CLON, MOVE */
 #define MNG_LOCATION_RELATIVE            1
 
+#ifndef MNG_SKIPCHUNK_PAST
 #define MNG_TARGET_ABSOLUTE              0       /* PAST */
 #define MNG_TARGET_RELATIVE_SAMEPAST     1
 #define MNG_TARGET_RELATIVE_PREVPAST     2
@@ -2513,6 +2533,7 @@ MNG_EXT mng_retcode MNG_DECL mng_updatemngsimplicity (mng_handle        hHandle,
 
 #define MNG_OFFSET_ABSOLUTE              0       /* PAST */
 #define MNG_OFFSET_RELATIVE              1
+#endif
 
 #define MNG_BOUNDARY_ABSOLUTE            0       /* PAST, FRAM */
 #define MNG_BOUNDARY_RELATIVE            1

@@ -24,11 +24,11 @@
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #include <windows.h>
+#include <io.h>
 #else
 #include <ctype.h>
-#endif
+#endif // WIN32
 
-#include <io.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <string.h>
@@ -434,6 +434,7 @@ FreeImage_RegisterLocalPlugin(FI_InitProc proc_address, const char *format, cons
 	return s_plugins->AddNode(proc_address, NULL, format, description, extension, regexpr);
 }
 
+#ifdef WIN32
 FREE_IMAGE_FORMAT DLL_CALLCONV
 FreeImage_RegisterExternalPlugin(const char *path, const char *format, const char *description, const char *extension, const char *regexpr) {
 	if (path != NULL) {
@@ -453,6 +454,7 @@ FreeImage_RegisterExternalPlugin(const char *path, const char *format, const cha
 
 	return FIF_UNKNOWN;
 }
+#endif // WIN32
 
 int DLL_CALLCONV
 FreeImage_SetPluginEnabled(FREE_IMAGE_FORMAT fif, BOOL enable) {

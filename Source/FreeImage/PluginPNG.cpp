@@ -137,7 +137,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	int bpp, color_type, palette_entries;
 
 	FIBITMAP *dib = NULL;
-	RGBQUAD *palette;	// pointer to dib palette
+	RGBQUAD *palette = NULL;	// pointer to dib palette
 	png_bytepp  row_pointers = NULL;
 	int i;
 
@@ -541,6 +541,9 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 						PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
 					png_set_bgr(png_ptr); // flip BGR pixels to RGB
+					break;
+					
+				case FIC_CMYK:
 					break;
 			}
 

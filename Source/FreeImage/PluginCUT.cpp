@@ -103,7 +103,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 		io->read_proc(&header, 1, sizeof(CUTHEADER), handle);
 
-		if ((header.width == 0) || (header.width > 65536) || (header.height == 0) || (header.height > 65536))
+		if ((header.width == 0) || (header.height == 0))
 			return NULL;
 
 		// allocate a new bitmap
@@ -125,7 +125,6 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		BYTE *bits = FreeImage_GetScanLine(dib, header.height - 1);
 
 		int i = 0, k = 0, count = 0, run = 0;
-		int line = FreeImage_GetLine(dib);
 		int pitch = FreeImage_GetPitch(dib);
 		int size = header.width * header.height;
 

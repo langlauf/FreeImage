@@ -4,14 +4,12 @@
 /* ************************************************************************** */
 /* *                                                                        * */
 /* * project   : libmng                                                     * */
-/* * file      : libmng_types.h            copyright (c) 2000 G.Juyn        * */
-/* * version   : 1.0.5                                                      * */
+/* * file      : libmng_types.h            copyright (c) 2000-2003 G.Juyn   * */
+/* * version   : 1.0.6                                                      * */
 /* *                                                                        * */
 /* * purpose   : type specifications                                        * */
 /* *                                                                        * */
 /* * author    : G.Juyn                                                     * */
-/* * web       : http://www.3-t.com                                         * */
-/* * email     : mailto:info@3-t.com                                        * */
 /* *                                                                        * */
 /* * comment   : Specification of the types used by the library             * */
 /* *             Creates platform-independant structure                     * */
@@ -103,6 +101,13 @@
 /* *             1.0.5 - 08/19/2002 - G.Juyn                                * */
 /* *             - B597134 - libmng pollutes the linker namespace           * */
 /* *                                                                        * */
+/* *             1.0.6 - 04/11/2003 - G.Juyn                                * */
+/* *             - B719420 - fixed several MNG_APP_CMS problems             * */
+/* *             1.0.6 - 06/15/2003 - R.Giles                               * */
+/* *             - lcms.h inclusion is generally no longer prefixed         * */
+/* *             1.0.6 - 07/07/2003 - G. R-P.                               * */
+/* *             - added png_imgtypes enumeration                           * */
+/* *                                                                        * */
 /* ************************************************************************** */
 
 #ifndef _libmng_types_h_
@@ -155,11 +160,7 @@
 #ifndef ZLIB_DLL
 #undef FAR
 #endif
-#if defined(WIN32) || defined(linux)   /* different header locations */
 #include "lcms.h"
-#else
-#include "lcms/lcms.h"
-#endif
 #endif /* MNG_INCLUDE_LCMS */
 
 #ifdef MNG_INCLUDE_IJG6B               /* IJG's jpgsrc6b */
@@ -174,7 +175,7 @@
 #ifdef FAR
 #undef FAR                             /* possibly defined by zlib or lcms */
 #endif
-#include "../libjpeg/jpeglib.h"                   /* all that for JPEG support  :-) */
+#include "../LibJPEG/jpeglib.h"                   /* all that for JPEG support  :-) */
 #endif /* MNG_INCLUDE_IJG6B */
 
 #if defined(MNG_INTERNAL_MEMMNGMT) || defined(MNG_INCLUDE_FILTERS)
@@ -198,7 +199,7 @@
 #endif
 #endif /* WIN32 */
 
-#if defined(MNG_FULL_CMS) || defined(MNG_GAMMA_ONLY)
+#if defined(MNG_FULL_CMS) || defined(MNG_GAMMA_ONLY) || defined(MNG_APP_CMS)
 #include <math.h>                      /* fp gamma-calculation */
 #endif
 
@@ -381,6 +382,44 @@ typedef enum mng_imgtypes mng_imgtype;
 enum mng_speedtypes {mng_st_normal, mng_st_fast, mng_st_slow, mng_st_slowest};
 typedef enum mng_speedtypes mng_speedtype;
 
+
+/* ************************************************************************** */
+
+/* enumeration of PNG image types */
+#ifdef MNG_OPTIMIZE_FOOTPRINT_INIT
+enum png_imgtypes
+  {
+    png_g1,
+    png_g2,
+    png_g4,
+    png_g8,
+    png_rgb8,
+    png_idx1,
+    png_idx2,
+    png_idx4,
+    png_idx8,
+    png_ga8,
+    png_rgba8,
+#ifdef MNG_INCLUDE_JNG
+    png_jpeg_a1,
+    png_jpeg_a2,
+    png_jpeg_a4,
+    png_jpeg_a8,
+#endif
+#ifndef MNG_NO_16BIT_SUPPORT
+    png_g16,
+    png_ga16,
+    png_rgb16,
+    png_rgba16,
+#ifdef MNG_INCLUDE_JNG
+    png_jpeg_a16,
+#endif
+#endif
+    png_none
+  };
+    
+typedef enum png_imgtypes png_imgtype;
+#endif
 /* ************************************************************************** */
 
                                        /* memory management callbacks */

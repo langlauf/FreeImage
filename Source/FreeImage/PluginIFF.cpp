@@ -65,6 +65,61 @@ static DWORD swapDWORD( DWORD n ){
 	return big_endian ? (n >> 24) | (n << 24) | ((n >> 8) & 0xff00) | ((n << 8) & 0xff0000) : n;
 }
 
+// ----------------------------------------------------------
+
+/* IFF chunk IDs */
+
+typedef DWORD IFF_ID;
+
+#define MAKE_ID(a, b, c, d)         ((IFF_ID)(a)<<24 | (IFF_ID)(b)<<16 | (IFF_ID)(c)<<8 | (IFF_ID)(d))
+
+#define ID_FORM     MAKE_ID('F', 'O', 'R', 'M')     /* EA IFF 85 group identifier */
+#define ID_CAT      MAKE_ID('C', 'A', 'T', ' ')     /* EA IFF 85 group identifier */
+#define ID_LIST     MAKE_ID('L', 'I', 'S', 'T')     /* EA IFF 85 group identifier */
+#define ID_PROP     MAKE_ID('P', 'R', 'O', 'P')     /* EA IFF 85 group identifier */
+#define ID_END      MAKE_ID('E', 'N', 'D', ' ')     /* unofficial END-of-FORM identifier (see Amiga RKM Devices Ed.3 page 376) */
+
+#define ID_ILBM     MAKE_ID('I', 'L', 'B', 'M')     /* EA IFF 85 raster bitmap form */
+#define ID_DEEP     MAKE_ID('D', 'E', 'E', 'P')     /* Chunky pixel image files (Used in TV Paint) */
+#define ID_RGB8     MAKE_ID('R', 'G', 'B', '8')     /* RGB image forms, Turbo Silver (Impulse) */
+#define ID_RGBN     MAKE_ID('R', 'G', 'B', 'N')     /* RGB image forms, Turbo Silver (Impulse) */
+#define ID_PBM      MAKE_ID('P', 'B', 'M', ' ')     /* 256-color chunky format (DPaint 2 ?) */
+#define ID_ACBM     MAKE_ID('A', 'C', 'B', 'M')     /* Amiga Contiguous Bitmap (AmigaBasic) */
+/* generic */
+#define ID_FVER     MAKE_ID('F', 'V', 'E', 'R')     /* AmigaOS version string */
+#define ID_JUNK     MAKE_ID('J', 'U', 'N', 'K')     /* always ignore this chunk */
+#define ID_ANNO     MAKE_ID('A', 'N', 'N', 'O')     /* EA IFF 85 Generic Annotation chunk */
+#define ID_AUTH     MAKE_ID('A', 'U', 'T', 'H')     /* EA IFF 85 Generic Author chunk */
+#define ID_CHRS     MAKE_ID('C', 'H', 'R', 'S')     /* EA IFF 85 Generic character string chunk */
+#define ID_NAME     MAKE_ID('N', 'A', 'M', 'E')     /* EA IFF 85 Generic Name of art, music, etc. chunk */
+#define ID_TEXT     MAKE_ID('T', 'E', 'X', 'T')     /* EA IFF 85 Generic unformatted ASCII text chunk */
+#define ID_copy     MAKE_ID('(', 'c', ')', ' ')     /* EA IFF 85 Generic Copyright text chunk */
+/* ILBM chunks */
+#define ID_BMHD     MAKE_ID('B', 'M', 'H', 'D')     /* ILBM BitmapHeader */
+#define ID_CMAP     MAKE_ID('C', 'M', 'A', 'P')     /* ILBM 8bit RGB colormap */
+#define ID_GRAB     MAKE_ID('G', 'R', 'A', 'B')     /* ILBM "hotspot" coordiantes */
+#define ID_DEST     MAKE_ID('D', 'E', 'S', 'T')     /* ILBM destination image info */
+#define ID_SPRT     MAKE_ID('S', 'P', 'R', 'T')     /* ILBM sprite identifier */
+#define ID_CAMG     MAKE_ID('C', 'A', 'M', 'G')     /* Amiga viewportmodes */
+#define ID_BODY     MAKE_ID('B', 'O', 'D', 'Y')     /* ILBM image data */
+#define ID_CRNG     MAKE_ID('C', 'R', 'N', 'G')     /* color cycling */
+#define ID_CCRT     MAKE_ID('C', 'C', 'R', 'T')     /* color cycling */
+#define ID_CLUT     MAKE_ID('C', 'L', 'U', 'T')     /* Color Lookup Table chunk */
+#define ID_DPI      MAKE_ID('D', 'P', 'I', ' ')     /* Dots per inch chunk */
+#define ID_DPPV     MAKE_ID('D', 'P', 'P', 'V')     /* DPaint perspective chunk (EA) */
+#define ID_DRNG     MAKE_ID('D', 'R', 'N', 'G')     /* DPaint IV enhanced color cycle chunk (EA) */
+#define ID_EPSF     MAKE_ID('E', 'P', 'S', 'F')     /* Encapsulated Postscript chunk */
+#define ID_CMYK     MAKE_ID('C', 'M', 'Y', 'K')     /* Cyan, Magenta, Yellow, & Black color map (Soft-Logik) */
+#define ID_CNAM     MAKE_ID('C', 'N', 'A', 'M')     /* Color naming chunk (Soft-Logik) */
+#define ID_PCHG     MAKE_ID('P', 'C', 'H', 'G')     /* Line by line palette control information (Sebastiano Vigna) */
+#define ID_PRVW     MAKE_ID('P', 'R', 'V', 'W')     /* A mini duplicate ILBM used for preview (Gary Bonham) */
+#define ID_XBMI     MAKE_ID('X', 'B', 'M', 'I')     /* eXtended BitMap Information (Soft-Logik) */
+#define ID_CTBL     MAKE_ID('C', 'T', 'B', 'L')     /* Newtek Dynamic Ham color chunk */
+#define ID_DYCP     MAKE_ID('D', 'Y', 'C', 'P')     /* Newtek Dynamic Ham chunk */
+#define ID_SHAM     MAKE_ID('S', 'H', 'A', 'M')     /* Sliced HAM color chunk */
+#define ID_ABIT     MAKE_ID('A', 'B', 'I', 'T')     /* ACBM body chunk */
+#define ID_DCOL     MAKE_ID('D', 'C', 'O', 'L')     /* unofficial direct color */
+
 // ==========================================================
 // Plugin Interface
 // ==========================================================
@@ -106,12 +161,12 @@ Validate(FreeImageIO *io, fi_handle handle) {
 
 	io->read_proc(&type, 4, 1, handle);
 
-	if (swapDWORD(type) != 'FORM')
+	if (swapDWORD(type) != ID_FORM)
 		return FALSE;
 		
 	io->read_proc(&type, 4, 1, handle);
 
-	return ((swapDWORD(type) == 'ILBM') || (swapDWORD(type) == 'PBM '));
+	return ((swapDWORD(type) == ID_ILBM) || (swapDWORD(type) == ID_PBM));
 }
 
 
@@ -131,7 +186,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 		io->read_proc(&type, 4, 1, handle);
 
-		if (swapDWORD(type) != 'FORM')
+		if (swapDWORD(type) != ID_FORM)
 			return NULL;
 
 		io->read_proc( &size,4,1,handle );
@@ -140,12 +195,12 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 		io->read_proc(&type, 4, 1, handle);
 
-		if ((swapDWORD(type) != 'ILBM') && (swapDWORD(type) != 'PBM '))
+		if ((swapDWORD(type) != ID_ILBM) && (swapDWORD(type) != ID_PBM))
 			return NULL;
 
 		size -= 4;
 
-		unsigned width, height, planes, depth, comp;
+		unsigned width = 0, height = 0, planes = 0, depth = 0, comp = 0;
 
 		while (size) {
 			unsigned ch_type,ch_size;
@@ -158,7 +213,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			unsigned ch_end = io->tell_proc(handle) + ch_size;
 
-			if (ch_type == 'BMHD') {
+			if (ch_type == ID_BMHD) {
 				if (dib)
 					FreeImage_Unload(dib);
 
@@ -179,7 +234,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				unsigned mask = planes > 8 ? 0xff : 0;
 
 				dib = FreeImage_Allocate(width, height, depth, mask << 16, mask << 8, mask);
-			} else if (ch_type == 'CMAP') {
+			} else if (ch_type == ID_CMAP) {
 				if (!dib)
 					return NULL;
 
@@ -190,11 +245,11 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					io->read_proc(&pal[k].rgbGreen, 1, 1, handle );
 					io->read_proc(&pal[k].rgbBlue, 1, 1, handle );
 				}
-			} else if (ch_type == 'BODY') {
+			} else if (ch_type == ID_BODY) {
 				if (!dib)
 					return NULL;
 
-				if (swapDWORD(type) == 'PBM ') {
+				if (swapDWORD(type) == ID_PBM) {
 					// NON INTERLACED (LBM)
 
 					unsigned line = FreeImage_GetLine(dib) + 1 & ~1;
