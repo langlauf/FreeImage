@@ -289,6 +289,10 @@ SOURCE=..\FreeImageToolkit\BSplineRotate.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\FreeImageToolkit\Channels.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\FreeImageToolkit\ClassicRotate.cpp
 # End Source File
 # Begin Source File

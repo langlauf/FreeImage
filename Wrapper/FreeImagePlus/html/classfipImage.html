@@ -15,9 +15,9 @@
 <area href="classfipWinImage.html" alt="fipWinImage" shape="rect" coords="0,112,104,136">
 </map>
 <a href="classfipImage-members.html">List of all members.</a><hr><a name="_details"></a><h2>Detailed Description</h2>
-A class used to manage all photo related images. 
+A class used to manage all photo related images and all image types used by the library. 
 <p>
-fipImage encapsulates the FIBITMAP format. It relies on the FreeImage library, especially for loading / saving images and for bit depth conversion. <dl compact><dt><b>Version:</b></dt><dd>FreeImage 3.0 </dd></dl>
+fipImage encapsulates the FIBITMAP format. It relies on the FreeImage library, especially for loading / saving images and for bit depth conversion. <dl compact><dt><b>Version:</b></dt><dd>FreeImage 3 </dd></dl>
 <dl compact><dt><b>Author:</b></dt><dd>Hervé Drolon </dd></dl>
 
 <p>
@@ -25,214 +25,242 @@ fipImage encapsulates the FIBITMAP format. It relies on the FreeImage library, e
 <tr><td></td></tr>
 <tr><td colspan=2><br><h2>Public Member Functions</h2></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Creation &amp; Destruction</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z7_0">fipImage</a> (WORD width=0, WORD height=0, WORD bpp=0)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z5_0">fipImage</a> (FREE_IMAGE_TYPE image_type=FIT_BITMAP, WORD width=0, WORD height=0, WORD bpp=0)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Constructor. </em> <a href="#z7_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z7_1">~fipImage</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Constructor. </em> <a href="#z5_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z5_1">~fipImage</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor. </em> <a href="#z7_1"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z7_2">setSize</a> (WORD width, WORD height, WORD bpp)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor. </em> <a href="#z5_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z5_2">setSize</a> (FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD bpp)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Image allocator. </em> <a href="#z7_2"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Image allocator. </em> <a href="#z5_2"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Copying</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_0">fipImage</a> (const  <a class="el" href="classfipImage.html">fipImage</a> &amp;src)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z7_0">fipImage</a> (const  <a class="el" href="classfipImage.html">fipImage</a> &amp;src)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z9_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_1">fipImage</a> (const  FIBITMAP *dib)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z7_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z7_1">fipImage</a> (const  FIBITMAP *dib)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z9_1"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classfipImage.html">fipImage</a> &amp;&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_2">operator=</a> (const  <a class="el" href="classfipImage.html">fipImage</a> &amp;src)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z7_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classfipImage.html">fipImage</a> &amp;&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z7_2">operator=</a> (const  <a class="el" href="classfipImage.html">fipImage</a> &amp;src)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z9_2"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classfipImage.html">fipImage</a> &amp;&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_3">operator=</a> (FIBITMAP *dib)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z7_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classfipImage.html">fipImage</a> &amp;&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z7_3">operator=</a> (FIBITMAP *dib)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Assignement operator. </em> <a href="#z9_3"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_4">copySubImage</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;dst, int left, int top, int right, int bottom)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Assignement operator. </em> <a href="#z7_3"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z7_4">copySubImage</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;dst, int left, int top, int right, int bottom)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The bit depth of the bitmap must be equal to 1, 4, 8, 16, 24 or 32. </em> <a href="#z9_4"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_5">pasteSubImage</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;src, int left, int top, int alpha=256)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The bit depth of the bitmap must be equal to 1, 4, 8, 16, 24 or 32. </em> <a href="#z7_4"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z7_5">pasteSubImage</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;src, int left, int top, int alpha=256)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Alpha blend or combine a sub part image with the current image. </em> <a href="#z9_5"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Alpha blend or combine a sub part image with the current image. </em> <a href="#z7_5"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Loading &amp; Saving</div></td></tr>
 <tr><td colspan="2"><div class="groupText">Loading and saving is handled by the FreeImage library. <br><br></div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_0">load</a> (const  char *lpszPathName, int flag=0)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_0">load</a> (const  char *lpszPathName, int flag=0)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_1">loadFromHandle</a> (FreeImageIO *io, fi_handle handle, int flag=0)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Loads an image from disk, given its file name and an optional flag. </em> <a href="#z9_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_1">loadFromHandle</a> (FreeImageIO *io, fi_handle handle, int flag=0)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_2">save</a> (const  char *lpszPathName, int flag=0)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Loads an image using the specified FreeImageIO struct and fi_handle, and an optional flag. </em> <a href="#z9_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_2">save</a> (const  char *lpszPathName, int flag=0)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_3">saveToHandle</a> (FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle, int flag=0)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Saves an image to disk, given its file name and an optional flag. </em> <a href="#z9_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z9_3">saveToHandle</a> (FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle, int flag=0)</td></tr>
 
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Saves an image using the specified FreeImageIO struct and fi_handle, and an optional flag. </em> <a href="#z9_3"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Information functions</div></td></tr>
 <tr><td colspan="2"><div class="groupText">Accessors to the DIB BITMAPINFO structure. <br><br></div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>FIBITMAP *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_0">getFIBITMAP</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>FREE_IMAGE_TYPE&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_0">getImageType</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the FIBITMAP data. Used for direct access from FREEIMAGE functions. </em> <a href="#z13_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_1">isValid</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the data type of the image. </em> <a href="#z11_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_1">getWidth</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns TRUE if the image is allocated, FALSE otherwise. </em> <a href="#z13_1"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BITMAPINFO *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_2">getInfo</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the image width in pixels. </em> <a href="#z11_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_2">getHeight</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the bitmap's BITMAPINFO header. </em> <a href="#z13_2"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BITMAPINFOHEADER *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_3">getInfoHeader</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the image height in pixels. </em> <a href="#z11_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_3">getScanWidth</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the bitmap's BITMAPINFOHEADER. </em> <a href="#z13_3"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>LONG&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_4">getImageSize</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the width of the bitmap in bytes rounded to the nearest DWORD. </em> <a href="#z11_3"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>FIBITMAP *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_4">getFIBITMAP</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the size of the bitmap in bytes. The size of the bitmap is the BITMAPINFOHEADER + the size of the palette + the size of the bitmap data. </em> <a href="#z13_4"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_5">getBitsPerPixel</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the FIBITMAP data. Used for direct access from FREEIMAGE functions. </em> <a href="#z11_4"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_5">isValid</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the bitdepth of the bitmap. </em> <a href="#z13_5"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_6">getLine</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns TRUE if the image is allocated, FALSE otherwise. </em> <a href="#z11_5"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BITMAPINFO *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_6">getInfo</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the width of the bitmap in bytes. </em> <a href="#z13_6"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_7">getHorizontalResolution</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the bitmap's BITMAPINFO header. </em> <a href="#z11_6"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BITMAPINFOHEADER *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_7">getInfoHeader</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the bitmap resolution along the X axis, in pixels / cm. </em> <a href="#z13_7"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_8">getVerticalResolution</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the bitmap's BITMAPINFOHEADER. </em> <a href="#z11_7"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>LONG&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_8">getImageSize</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the bitmap resolution along the Y axis, in pixels / cm. </em> <a href="#z13_8"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_9">setHorizontalResolution</a> (LONG value)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the size of the bitmap in bytes. </em> <a href="#z11_8"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_9">getBitsPerPixel</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">set the bitmap resolution along the X axis, in pixels / cm </em> <a href="#z13_9"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_10">setVerticalResolution</a> (LONG value)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the bitdepth of the bitmap. </em> <a href="#z11_9"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_10">getLine</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">set the bitmap resolution along the Y axis, in pixels / cm </em> <a href="#z13_10"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the width of the bitmap in bytes. </em> <a href="#z11_10"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_11">getHorizontalResolution</a> ()</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the bitmap resolution along the X axis, in pixels / cm. </em> <a href="#z11_11"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_12">getVerticalResolution</a> ()</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the bitmap resolution along the Y axis, in pixels / cm. </em> <a href="#z11_12"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_13">setHorizontalResolution</a> (LONG value)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">set the bitmap resolution along the X axis, in pixels / cm </em> <a href="#z11_13"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z11_14">setVerticalResolution</a> (LONG value)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">set the bitmap resolution along the Y axis, in pixels / cm </em> <a href="#z11_14"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Palette operations</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>RGBQUAD *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_0">getPalette</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>RGBQUAD *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_0">getPalette</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the bitmap's palette. If the bitmap doesn't have a palette, getPalette returns NULL. </em> <a href="#z15_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_1">getPaletteSize</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the bitmap's palette. If the bitmap doesn't have a palette, getPalette returns NULL. </em> <a href="#z13_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_1">getPaletteSize</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the palette size in bytes. </em> <a href="#z15_1"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_2">getColorsUsed</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the palette size in bytes. </em> <a href="#z13_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>WORD&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_2">getColorsUsed</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the number of colours used in the bitmap. If the bitmap is non-palletised, 0 is returned. </em> <a href="#z15_2"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>FREE_IMAGE_COLOR_TYPE&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_3">getColorType</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the number of colours used in the bitmap. If the bitmap is non-palletised, 0 is returned. </em> <a href="#z13_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>FREE_IMAGE_COLOR_TYPE&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_3">getColorType</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Investigates the colour type of the bitmap. </em> <a href="#z15_3"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_4">isGrayscale</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Investigates the colour type of the bitmap. </em> <a href="#z13_3"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z13_4">isGrayscale</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns TRUE if the bitmap is a 8-bit bitmap with a greyscale palette, FALSE otherwise. </em> <a href="#z15_4"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns TRUE if the bitmap is a 8-bit bitmap with a greyscale palette, FALSE otherwise. </em> <a href="#z13_4"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Pixel access</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BYTE *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_0">accessPixels</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BYTE *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_0">accessPixels</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the bitmap bits. </em> <a href="#z17_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BYTE *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_1">getScanLine</a> (int scanline)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the bitmap bits. </em> <a href="#z15_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BYTE *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_1">getScanLine</a> (WORD scanline)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the start of the given scanline in the bitmap’s data-bits. </em> <a href="#z17_1"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the start of the given scanline in the bitmap’s data-bits. This pointer can be cast according to the result returned by getImageType. </em> <a href="#z15_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_2">getPixelIndex</a> (unsigned x, unsigned y, BYTE *value)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the pixel index of a palettized image at position (x, y), including range check (slow access). </em> <a href="#z15_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_3">getPixelColor</a> (unsigned x, unsigned y, RGBQUAD *value)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access). </em> <a href="#z15_3"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_4">setPixelIndex</a> (unsigned x, unsigned y, BYTE *value)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the pixel index of a palettized image at position (x, y), including range check (slow access). </em> <a href="#z15_4"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z15_5">setPixelColor</a> (unsigned x, unsigned y, RGBQUAD *value)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access). </em> <a href="#z15_5"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Conversion routines</div></td></tr>
 <tr><td colspan="2"><div class="groupText">Bitmaps are always loaded in their default bit depth.<p>
 If you want the bitmap to be stored in another bit depth, the class provides several conversion functions. <br><br></div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_0">threshold</a> (BYTE T)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_0">convertToType</a> (FREE_IMAGE_TYPE image_type, BOOL scale_linear=TRUE)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 1 bit using a threshold T. </em> <a href="#z19_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_1">convertTo8Bits</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts an image to a type supported by FreeImage. </em> <a href="#z17_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_1">threshold</a> (BYTE T)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 8 bits. If the bitmap is 24 or 32-bit RGB, the colour values are converted to greyscale. </em> <a href="#z19_1"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_2">convertTo16Bits555</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 1 bit using a threshold T. </em> <a href="#z17_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_2">convertTo8Bits</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 16 bits. The resulting bitmap has a layout of 5 bits red, 5 bits green, 5 bits blue and 1 unused bit. </em> <a href="#z19_2"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_3">convertTo16Bits565</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 8 bits. If the bitmap is 24 or 32-bit RGB, the colour values are converted to greyscale. </em> <a href="#z17_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_3">convertTo16Bits555</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 16 bits. The resulting bitmap has a layout of 5 bits red, 6 bits green and 5 bits blue. </em> <a href="#z19_3"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_4">convertTo24Bits</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 16 bits. The resulting bitmap has a layout of 5 bits red, 5 bits green, 5 bits blue and 1 unused bit. </em> <a href="#z17_3"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_4">convertTo16Bits565</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 24 bits. </em> <a href="#z19_4"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_5">convertTo32Bits</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 16 bits. The resulting bitmap has a layout of 5 bits red, 6 bits green and 5 bits blue. </em> <a href="#z17_4"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_5">convertTo24Bits</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 32 bits. </em> <a href="#z19_5"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_6">convertToGrayscale</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 24 bits. </em> <a href="#z17_5"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_6">convertTo32Bits</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 8 bits. </em> <a href="#z19_6"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_7">colorQuantize</a> (FREE_IMAGE_QUANTIZE algorithm)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 32 bits. </em> <a href="#z17_6"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_7">convertToGrayscale</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Quantizes a full colour 24-bit bitmap to a palletised 8-bit bitmap. </em> <a href="#z19_7"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_8">dither</a> (FREE_IMAGE_DITHER algorithm)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts the bitmap to 8 bits. </em> <a href="#z17_7"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_8">colorQuantize</a> (FREE_IMAGE_QUANTIZE algorithm)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts a 8-bit image to a monochrome image using a dithering algorithm. </em> <a href="#z19_8"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Quantizes a full colour 24-bit bitmap to a palletised 8-bit bitmap. </em> <a href="#z17_8"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_9">dither</a> (FREE_IMAGE_DITHER algorithm)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts a 8-bit image to a monochrome image using a dithering algorithm. </em> <a href="#z17_9"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Channel processing support</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_0">getChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;image, FREE_IMAGE_COLOR_CHANNEL channel)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_0">getChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;image, FREE_IMAGE_COLOR_CHANNEL channel)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the red, green, blue or alpha channel of a 24- or 32-bit BGR[A] image. </em> <a href="#z21_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_1">splitChannels</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;RedChannel, <a class="el" href="classfipImage.html">fipImage</a> &amp;GreenChannel, <a class="el" href="classfipImage.html">fipImage</a> &amp;BlueChannel)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the red, green, blue or alpha channel of a 24- or 32-bit BGR[A] image. </em> <a href="#z19_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_1">splitChannels</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;RedChannel, <a class="el" href="classfipImage.html">fipImage</a> &amp;GreenChannel, <a class="el" href="classfipImage.html">fipImage</a> &amp;BlueChannel)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Split a 24-bit RGB image into 3 greyscale images corresponding to the red, green and blue channels. </em> <a href="#z21_1"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_2">getRedChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;red)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Split a 24-bit RGB image into 3 greyscale images corresponding to the red, green and blue channels. </em> <a href="#z19_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_2">getRedChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;red)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the red channel of a 24-bit RGB image. </em> <a href="#z21_2"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_3">getGreenChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;green)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the red channel of a 24-bit RGB image. </em> <a href="#z19_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_3">getGreenChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;green)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the green channel of a 24-bit RGB image. </em> <a href="#z21_3"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_4">getBlueChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;blue)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the green channel of a 24-bit RGB image. </em> <a href="#z19_3"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_4">getBlueChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;blue)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the blue channel of a 24-bit RGB image. </em> <a href="#z21_4"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_5">getAlphaChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;alpha)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the blue channel of a 24-bit RGB image. </em> <a href="#z19_4"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_5">getAlphaChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;alpha)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the alpha channel of a 32-bit RGB image. </em> <a href="#z21_5"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_6">setAlphaChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;alpha)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves the alpha channel of a 32-bit RGB image. </em> <a href="#z19_5"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_6">setAlphaChannel</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;alpha)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the alpha channel of a 32-bit RGB image. </em> <a href="#z21_6"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_7">combineChannels</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;red, <a class="el" href="classfipImage.html">fipImage</a> &amp;green, <a class="el" href="classfipImage.html">fipImage</a> &amp;blue)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the alpha channel of a 32-bit RGB image. </em> <a href="#z19_6"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z19_7">combineChannels</a> (<a class="el" href="classfipImage.html">fipImage</a> &amp;red, <a class="el" href="classfipImage.html">fipImage</a> &amp;green, <a class="el" href="classfipImage.html">fipImage</a> &amp;blue)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Builds a 24-bit RGB image given its red, green and blue channel. </em> <a href="#z21_7"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Builds a 24-bit RGB image given its red, green and blue channel. </em> <a href="#z19_7"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Rotation and flipping</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_0">rotateEx</a> (double angle, double x_shift, double y_shift, double x_origin, double y_origin, BOOL use_mask)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_0">rotateEx</a> (double angle, double x_shift, double y_shift, double x_origin, double y_origin, BOOL use_mask)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Image translation and rotation using B-Splines. </em> <a href="#z23_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_1">rotate</a> (double angle)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Image translation and rotation using B-Splines. </em> <a href="#z21_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_1">rotate</a> (double angle)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Image rotation by means of three shears. </em> <a href="#z23_1"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_2">flipHorizontal</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Image rotation by means of three shears. </em> <a href="#z21_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_2">flipHorizontal</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Flip the image horizontally along the vertical axis. </em> <a href="#z23_2"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_3">flipVertical</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Flip the image horizontally along the vertical axis. </em> <a href="#z21_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z21_3">flipVertical</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Flip the image vertically along the horizontal axis. </em> <a href="#z23_3"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Flip the image vertically along the horizontal axis. </em> <a href="#z21_3"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Color manipulation routines</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z25_0">invert</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_0">invert</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Inverts each pixel data. </em> <a href="#z25_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z25_1">adjustCurve</a> (BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Inverts each pixel data. </em> <a href="#z23_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_1">adjustCurve</a> (BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Perfoms an histogram transformation on a 8, 24 or 32-bit image according to the values of a lookup table (LUT). </em> <a href="#z25_1"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z25_2">adjustGamma</a> (double gamma)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Perfoms an histogram transformation on a 8, 24 or 32-bit image according to the values of a lookup table (LUT). </em> <a href="#z23_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_2">adjustGamma</a> (double gamma)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Performs gamma correction on a 8, 24 or 32-bit image. </em> <a href="#z25_2"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z25_3">adjustBrightness</a> (double percentage)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Performs gamma correction on a 8, 24 or 32-bit image. </em> <a href="#z23_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_3">adjustBrightness</a> (double percentage)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adjusts the brightness of a 8, 24 or 32-bit image by a certain amount. </em> <a href="#z25_3"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z25_4">adjustContrast</a> (double percentage)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adjusts the brightness of a 8, 24 or 32-bit image by a certain amount. </em> <a href="#z23_3"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_4">adjustContrast</a> (double percentage)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adjusts the contrast of a 8, 24 or 32-bit image by a certain amount. </em> <a href="#z25_4"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z25_5">getHistogram</a> (DWORD *histo, FREE_IMAGE_COLOR_CHANNEL channel=FICC_BLACK)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adjusts the contrast of a 8, 24 or 32-bit image by a certain amount. </em> <a href="#z23_4"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z23_5">getHistogram</a> (DWORD *histo, FREE_IMAGE_COLOR_CHANNEL channel=FICC_BLACK)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Computes image histogram. </em> <a href="#z25_5"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Computes image histogram. </em> <a href="#z23_5"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Upsampling / downsampling</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z27_0">rescale</a> (WORD new_width, WORD new_height, FREE_IMAGE_FILTER filter)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z25_0">rescale</a> (WORD new_width, WORD new_height, FREE_IMAGE_FILTER filter)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Rescale the image to a new width / height. </em> <a href="#z27_0"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Rescale the image to a new width / height. </em> <a href="#z25_0"></a><em><br><br></td></tr>
 <tr><td colspan=2><br><h2>Protected Member Functions</h2></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Internal use</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top><a class="anchor" name="z29_0" doxytag="fipImage::updateInfo" ></a>
-void&nbsp;</td><td class="memItemRight" valign=bottom><b>updateInfo</b> ()</td></tr>
-
-<tr><td class="memItemLeft" nowrap align=right valign=top><a class="anchor" name="z29_1" doxytag="fipImage::replace" ></a>
+<tr><td class="memItemLeft" nowrap align=right valign=top><a class="anchor" name="z27_0" doxytag="fipImage::replace" ></a>
 BOOL&nbsp;</td><td class="memItemRight" valign=bottom><b>replace</b> (FIBITMAP *new_dib)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top><a class="anchor" name="z29_2" doxytag="fipImage::replace" ></a>
+<tr><td class="memItemLeft" nowrap align=right valign=top><a class="anchor" name="z27_1" doxytag="fipImage::replace" ></a>
 BOOL&nbsp;</td><td class="memItemRight" valign=bottom><b>replace</b> (<a class="el" href="classfipImage.html">fipImage</a> &amp;img)</td></tr>
 
 <tr><td colspan=2><br><h2>Protected Attributes</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>FIBITMAP *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#p0">m_dib</a></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>FIBITMAP *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#p0">_dib</a></td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">DIB data. </em> <a href="#p0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BYTE *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#p1">m_bits</a></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#p1">_bHasChanged</a></td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Pointer to DIB pixels. </em> <a href="#p1"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Internal use. </em> <a href="#p1"></a><em><br><br></td></tr>
 </table>
 <hr><h2>Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" name="z7_0" doxytag="fipImage::fipImage" ></a><p>
+<a class="anchor" name="z5_0" doxytag="fipImage::fipImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -240,7 +268,13 @@ BOOL&nbsp;</td><td class="memItemRight" valign=bottom><b>replace</b> (<a class="
         <tr>
           <td class="md" nowrap valign="top"> fipImage::fipImage </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">WORD&nbsp;</td>
+          <td class="md" nowrap valign="top">FREE_IMAGE_TYPE&nbsp;</td>
+          <td class="mdname" nowrap> <em>image_type</em> = FIT_BITMAP, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>WORD&nbsp;</td>
           <td class="mdname" nowrap> <em>width</em> = 0, </td>
         </tr>
         <tr>
@@ -278,7 +312,7 @@ Constructor.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z7_1" doxytag="fipImage::~fipImage" ></a><p>
+<a class="anchor" name="z5_1" doxytag="fipImage::~fipImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -308,7 +342,7 @@ Destructor.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z9_0" doxytag="fipImage::fipImage" ></a><p>
+<a class="anchor" name="z7_0" doxytag="fipImage::fipImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -339,7 +373,7 @@ Copy constructor.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z9_1" doxytag="fipImage::fipImage" ></a><p>
+<a class="anchor" name="z7_1" doxytag="fipImage::fipImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -371,7 +405,7 @@ Copy constructor.
   </tr>
 </table>
 <hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="z17_0" doxytag="fipImage::accessPixels" ></a><p>
+<a class="anchor" name="z15_0" doxytag="fipImage::accessPixels" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -402,7 +436,7 @@ It is up to you to interpret these bytes correctly, according to the results of 
     </td>
   </tr>
 </table>
-<a class="anchor" name="z25_3" doxytag="fipImage::adjustBrightness" ></a><p>
+<a class="anchor" name="z23_3" doxytag="fipImage::adjustBrightness" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -437,11 +471,11 @@ Adjusts the brightness of a 8, 24 or 32-bit image by a certain amount.
   </table>
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if the operation was succesful, FALSE otherwise </dd></dl>
-<dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classfipImage.html#z25_1">adjustCurve</a></dd></dl>
+<dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classfipImage.html#z23_1">adjustCurve</a></dd></dl>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z25_4" doxytag="fipImage::adjustContrast" ></a><p>
+<a class="anchor" name="z23_4" doxytag="fipImage::adjustContrast" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -476,11 +510,11 @@ Adjusts the contrast of a 8, 24 or 32-bit image by a certain amount.
   </table>
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if the operation was succesfull, FALSE otherwise </dd></dl>
-<dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classfipImage.html#z25_1">adjustCurve</a></dd></dl>
+<dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classfipImage.html#z23_1">adjustCurve</a></dd></dl>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z25_1" doxytag="fipImage::adjustCurve" ></a><p>
+<a class="anchor" name="z23_1" doxytag="fipImage::adjustCurve" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -530,7 +564,7 @@ The transformation is done as follows.<br>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z25_2" doxytag="fipImage::adjustGamma" ></a><p>
+<a class="anchor" name="z23_2" doxytag="fipImage::adjustGamma" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -564,11 +598,11 @@ Performs gamma correction on a 8, 24 or 32-bit image.
   </table>
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if the operation was successful, FALSE otherwise </dd></dl>
-<dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classfipImage.html#z25_1">adjustCurve</a></dd></dl>
+<dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classfipImage.html#z23_1">adjustCurve</a></dd></dl>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z19_7" doxytag="fipImage::colorQuantize" ></a><p>
+<a class="anchor" name="z17_8" doxytag="fipImage::colorQuantize" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -606,7 +640,7 @@ The quantize parameter specifies which colour reduction algorithm should be used
     </td>
   </tr>
 </table>
-<a class="anchor" name="z21_7" doxytag="fipImage::combineChannels" ></a><p>
+<a class="anchor" name="z19_7" doxytag="fipImage::combineChannels" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -660,7 +694,7 @@ Builds a 24-bit RGB image given its red, green and blue channel.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z19_2" doxytag="fipImage::convertTo16Bits555" ></a><p>
+<a class="anchor" name="z17_3" doxytag="fipImage::convertTo16Bits555" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -691,7 +725,7 @@ Converts the bitmap to 16 bits. The resulting bitmap has a layout of 5 bits red,
     </td>
   </tr>
 </table>
-<a class="anchor" name="z19_3" doxytag="fipImage::convertTo16Bits565" ></a><p>
+<a class="anchor" name="z17_4" doxytag="fipImage::convertTo16Bits565" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -722,7 +756,7 @@ Converts the bitmap to 16 bits. The resulting bitmap has a layout of 5 bits red,
     </td>
   </tr>
 </table>
-<a class="anchor" name="z19_4" doxytag="fipImage::convertTo24Bits" ></a><p>
+<a class="anchor" name="z17_5" doxytag="fipImage::convertTo24Bits" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -753,7 +787,7 @@ Converts the bitmap to 24 bits.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z19_5" doxytag="fipImage::convertTo32Bits" ></a><p>
+<a class="anchor" name="z17_6" doxytag="fipImage::convertTo32Bits" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -784,7 +818,7 @@ Converts the bitmap to 32 bits.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z19_1" doxytag="fipImage::convertTo8Bits" ></a><p>
+<a class="anchor" name="z17_2" doxytag="fipImage::convertTo8Bits" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -815,7 +849,7 @@ Converts the bitmap to 8 bits. If the bitmap is 24 or 32-bit RGB, the colour val
     </td>
   </tr>
 </table>
-<a class="anchor" name="z19_6" doxytag="fipImage::convertToGrayscale" ></a><p>
+<a class="anchor" name="z17_7" doxytag="fipImage::convertToGrayscale" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -842,12 +876,60 @@ Converts the bitmap to 8 bits. If the bitmap is 24 or 32-bit RGB, the colour val
 <p>
 Converts the bitmap to 8 bits. 
 <p>
-For palletized bitmaps, the color map is converted to a greyscale ramp. <dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classfipImage.html#z19_1">convertTo8Bits</a> </dd></dl>
+For palletized bitmaps, the color map is converted to a greyscale ramp. <dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classfipImage.html#z17_2">convertTo8Bits</a> </dd></dl>
 <dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if successfull, FALSE otherwise.</dd></dl>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z9_4" doxytag="fipImage::copySubImage" ></a><p>
+<a class="anchor" name="z17_0" doxytag="fipImage::convertToType" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> BOOL fipImage::convertToType </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">FREE_IMAGE_TYPE&nbsp;</td>
+          <td class="mdname" nowrap> <em>image_type</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>BOOL&nbsp;</td>
+          <td class="mdname" nowrap> <em>scale_linear</em> = TRUE</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Converts an image to a type supported by FreeImage. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign=top><em>image_type</em>&nbsp;</td><td>New image type </td></tr>
+    <tr><td valign=top><em>scale_linear</em>&nbsp;</td><td>TRUE if image pixels must be scaled linearly when converting to a standard bitmap </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if successfull, FALSE otherwise. </dd></dl>
+<dl compact><dt><b>See also:</b></dt><dd>FreeImage_ConvertToType, FreeImage_ConvertToStandardType</dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z7_4" doxytag="fipImage::copySubImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -915,7 +997,7 @@ The bit depth of the bitmap must be equal to 1, 4, 8, 16, 24 or 32.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z19_8" doxytag="fipImage::dither" ></a><p>
+<a class="anchor" name="z17_9" doxytag="fipImage::dither" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -953,7 +1035,7 @@ Converts a 8-bit image to a monochrome image using a dithering algorithm.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z23_2" doxytag="fipImage::flipHorizontal" ></a><p>
+<a class="anchor" name="z21_2" doxytag="fipImage::flipHorizontal" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -983,7 +1065,7 @@ Flip the image horizontally along the vertical axis.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z23_3" doxytag="fipImage::flipVertical" ></a><p>
+<a class="anchor" name="z21_3" doxytag="fipImage::flipVertical" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1013,7 +1095,7 @@ Flip the image vertically along the horizontal axis.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z21_5" doxytag="fipImage::getAlphaChannel" ></a><p>
+<a class="anchor" name="z19_5" doxytag="fipImage::getAlphaChannel" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1050,7 +1132,7 @@ Retrieves the alpha channel of a 32-bit RGB image.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_5" doxytag="fipImage::getBitsPerPixel" ></a><p>
+<a class="anchor" name="z11_9" doxytag="fipImage::getBitsPerPixel" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1078,10 +1160,11 @@ Retrieves the alpha channel of a 32-bit RGB image.
 Returns the bitdepth of the bitmap. 
 <p>
 <br>
- Valid bitdepth can be 1, 4, 8, 16, 24 or 32.    </td>
+ When the image type is FIT_BITMAP, valid bitdepth can be 1, 4, 8, 16, 24 or 32. <dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classfipImage.html#z11_0">getImageType</a></dd></dl>
+    </td>
   </tr>
 </table>
-<a class="anchor" name="z21_4" doxytag="fipImage::getBlueChannel" ></a><p>
+<a class="anchor" name="z19_4" doxytag="fipImage::getBlueChannel" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1118,7 +1201,7 @@ Retrieves the blue channel of a 24-bit RGB image.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z21_0" doxytag="fipImage::getChannel" ></a><p>
+<a class="anchor" name="z19_0" doxytag="fipImage::getChannel" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1166,7 +1249,7 @@ Retrieves the red, green, blue or alpha channel of a 24- or 32-bit BGR[A] image.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z15_2" doxytag="fipImage::getColorsUsed" ></a><p>
+<a class="anchor" name="z13_2" doxytag="fipImage::getColorsUsed" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1196,7 +1279,7 @@ Retrieves the number of colours used in the bitmap. If the bitmap is non-palleti
     </td>
   </tr>
 </table>
-<a class="anchor" name="z15_3" doxytag="fipImage::getColorType" ></a><p>
+<a class="anchor" name="z13_3" doxytag="fipImage::getColorType" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1227,7 +1310,7 @@ Investigates the colour type of the bitmap.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_0" doxytag="fipImage::getFIBITMAP" ></a><p>
+<a class="anchor" name="z11_4" doxytag="fipImage::getFIBITMAP" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1257,7 +1340,7 @@ Returns a pointer to the FIBITMAP data. Used for direct access from FREEIMAGE fu
     </td>
   </tr>
 </table>
-<a class="anchor" name="z21_3" doxytag="fipImage::getGreenChannel" ></a><p>
+<a class="anchor" name="z19_3" doxytag="fipImage::getGreenChannel" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1294,7 +1377,37 @@ Retrieves the green channel of a 24-bit RGB image.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z25_5" doxytag="fipImage::getHistogram" ></a><p>
+<a class="anchor" name="z11_2" doxytag="fipImage::getHeight" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> WORD fipImage::getHeight </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Returns the image height in pixels. 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z23_5" doxytag="fipImage::getHistogram" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1341,7 +1454,7 @@ For 24-bit and 32-bit images, histogram can be computed from red, green, blue an
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_7" doxytag="fipImage::getHorizontalResolution" ></a><p>
+<a class="anchor" name="z11_11" doxytag="fipImage::getHorizontalResolution" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1371,7 +1484,7 @@ Returns the bitmap resolution along the X axis, in pixels / cm.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_4" doxytag="fipImage::getImageSize" ></a><p>
+<a class="anchor" name="z11_8" doxytag="fipImage::getImageSize" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1396,12 +1509,43 @@ Returns the bitmap resolution along the X axis, in pixels / cm.
     <td>
 
 <p>
-Returns the size of the bitmap in bytes. The size of the bitmap is the BITMAPINFOHEADER + the size of the palette + the size of the bitmap data. 
+Returns the size of the bitmap in bytes. 
 <p>
+The size of the bitmap is the BITMAPINFOHEADER + the size of the palette + the size of the bitmap data.    </td>
+  </tr>
+</table>
+<a class="anchor" name="z11_0" doxytag="fipImage::getImageType" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> FREE_IMAGE_TYPE fipImage::getImageType </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+
+      </table>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_2" doxytag="fipImage::getInfo" ></a><p>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Returns the data type of the image. 
+<p>
+<dl compact><dt><b>See also:</b></dt><dd>FreeImage_GetImageType</dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z11_6" doxytag="fipImage::getInfo" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1431,7 +1575,7 @@ Returns a pointer to the bitmap's BITMAPINFO header.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_3" doxytag="fipImage::getInfoHeader" ></a><p>
+<a class="anchor" name="z11_7" doxytag="fipImage::getInfoHeader" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1461,7 +1605,7 @@ Returns a pointer to the bitmap's BITMAPINFOHEADER.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_6" doxytag="fipImage::getLine" ></a><p>
+<a class="anchor" name="z11_10" doxytag="fipImage::getLine" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1491,7 +1635,7 @@ Returns the width of the bitmap in bytes.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z15_0" doxytag="fipImage::getPalette" ></a><p>
+<a class="anchor" name="z13_0" doxytag="fipImage::getPalette" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1521,7 +1665,7 @@ Returns a pointer to the bitmap's palette. If the bitmap doesn't have a palette,
     </td>
   </tr>
 </table>
-<a class="anchor" name="z15_1" doxytag="fipImage::getPaletteSize" ></a><p>
+<a class="anchor" name="z13_1" doxytag="fipImage::getPaletteSize" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1551,7 +1695,115 @@ Returns the palette size in bytes.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z21_2" doxytag="fipImage::getRedChannel" ></a><p>
+<a class="anchor" name="z15_3" doxytag="fipImage::getPixelColor" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> BOOL fipImage::getPixelColor </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">unsigned&nbsp;</td>
+          <td class="mdname" nowrap> <em>x</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>unsigned&nbsp;</td>
+          <td class="mdname" nowrap> <em>y</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>RGBQUAD *&nbsp;</td>
+          <td class="mdname" nowrap> <em>value</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Get the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access). 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign=top><em>x</em>&nbsp;</td><td>Pixel position in horizontal direction </td></tr>
+    <tr><td valign=top><em>y</em>&nbsp;</td><td>Pixel position in vertical direction </td></tr>
+    <tr><td valign=top><em>value</em>&nbsp;</td><td>Pixel color (returned value) </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if successfull, FALSE otherwise.</dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z15_2" doxytag="fipImage::getPixelIndex" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> BOOL fipImage::getPixelIndex </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">unsigned&nbsp;</td>
+          <td class="mdname" nowrap> <em>x</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>unsigned&nbsp;</td>
+          <td class="mdname" nowrap> <em>y</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>BYTE *&nbsp;</td>
+          <td class="mdname" nowrap> <em>value</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Get the pixel index of a palettized image at position (x, y), including range check (slow access). 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign=top><em>x</em>&nbsp;</td><td>Pixel position in horizontal direction </td></tr>
+    <tr><td valign=top><em>y</em>&nbsp;</td><td>Pixel position in vertical direction </td></tr>
+    <tr><td valign=top><em>value</em>&nbsp;</td><td>Pixel index (returned value) </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if successfull, FALSE otherwise.</dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z19_2" doxytag="fipImage::getRedChannel" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1588,7 +1840,7 @@ Retrieves the red channel of a 24-bit RGB image.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z17_1" doxytag="fipImage::getScanLine" ></a><p>
+<a class="anchor" name="z15_1" doxytag="fipImage::getScanLine" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1596,7 +1848,7 @@ Retrieves the red channel of a 24-bit RGB image.
         <tr>
           <td class="md" nowrap valign="top"> BYTE* fipImage::getScanLine </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">int&nbsp;</td>
+          <td class="md" nowrap valign="top">WORD&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>scanline</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap></td>
@@ -1614,13 +1866,43 @@ Retrieves the red channel of a 24-bit RGB image.
     <td>
 
 <p>
-Returns a pointer to the start of the given scanline in the bitmap’s data-bits. 
+Returns a pointer to the start of the given scanline in the bitmap’s data-bits. This pointer can be cast according to the result returned by getImageType. 
 <p>
 <dl compact><dt><b>See also:</b></dt><dd>FreeImage_GetScanLine</dd></dl>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_8" doxytag="fipImage::getVerticalResolution" ></a><p>
+<a class="anchor" name="z11_3" doxytag="fipImage::getScanWidth" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> WORD fipImage::getScanWidth </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Returns the width of the bitmap in bytes rounded to the nearest DWORD. 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z11_12" doxytag="fipImage::getVerticalResolution" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1650,7 +1932,37 @@ Returns the bitmap resolution along the Y axis, in pixels / cm.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z25_0" doxytag="fipImage::invert" ></a><p>
+<a class="anchor" name="z11_1" doxytag="fipImage::getWidth" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> WORD fipImage::getWidth </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Returns the image width in pixels. 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z23_0" doxytag="fipImage::invert" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1681,7 +1993,7 @@ Inverts each pixel data.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z15_4" doxytag="fipImage::isGrayscale" ></a><p>
+<a class="anchor" name="z13_4" doxytag="fipImage::isGrayscale" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1711,7 +2023,7 @@ Returns TRUE if the bitmap is a 8-bit bitmap with a greyscale palette, FALSE oth
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_1" doxytag="fipImage::isValid" ></a><p>
+<a class="anchor" name="z11_5" doxytag="fipImage::isValid" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1740,10 +2052,10 @@ Returns TRUE if the image is allocated, FALSE otherwise.
 <p>
 
 <p>
-Implements <a class="el" href="classfipGenericImage.html#z5_0">fipGenericImage</a>.    </td>
+Implements <a class="el" href="classfipGenericImage.html#z3_0">fipGenericImage</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="z11_0" doxytag="fipImage::load" ></a><p>
+<a class="anchor" name="z9_0" doxytag="fipImage::load" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1778,6 +2090,8 @@ Implements <a class="el" href="classfipGenericImage.html#z5_0">fipGenericImage</
     <td>
 
 <p>
+Loads an image from disk, given its file name and an optional flag. 
+<p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign=top><em>lpszPathName</em>&nbsp;</td><td>Path and file name of the image to load. </td></tr>
@@ -1789,7 +2103,7 @@ Implements <a class="el" href="classfipGenericImage.html#z5_0">fipGenericImage</
     </td>
   </tr>
 </table>
-<a class="anchor" name="z11_1" doxytag="fipImage::loadFromHandle" ></a><p>
+<a class="anchor" name="z9_1" doxytag="fipImage::loadFromHandle" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1830,6 +2144,8 @@ Implements <a class="el" href="classfipGenericImage.html#z5_0">fipGenericImage</
     <td>
 
 <p>
+Loads an image using the specified FreeImageIO struct and fi_handle, and an optional flag. 
+<p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign=top><em>io</em>&nbsp;</td><td>FreeImageIO structure </td></tr>
@@ -1842,7 +2158,7 @@ Implements <a class="el" href="classfipGenericImage.html#z5_0">fipGenericImage</
     </td>
   </tr>
 </table>
-<a class="anchor" name="z9_3" doxytag="fipImage::operator=" ></a><p>
+<a class="anchor" name="z7_3" doxytag="fipImage::operator=" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1873,7 +2189,7 @@ Assignement operator.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z9_2" doxytag="fipImage::operator=" ></a><p>
+<a class="anchor" name="z7_2" doxytag="fipImage::operator=" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1904,7 +2220,7 @@ Copy constructor.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z9_5" doxytag="fipImage::pasteSubImage" ></a><p>
+<a class="anchor" name="z7_5" doxytag="fipImage::pasteSubImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1965,7 +2281,7 @@ The bit depth of dst bitmap must be greater than or equal to the bit depth of sr
     </td>
   </tr>
 </table>
-<a class="anchor" name="z27_0" doxytag="fipImage::rescale" ></a><p>
+<a class="anchor" name="z25_0" doxytag="fipImage::rescale" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2020,7 +2336,7 @@ Rescale the image to a new width / height.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z23_1" doxytag="fipImage::rotate" ></a><p>
+<a class="anchor" name="z21_1" doxytag="fipImage::rotate" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2057,7 +2373,7 @@ Image rotation by means of three shears.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z23_0" doxytag="fipImage::rotateEx" ></a><p>
+<a class="anchor" name="z21_0" doxytag="fipImage::rotateEx" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2133,7 +2449,7 @@ Image translation and rotation using B-Splines.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z11_2" doxytag="fipImage::save" ></a><p>
+<a class="anchor" name="z9_2" doxytag="fipImage::save" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2168,6 +2484,8 @@ Image translation and rotation using B-Splines.
     <td>
 
 <p>
+Saves an image to disk, given its file name and an optional flag. 
+<p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign=top><em>lpszPathName</em>&nbsp;</td><td>Path and file name of the image to save. </td></tr>
@@ -2179,7 +2497,7 @@ Image translation and rotation using B-Splines.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z11_3" doxytag="fipImage::saveToHandle" ></a><p>
+<a class="anchor" name="z9_3" doxytag="fipImage::saveToHandle" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2226,6 +2544,8 @@ Image translation and rotation using B-Splines.
     <td>
 
 <p>
+Saves an image using the specified FreeImageIO struct and fi_handle, and an optional flag. 
+<p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign=top><em>fif</em>&nbsp;</td><td>Format identifier (FreeImage format) </td></tr>
@@ -2239,7 +2559,7 @@ Image translation and rotation using B-Splines.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z21_6" doxytag="fipImage::setAlphaChannel" ></a><p>
+<a class="anchor" name="z19_6" doxytag="fipImage::setAlphaChannel" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2276,7 +2596,7 @@ Set the alpha channel of a 32-bit RGB image.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_9" doxytag="fipImage::setHorizontalResolution" ></a><p>
+<a class="anchor" name="z11_13" doxytag="fipImage::setHorizontalResolution" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2307,7 +2627,115 @@ set the bitmap resolution along the X axis, in pixels / cm
     </td>
   </tr>
 </table>
-<a class="anchor" name="z7_2" doxytag="fipImage::setSize" ></a><p>
+<a class="anchor" name="z15_5" doxytag="fipImage::setPixelColor" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> BOOL fipImage::setPixelColor </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">unsigned&nbsp;</td>
+          <td class="mdname" nowrap> <em>x</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>unsigned&nbsp;</td>
+          <td class="mdname" nowrap> <em>y</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>RGBQUAD *&nbsp;</td>
+          <td class="mdname" nowrap> <em>value</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Set the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access). 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign=top><em>x</em>&nbsp;</td><td>Pixel position in horizontal direction </td></tr>
+    <tr><td valign=top><em>y</em>&nbsp;</td><td>Pixel position in vertical direction </td></tr>
+    <tr><td valign=top><em>value</em>&nbsp;</td><td>Pixel color </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if successfull, FALSE otherwise.</dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z15_4" doxytag="fipImage::setPixelIndex" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> BOOL fipImage::setPixelIndex </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">unsigned&nbsp;</td>
+          <td class="mdname" nowrap> <em>x</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>unsigned&nbsp;</td>
+          <td class="mdname" nowrap> <em>y</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>BYTE *&nbsp;</td>
+          <td class="mdname" nowrap> <em>value</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Set the pixel index of a palettized image at position (x, y), including range check (slow access). 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign=top><em>x</em>&nbsp;</td><td>Pixel position in horizontal direction </td></tr>
+    <tr><td valign=top><em>y</em>&nbsp;</td><td>Pixel position in vertical direction </td></tr>
+    <tr><td valign=top><em>value</em>&nbsp;</td><td>Pixel index </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if successfull, FALSE otherwise.</dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z5_2" doxytag="fipImage::setSize" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2315,7 +2743,13 @@ set the bitmap resolution along the X axis, in pixels / cm
         <tr>
           <td class="md" nowrap valign="top"> BOOL fipImage::setSize </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">WORD&nbsp;</td>
+          <td class="md" nowrap valign="top">FREE_IMAGE_TYPE&nbsp;</td>
+          <td class="mdname" nowrap> <em>image_type</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>WORD&nbsp;</td>
           <td class="mdname" nowrap> <em>width</em>, </td>
         </tr>
         <tr>
@@ -2353,7 +2787,7 @@ Image allocator.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z13_10" doxytag="fipImage::setVerticalResolution" ></a><p>
+<a class="anchor" name="z11_14" doxytag="fipImage::setVerticalResolution" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2384,7 +2818,7 @@ set the bitmap resolution along the Y axis, in pixels / cm
     </td>
   </tr>
 </table>
-<a class="anchor" name="z21_1" doxytag="fipImage::splitChannels" ></a><p>
+<a class="anchor" name="z19_1" doxytag="fipImage::splitChannels" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2438,7 +2872,7 @@ Split a 24-bit RGB image into 3 greyscale images corresponding to the red, green
     </td>
   </tr>
 </table>
-<a class="anchor" name="z19_0" doxytag="fipImage::threshold" ></a><p>
+<a class="anchor" name="z17_1" doxytag="fipImage::threshold" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2476,13 +2910,13 @@ Converts the bitmap to 1 bit using a threshold T.
   </tr>
 </table>
 <hr><h2>Member Data Documentation</h2>
-<a class="anchor" name="p1" doxytag="fipImage::m_bits" ></a><p>
+<a class="anchor" name="p1" doxytag="fipImage::_bHasChanged" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"> BYTE* <a class="el" href="classfipImage.html#p1">fipImage::m_bits</a><code> [protected]</code>
+          <td class="md" nowrap valign="top"> BOOL <a class="el" href="classfipImage.html#p1">fipImage::_bHasChanged</a><code> [protected]</code>
       </table>
     </td>
   </tr>
@@ -2495,18 +2929,18 @@ Converts the bitmap to 1 bit using a threshold T.
     <td>
 
 <p>
-Pointer to DIB pixels. 
+Internal use. 
 <p>
     </td>
   </tr>
 </table>
-<a class="anchor" name="p0" doxytag="fipImage::m_dib" ></a><p>
+<a class="anchor" name="p0" doxytag="fipImage::_dib" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"> FIBITMAP* <a class="el" href="classfipImage.html#p0">fipImage::m_dib</a><code> [protected]</code>
+          <td class="md" nowrap valign="top"> FIBITMAP* <a class="el" href="classfipImage.html#p0">fipImage::_dib</a><code> [protected]</code>
       </table>
     </td>
   </tr>

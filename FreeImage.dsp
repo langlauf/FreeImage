@@ -210,6 +210,10 @@ SOURCE=.\Source\FreeImage\Conversion8.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Source\FreeImage\ConversionType.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Source\FreeImage\Halftoning.cpp
 # End Source File
 # End Group
@@ -308,6 +312,10 @@ SOURCE=.\Source\Utilities.h
 # Begin Source File
 
 SOURCE=.\Source\FreeImageToolkit\BSplineRotate.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\Channels.cpp
 # End Source File
 # Begin Source File
 

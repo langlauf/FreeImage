@@ -16,10 +16,8 @@ rd Source\LibTIFF\Debug /s /q
 rd Source\LibTIFF\Release /s /q
 rd Source\Zlib\Debug /s /q
 rd Source\Zlib\Release /s /q
-rd Source\Test\Debug /s /q
-rd Source\Test\Release /s /q
-del Source\Test\FreeImage*.*
-del Source\Test\*.txt
+rd TestAPI\Debug /s /q
+rd TestAPI\Release /s /q
 del *.pch /s /q
 del *.ncb /s /q
 del *.opt /s /q

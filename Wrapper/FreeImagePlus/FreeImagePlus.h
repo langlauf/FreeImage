@@ -31,8 +31,11 @@
 // Compiler options ---------------------------------------------------------
 
 #if defined(FREEIMAGE_LIB) || !defined(WIN32)
-#define FIP_API 
+#define FIP_API
+#define FIP_CALLCONV
 #else
+#define WIN32_LEAN_AND_MEAN
+#define FIP_CALLCONV __stdcall
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the FIP_EXPORTS
 // symbol defined on the command line. this symbol should not be defined on any project
@@ -59,32 +62,13 @@ const BYTE BLACK = 0;
 // ----------------------------------------------------------
 
 /** Abstract base class for all image types used by the library.
-	@version FreeImage 3.0
+	@version FreeImage 3
 	@author Hervé Drolon
 */
 
 class FIP_API fipGenericImage
 {
-  protected:
-	/// Image width
-	WORD m_Width;
-	/// Image height
-	WORD m_Height;
-	/// Length of a line (in bytes) rounded to 32-bit
-	WORD m_ScanWidth;
-
-  public:
-
-	/**@name Accessors */
-	//@{
-	/// Returns the image width in pixels
-	WORD getWidth()		{ return m_Width; }
-	/// Returns the image height in pixels
-	WORD getHeight()	{ return m_Height; }
-	/// Returns the width of the bitmap in bytes rounded to the nearest DWORD.
-	WORD getScanWidth()	{ return m_ScanWidth; }
-	//@}
-
+public:
 	/**@name Information functions */
 	//@{
 	/// Returns TRUE if the image is allocated, FALSE otherwise
@@ -94,11 +78,11 @@ class FIP_API fipGenericImage
 
 // ----------------------------------------------------------
 
-/** A class used to manage all photo related images.
+/** A class used to manage all photo related images and all image types used by the library.
 
 	fipImage encapsulates the FIBITMAP format. It relies on the FreeImage library, especially for 
 	loading / saving images and for bit depth conversion.
-	@version FreeImage 3.0
+	@version FreeImage 3
 	@author Hervé Drolon
 */
 
@@ -106,20 +90,20 @@ class FIP_API fipImage : public fipGenericImage
 {
 protected:
 	/// DIB data
-	FIBITMAP *m_dib;
-	/// Pointer to DIB pixels
-	BYTE *m_bits;
+	FIBITMAP *_dib;
+	/// Internal use
+	BOOL _bHasChanged;
 
 public:
 
 	/**@name Creation & Destruction */
 	//@{	
 	/// Constructor
-	fipImage(WORD width = 0, WORD height = 0, WORD bpp = 0);
+	fipImage(FREE_IMAGE_TYPE image_type = FIT_BITMAP, WORD width = 0, WORD height = 0, WORD bpp = 0);
 	/// Destructor
 	~fipImage();
 	/// Image allocator
-	BOOL setSize(WORD width, WORD height, WORD bpp);
+	BOOL setSize(FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD bpp);
 	//@}
 
 	/**@name Copying */
@@ -166,8 +150,8 @@ public:
 	 * Loading and saving is handled by the FreeImage library.
 	 */
 	//@{	
-	/// Loads an image from disk, given its file name and an optional flag.
 	/**
+	@brief Loads an image from disk, given its file name and an optional flag.
 	@param lpszPathName Path and file name of the image to load.
 	@param flag The signification of this flag depends on the image to be read.
 	@return Returns TRUE if successful, FALSE otherwise.
@@ -175,8 +159,8 @@ public:
 	*/
 	BOOL load(const char* lpszPathName, int flag = 0);
 
-	/// Loads an image using the specified FreeImageIO struct and fi_handle, and an optional flag.
 	/**
+	@brief Loads an image using the specified FreeImageIO struct and fi_handle, and an optional flag.
 	@param io FreeImageIO structure
 	@param handle FreeImage fi_handle
 	@param flag The signification of this flag depends on the image to be read.
@@ -185,8 +169,8 @@ public:
 	*/
 	BOOL loadFromHandle(FreeImageIO *io, fi_handle handle, int flag = 0);
 
-	/// Saves an image to disk, given its file name and an optional flag.
 	/**
+	@brief Saves an image to disk, given its file name and an optional flag.
 	@param lpszPathName Path and file name of the image to save.
 	@param flag The signification of this flag depends on the image to be saved.
 	@return Returns TRUE if successful, FALSE otherwise.
@@ -194,8 +178,8 @@ public:
 	*/
 	BOOL save(const char* lpszPathName, int flag = 0);
 
-	/// Saves an image using the specified FreeImageIO struct and fi_handle, and an optional flag.
 	/**
+	@brief Saves an image using the specified FreeImageIO struct and fi_handle, and an optional flag.
 	@param fif Format identifier (FreeImage format)
 	@param io FreeImageIO structure
 	@param handle FreeImage fi_handle
@@ -210,6 +194,22 @@ public:
 	 *  Accessors to the DIB BITMAPINFO structure.
 	 */
 	//@{	
+
+	/**
+	Returns the data type of the image
+	@see FreeImage_GetImageType
+	*/
+	FREE_IMAGE_TYPE getImageType();
+
+	/// Returns the image width in pixels
+	WORD getWidth();
+	
+	/// Returns the image height in pixels
+	WORD getHeight();
+	
+	/// Returns the width of the bitmap in bytes rounded to the nearest DWORD.
+	WORD getScanWidth();
+
 	/// Returns a pointer to the FIBITMAP data. Used for direct access from FREEIMAGE functions.
 	FIBITMAP* getFIBITMAP();
 
@@ -222,12 +222,16 @@ public:
 	/// Returns a pointer to the bitmap's BITMAPINFOHEADER. 
     BITMAPINFOHEADER* getInfoHeader();
 
-	/// Returns the size of the bitmap in bytes. The size of the bitmap is the BITMAPINFOHEADER + the size of the palette + the size of the bitmap data. 
+	/**
+	Returns the size of the bitmap in bytes. 
+	The size of the bitmap is the BITMAPINFOHEADER + the size of the palette + the size of the bitmap data. 
+	*/
 	LONG getImageSize();
 	
 	/**
 	Returns the bitdepth of the bitmap. <br>
-	Valid bitdepth can be 1, 4, 8, 16, 24 or 32.
+	When the image type is FIT_BITMAP, valid bitdepth can be 1, 4, 8, 16, 24 or 32.
+	@see getImageType
 	*/
 	WORD getBitsPerPixel();
 
@@ -279,10 +283,43 @@ public:
 	*/
 	BYTE* accessPixels();
 
-	/** Returns a pointer to the start of the given scanline in the bitmap’s data-bits.
-	@see FreeImage_GetScanLine
+	/** @brief Returns a pointer to the start of the given scanline in the bitmap’s data-bits.
+		This pointer can be cast according to the result returned by getImageType.
+		@see FreeImage_GetScanLine
 	*/
-	BYTE *getScanLine(int scanline);
+	BYTE* getScanLine(WORD scanline);
+
+	/** @brief Get the pixel index of a palettized image at position (x, y), including range check (slow access). 
+	@param x Pixel position in horizontal direction
+	@param y Pixel position in vertical direction
+	@param value Pixel index (returned value)
+	@return Returns TRUE if successfull, FALSE otherwise. 
+	*/
+	BOOL getPixelIndex(unsigned x, unsigned y, BYTE *value);
+
+	/** @brief Get the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access). 
+	@param x Pixel position in horizontal direction
+	@param y Pixel position in vertical direction
+	@param value Pixel color (returned value)
+	@return Returns TRUE if successfull, FALSE otherwise. 
+	*/
+	BOOL getPixelColor(unsigned x, unsigned y, RGBQUAD *value);
+
+	/** @brief Set the pixel index of a palettized image at position (x, y), including range check (slow access). 
+	@param x Pixel position in horizontal direction
+	@param y Pixel position in vertical direction
+	@param value Pixel index
+	@return Returns TRUE if successfull, FALSE otherwise. 
+	*/
+	BOOL setPixelIndex(unsigned x, unsigned y, BYTE *value);
+
+	/** @brief Set the pixel color of a 24- or 32-bit image at position (x, y), including range check (slow access). 
+	@param x Pixel position in horizontal direction
+	@param y Pixel position in vertical direction
+	@param value Pixel color
+	@return Returns TRUE if successfull, FALSE otherwise. 
+	*/
+	BOOL setPixelColor(unsigned x, unsigned y, RGBQUAD *value);
 
 	//@}
 
@@ -290,6 +327,14 @@ public:
 	 *  Bitmaps are always loaded in their default bit depth. If you want the bitmap to be stored in another bit depth, the class provides several conversion functions.
 	 */
 	//@{	
+	/** @brief Converts an image to a type supported by FreeImage.
+		@param image_type New image type
+		@param scale_linear TRUE if image pixels must be scaled linearly when converting to a standard bitmap
+		@return Returns TRUE if successfull, FALSE otherwise. 
+		@see FreeImage_ConvertToType, FreeImage_ConvertToStandardType
+	*/
+	BOOL convertToType(FREE_IMAGE_TYPE image_type, BOOL scale_linear = TRUE);
+
 	/** @brief Converts the bitmap to 1 bit using a threshold T.
 		@param T Threshold value in [0..255]
 		@return Returns TRUE if successfull, FALSE otherwise. 
@@ -512,7 +557,6 @@ public:
   protected:
 	/**@name Internal use */
 	//@{
-	  void updateInfo();
 	  BOOL replace(FIBITMAP *new_dib);
 	  BOOL replace(fipImage& img) {
 		  return replace(img.getFIBITMAP());
@@ -530,7 +574,7 @@ public:
 	<li>Display a DIB on the screen
 	<li>Copy / Paste a DIB to/from Windows devices (HANDLE, HBITMAP, Clipboard)
 	</ul>
-	@version FreeImage 3.0
+	@version FreeImage 3
 	@author Hervé Drolon
 */
 #ifdef WIN32
@@ -541,40 +585,66 @@ public:
 	/**@name Creation & Destruction */
 	//@{	
 	/// Constructor
-	fipWinImage(WORD width = 0, WORD height = 0, WORD bpp = 0) : fipImage(width, height, bpp) { }
+	fipWinImage(FREE_IMAGE_TYPE image_type = FIT_BITMAP, WORD width = 0, WORD height = 0, WORD bpp = 0);
 
 	/// Destructor
-	~fipWinImage() { }
+	~fipWinImage();
 	//@}
 
 	/**@name Copying */
 	//@{	
 	/// Copy constructor
-	fipWinImage(const fipImage& Img) : fipImage(Img) { }
+	fipWinImage(const fipImage& Img);
 
 	/// Copy constructor
-	fipWinImage(const FIBITMAP *dib) : fipImage(dib) { }
+	fipWinImage(const FIBITMAP *dib);
 
-	/** @brief Clone function used for clipboard copy.
-
+	/** Clone function used for clipboard copy.<br>
 	Convert the FIBITMAP image to a DIB, 
 	and transfer the DIB in a global bitmap handle.
 	*/
 	HANDLE copyToHandle();
 
-	/** @brief Copy constructor used for clipboard paste.
-
+	/** Copy constructor used for clipboard paste.<br>
 	Converts a global object to a FIBITMAP. The clipboard format must be CF_DIB.
+	@return Returns TRUE if successful, returns FALSE otherwise
 	*/
-	void copyFromHandle(HANDLE hMem);
+	BOOL copyFromHandle(HANDLE hMem);
 
-	/** @brief Copy constructor
-
+	/** Copy constructor.<br>
 	Converts a HBITMAP object to a FIBITMAP.
+	@return Returns TRUE if successful, returns FALSE otherwise
 	*/
-	void copyFromBitmap(HBITMAP hbmp);
-
+	BOOL copyFromBitmap(HBITMAP hbmp);
 	//@}
+
+	/**@name Clipboard operations */
+	//@{	
+	/**
+	Clipboard copy.
+	@param hWndNewOwner Handle to the window to be associated with the open clipboard. 
+	In MFC, you can use AfxGetApp()->m_pMainWnd->GetSafeHwnd().
+	@return Returns TRUE if successful, returns FALSE otherwise
+	*/
+	BOOL copyToClipboard(HWND hWndNewOwner);
+
+	/**
+	Retrieves data from the clipboard. The clipboard format must be CF_DIB.
+	@return Returns TRUE if successful, returns FALSE otherwise
+	*/
+	BOOL pasteFromClipboard();
+	//@}
+
+	/**@name Screen capture */
+	//@{	
+	/** Capture a window and convert it to an image
+	@param hWndApplicationWindow Handle to the application main window
+	@param hWndSelectedWindow Handle to the window to be captured
+	@return Returns TRUE if successful, returns FALSE otherwise
+	*/
+	BOOL captureWindow(HWND hWndApplicationWindow, HWND hWndSelectedWindow);
+	//@}
+
 
 	/**@name Painting operations */
 	//@{	
@@ -587,6 +657,113 @@ public:
 	void draw(HDC hDC, RECT& rcDest);
 
 	//@}
+
+protected:
+	/// DIB used for display (this allow to display non-standard bitmaps)
+	FIBITMAP *_display_dib;
+	/// remember to delete _display_dib
+	BOOL _bDeleteMe;
+};
+
+#endif // WIN32
+
+// ----------------------------------------------------------
+
+/** Memory handle
+	
+	fipMemoryIO is a class that allows you to load / save images from a memory handle.
+	@version FreeImage 3
+	@author Hervé Drolon
+*/
+class FIP_API fipMemoryIO : public FreeImageIO
+{
+protected:
+	/// Remember to delete the buffer
+	BOOL _delete_me;
+	/// Start buffer address
+    BYTE * _start;
+	/// Current position
+    BYTE *_cp;
+	/// Buffer size
+	DWORD _size;
+
+public :
+	/** Constructor.
+	Wrap a memory buffer containing image data.<br>
+	The memory buffer has to be freed by the user 
+	when no longer in use.
+	@param data Pointer to the memory buffer
+	@param size_in_bytes Buffer size in bytes
+	*/
+    fipMemoryIO(BYTE *data = NULL, DWORD size_in_bytes = 0);
+
+	/** Constructor.
+	Load a binary file containing image data.
+	into a memory buffer.<br>
+	The memory buffer is automatically destroyed 
+	when no longer in use.
+	@param lpszPathName Path and file name of the image to load.
+	@return Returns TRUE if successful, FALSE otherwise
+	*/
+    BOOL loadFile(const char *lpszPathName);
+	
+	/** Destructor.
+	Free any allocated memory
+	*/
+	~fipMemoryIO();
+
+	/** Returns TRUE if the internal memory buffer is a valid buffer, returns FALSE otherwise
+	*/
+	BOOL isValidIO();
+
+	/** Returns the buffer image format
+	@see FreeImage_GetFileTypeFromHandle
+	*/
+	FREE_IMAGE_FORMAT getFileType();
+
+	/**@name Memory IO routines */
+	//@{	
+    static unsigned FIP_CALLCONV _ReadProc(void *buffer, unsigned size, unsigned count, fi_handle handle);
+    static unsigned FIP_CALLCONV _WriteProc(void *buffer, unsigned size, unsigned count, fi_handle handle);
+    static int FIP_CALLCONV _SeekProc(fi_handle handle, long offset, int origin);
+	static long FIP_CALLCONV _TellProc(fi_handle handle);
+	//@}
+
+};
+
+#ifdef WIN32
+
+#include <WinInet.h>
+
+/** Internet handle
+	
+	fipInternetIO is a class that allows you to load / save images from a Internet handle.
+	@version FreeImage 3
+	@author Hervé Drolon
+*/
+class FIP_API fipInternetIO : public fipMemoryIO
+{
+protected:
+	/// Internet session
+	HINTERNET _hInternet;
+	/// handle to HTTP file
+	HINTERNET _hHttpFile;
+
+public :
+	/** Constructor.
+	Opens a new Internet session
+	*/
+    fipInternetIO();
+
+	/** Destructor.
+	Closes the Internet session
+	*/
+	~fipInternetIO();
+
+	/** Download a file from a URL to internal memory buffer
+	*/
+	BOOL downloadFile(char *szURL);
+
 };
 
 #endif // WIN32

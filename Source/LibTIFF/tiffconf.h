@@ -113,6 +113,7 @@
 #define LOGLUV_SUPPORT
 /* added by FreeImage */
 #define JPEG_SUPPORT
+#define ZIP_SUPPORT
 #endif /* COMPRESSION_SUPPORT */
 
 /*

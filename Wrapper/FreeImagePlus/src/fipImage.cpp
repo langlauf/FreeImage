@@ -24,75 +24,56 @@
 ///////////////////////////////////////////////////////////////////   
 // Protected functions
 
-// Update data members. Called after each image resizing
-void fipImage::updateInfo() {
-	if(m_dib) {
-		m_Width = FreeImage_GetWidth(m_dib);
-		m_Height = FreeImage_GetHeight(m_dib);
-		m_ScanWidth = FreeImage_GetPitch(m_dib);
-		m_bits = FreeImage_GetBits(m_dib);
-	}
-}
-
 BOOL fipImage::replace(FIBITMAP *new_dib) {
 	if(new_dib == NULL) 
 		return FALSE;
-	if(m_dib)
-		FreeImage_Unload(m_dib);
-	m_dib = new_dib;
-	m_Width = FreeImage_GetWidth(m_dib);
-	m_Height = FreeImage_GetHeight(m_dib);
-	m_ScanWidth = FreeImage_GetPitch(m_dib);
-	m_bits = FreeImage_GetBits(m_dib);
+	if(_dib)
+		FreeImage_Unload(_dib);
+	_dib = new_dib;
+	_bHasChanged = TRUE;
 	return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////
 // Creation & Destruction
 
-fipImage::fipImage(WORD width, WORD height, WORD bpp) {
-	m_dib = NULL;
-	if(width && height && bpp) {
-		setSize(width, height, bpp);
-	}
-	else {
-		m_Width = m_Height = m_ScanWidth = 0;
-		m_bits = NULL;
-	}
+fipImage::fipImage(FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD bpp) {
+	_dib = NULL;
+	_bHasChanged = FALSE;
+	if(width && height && bpp)
+		setSize(image_type, width, height, bpp);
 }
 
 fipImage::~fipImage() {
-	if( m_dib ) FreeImage_Unload(m_dib);
-	m_Width = m_Height = m_ScanWidth = 0;
-	m_bits = NULL;
+	if(_dib) {
+		FreeImage_Unload(_dib);
+	}
 }
 
-BOOL fipImage::setSize(WORD width, WORD height, WORD bpp) {
-	RGBQUAD *pal;	// pointer to dib palette
-
-	if(m_dib) {
-		FreeImage_Unload(m_dib);
-		m_Width = m_Height = m_ScanWidth = 0;
-		m_bits = NULL;
+BOOL fipImage::setSize(FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD bpp) {
+	if(_dib) {
+		FreeImage_Unload(_dib);
 	}
-	if((m_dib = FreeImage_Allocate(width, height, bpp)) == NULL)
+	if((_dib = FreeImage_AllocateT(image_type, width, height, bpp)) == NULL)
 		return FALSE;
 
-	updateInfo();
-
-	// Create palette if needed
-	switch(bpp)	{
-		case 1:
-		case 4:
-		case 8:
-			pal = FreeImage_GetPalette(m_dib);
-			for(unsigned i = 0; i < FreeImage_GetColorsUsed(m_dib); i++) {
-				pal[i].rgbRed = i;
-				pal[i].rgbGreen = i;
-				pal[i].rgbBlue = i;
-			}
-			break;
+	if(image_type == FIT_BITMAP) {
+		// Create palette if needed
+		switch(bpp)	{
+			case 1:
+			case 4:
+			case 8:
+				RGBQUAD *pal = FreeImage_GetPalette(_dib);
+				for(unsigned i = 0; i < FreeImage_GetColorsUsed(_dib); i++) {
+					pal[i].rgbRed = i;
+					pal[i].rgbGreen = i;
+					pal[i].rgbBlue = i;
+				}
+				break;
+		}
 	}
+
+	_bHasChanged = TRUE;
 
 	return TRUE;
 }
@@ -101,20 +82,20 @@ BOOL fipImage::setSize(WORD width, WORD height, WORD bpp) {
 // Copying
 
 fipImage::fipImage(const fipImage& Image) {
-	m_dib = NULL;
-	FIBITMAP *clone = FreeImage_Clone((FIBITMAP*)Image.m_dib);
+	_dib = NULL;
+	FIBITMAP *clone = FreeImage_Clone((FIBITMAP*)Image._dib);
 	replace(clone);
 }
 
 fipImage::fipImage(const FIBITMAP *dib) {
-	m_dib = NULL;
+	_dib = NULL;
 	FIBITMAP *clone = FreeImage_Clone((FIBITMAP*)dib);
 	replace(clone);
 }
 
 fipImage& fipImage::operator=(const fipImage& Image) {
 	if(this != &Image) {
-		FIBITMAP *clone = FreeImage_Clone((FIBITMAP*)Image.m_dib);
+		FIBITMAP *clone = FreeImage_Clone((FIBITMAP*)Image._dib);
 		replace(clone);
 	}
 	return *this;
@@ -126,17 +107,16 @@ fipImage& fipImage::operator=(FIBITMAP *dib) {
 }
 
 BOOL fipImage::copySubImage(fipImage& dst, int left, int top, int right, int bottom) {
-	if(m_dib) {
-		dst = FreeImage_Copy(m_dib, left, top, right, bottom);
+	if(_dib) {
+		dst = FreeImage_Copy(_dib, left, top, right, bottom);
 		return dst.isValid();
 	}
 	return FALSE;
 }
 
 BOOL fipImage::pasteSubImage(fipImage& src, int left, int top, int alpha) {
-	if(m_dib) {
-		BOOL bResult = FreeImage_Paste(m_dib, src.m_dib, left, top, alpha);
-		updateInfo();
+	if(_dib) {
+		BOOL bResult = FreeImage_Paste(_dib, src._dib, left, top, alpha);
 		return bResult;
 	}
 	return FALSE;
@@ -146,49 +126,65 @@ BOOL fipImage::pasteSubImage(fipImage& src, int left, int top, int alpha) {
 ///////////////////////////////////////////////////////////////////
 // Information functions
 
+FREE_IMAGE_TYPE fipImage::getImageType() {
+	return FreeImage_GetImageType(_dib);
+}
+
+WORD fipImage::getWidth() {
+	return FreeImage_GetWidth(_dib); 
+}
+
+WORD fipImage::getHeight() {
+	return FreeImage_GetHeight(_dib); 
+}
+
+WORD fipImage::getScanWidth() {
+	return FreeImage_GetPitch(_dib);
+}
+
 FIBITMAP* fipImage::getFIBITMAP() {
-	return m_dib;
+	return _dib;
 }
 
 BOOL fipImage::isValid() {
-	return (m_dib != NULL) ? TRUE:FALSE;
+	return (_dib != NULL) ? TRUE:FALSE;
 }
 
 BITMAPINFO* fipImage::getInfo() {
-	return FreeImage_GetInfo(m_dib);
+	return FreeImage_GetInfo(_dib);
 }
 
 BITMAPINFOHEADER* fipImage::getInfoHeader() {
-	return FreeImage_GetInfoHeader(m_dib);
+	return FreeImage_GetInfoHeader(_dib);
 }
 
 LONG fipImage::getImageSize() {
-	return FreeImage_GetDIBSize(m_dib);
+	return FreeImage_GetDIBSize(_dib);
 }
 
 WORD fipImage::getBitsPerPixel() {
-	return FreeImage_GetBPP(m_dib);
+	return FreeImage_GetBPP(_dib);
 }
 
 WORD fipImage::getLine() {
-	return FreeImage_GetLine(m_dib);
+	return FreeImage_GetLine(_dib);
 }
 
 WORD fipImage::getHorizontalResolution() {
-	return (FreeImage_GetDotsPerMeterX(m_dib) / 100); 
+	return (FreeImage_GetDotsPerMeterX(_dib) / 100); 
 }
 
 WORD fipImage::getVerticalResolution() {
-	return (FreeImage_GetDotsPerMeterY(m_dib) / 100);
+	return (FreeImage_GetDotsPerMeterY(_dib) / 100);
 }
 
 void fipImage::setHorizontalResolution(LONG value) {
-	BITMAPINFOHEADER *bmih = FreeImage_GetInfoHeader(m_dib);
+	BITMAPINFOHEADER *bmih = FreeImage_GetInfoHeader(_dib);
 	bmih->biXPelsPerMeter = value * 100;
 }
 
 void fipImage::setVerticalResolution(LONG value) {
-	BITMAPINFOHEADER *bmih = FreeImage_GetInfoHeader(m_dib);
+	BITMAPINFOHEADER *bmih = FreeImage_GetInfoHeader(_dib);
 	bmih->biYPelsPerMeter = value * 100;
 }
 
@@ -197,37 +193,53 @@ void fipImage::setVerticalResolution(LONG value) {
 // Palette operations
 
 RGBQUAD* fipImage::getPalette() {
-	return FreeImage_GetPalette(m_dib);
+	return FreeImage_GetPalette(_dib);
 }
 
 WORD fipImage::getPaletteSize() {
-	return FreeImage_GetColorsUsed(m_dib) * sizeof(RGBQUAD);
+	return FreeImage_GetColorsUsed(_dib) * sizeof(RGBQUAD);
 }
 
 WORD fipImage::getColorsUsed() {
-	return FreeImage_GetColorsUsed(m_dib);
+	return FreeImage_GetColorsUsed(_dib);
 }
 
 FREE_IMAGE_COLOR_TYPE fipImage::getColorType() { 
-	return FreeImage_GetColorType(m_dib);
+	return FreeImage_GetColorType(_dib);
 }
 
 BOOL fipImage::isGrayscale() {
-	return ((FreeImage_GetBPP(m_dib) == 8) && (FreeImage_GetColorType(m_dib) != FIC_PALETTE)); 
+	return ((FreeImage_GetBPP(_dib) == 8) && (FreeImage_GetColorType(_dib) != FIC_PALETTE)); 
 }
 
 ///////////////////////////////////////////////////////////////////
 // Pixel access
 
 BYTE* fipImage::accessPixels() {
-	return FreeImage_GetBits(m_dib); 
+	return FreeImage_GetBits(_dib); 
 }
 
-BYTE*fipImage::getScanLine(int scanline) {
-	if((scanline >= 0) && (scanline < m_Height)) {
-		return FreeImage_GetScanLine(m_dib, scanline);
+BYTE*fipImage::getScanLine(WORD scanline) {
+	if(scanline < FreeImage_GetHeight(_dib)) {
+		return FreeImage_GetScanLine(_dib, scanline);
 	}
 	return NULL;
+}
+
+BOOL fipImage::getPixelIndex(unsigned x, unsigned y, BYTE *value) {
+	return FreeImage_GetPixelIndex(_dib, x, y, value);
+}
+
+BOOL fipImage::getPixelColor(unsigned x, unsigned y, RGBQUAD *value) {
+	return FreeImage_GetPixelColor(_dib, x, y, value);
+}
+
+BOOL fipImage::setPixelIndex(unsigned x, unsigned y, BYTE *value) {
+	return FreeImage_SetPixelIndex(_dib, x, y, value);
+}
+
+BOOL fipImage::setPixelColor(unsigned x, unsigned y, RGBQUAD *value) {
+	return FreeImage_SetPixelColor(_dib, x, y, value);
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -247,17 +259,14 @@ BOOL fipImage::load(const char* lpszPathName, int flag) {
 	// check that the plugin has reading capabilities ...
 	if((fif != FIF_UNKNOWN) && FreeImage_FIFSupportsReading(fif)) {
 		// Free the previous dib
-		if(m_dib) {
-			FreeImage_Unload(m_dib);
-			m_Width = m_Height = m_ScanWidth = 0;
-			m_bits = NULL;
+		if(_dib) {
+			FreeImage_Unload(_dib);			
 		}
 		// Load the file
-		m_dib = FreeImage_Load(fif, lpszPathName, flag);
-		if(m_dib == NULL)
+		_dib = FreeImage_Load(fif, lpszPathName, flag);
+		_bHasChanged = TRUE;
+		if(_dib == NULL)
 			return FALSE;
-		// Update image information
-		updateInfo();
 		return TRUE;
 	}
 	return FALSE;
@@ -270,17 +279,14 @@ BOOL fipImage::loadFromHandle(FreeImageIO *io, fi_handle handle, int flag) {
 	fif = FreeImage_GetFileTypeFromHandle(io, handle, 16);
 	if((fif != FIF_UNKNOWN) && FreeImage_FIFSupportsReading(fif)) {
 		// Free the previous dib
-		if(m_dib) {
-			FreeImage_Unload(m_dib);
-			m_Width = m_Height = m_ScanWidth = 0;
-			m_bits = NULL;
+		if(_dib) {
+			FreeImage_Unload(_dib);			
 		}
 		// Load the file
-		m_dib = FreeImage_LoadFromHandle(fif, io, handle, flag);
-		if(m_dib == NULL)
+		_dib = FreeImage_LoadFromHandle(fif, io, handle, flag);
+		_bHasChanged = TRUE;
+		if(_dib == NULL)
 			return FALSE;
-		// Update image information
-		updateInfo();
 		return TRUE;
 	}
 	return FALSE;
@@ -294,9 +300,20 @@ BOOL fipImage::save(const char* lpszPathName, int flag) {
 	fif = FreeImage_GetFIFFromFilename(lpszPathName);
 	if(fif != FIF_UNKNOWN ) {
 		// Check that the dib can be saved in this format
-		WORD bpp = FreeImage_GetBPP(m_dib);
-		if(FreeImage_FIFSupportsWriting(fif) && FreeImage_FIFSupportsExportBPP(fif, bpp)) {
-			bSuccess = FreeImage_Save(fif, m_dib, lpszPathName, flag);
+		BOOL bCanSave;
+
+		FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(_dib);
+		if(image_type == FIT_BITMAP) {
+			// standard bitmap type
+			WORD bpp = FreeImage_GetBPP(_dib);
+			bCanSave = (FreeImage_FIFSupportsWriting(fif) && FreeImage_FIFSupportsExportBPP(fif, bpp));
+		} else {
+			// special bitmap type
+			bCanSave = FreeImage_FIFSupportsExportType(fif, image_type);
+		}
+
+		if(bCanSave) {
+			bSuccess = FreeImage_Save(fif, _dib, lpszPathName, flag);
 			return bSuccess;
 		}
 	}
@@ -308,9 +325,20 @@ BOOL fipImage::saveToHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle ha
 
 	if(fif != FIF_UNKNOWN ) {
 		// Check that the dib can be saved in this format
-		WORD bpp = FreeImage_GetBPP(m_dib);
-		if(FreeImage_FIFSupportsWriting(fif) && FreeImage_FIFSupportsExportBPP(fif, bpp)) {
-			bSuccess = FreeImage_SaveToHandle(fif, m_dib, io, handle, flag);
+		BOOL bCanSave;
+
+		FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(_dib);
+		if(image_type == FIT_BITMAP) {
+			// standard bitmap type
+			WORD bpp = FreeImage_GetBPP(_dib);
+			bCanSave = (FreeImage_FIFSupportsWriting(fif) && FreeImage_FIFSupportsExportBPP(fif, bpp));
+		} else {
+			// special bitmap type
+			bCanSave = FreeImage_FIFSupportsExportType(fif, image_type);
+		}
+
+		if(bCanSave) {
+			bSuccess = FreeImage_SaveToHandle(fif, _dib, io, handle, flag);
 			return bSuccess;
 		}
 	}
@@ -320,63 +348,71 @@ BOOL fipImage::saveToHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle ha
 ///////////////////////////////////////////////////////////////////   
 // Conversion routines
 
+BOOL fipImage::convertToType(FREE_IMAGE_TYPE image_type, BOOL scale_linear) {
+	if(_dib) {
+		FIBITMAP *dib = FreeImage_ConvertToType(_dib, image_type, scale_linear);
+		return replace(dib);
+	}
+	return FALSE;
+}
+
 BOOL fipImage::threshold(BYTE T) {
-	if(m_dib) {
-		FIBITMAP *dib1 = FreeImage_Threshold(m_dib, T);
+	if(_dib) {
+		FIBITMAP *dib1 = FreeImage_Threshold(_dib, T);
 		return replace(dib1);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::convertTo8Bits() {
-	if(m_dib) {
-		FIBITMAP *dib8 = FreeImage_ConvertTo8Bits(m_dib);
+	if(_dib) {
+		FIBITMAP *dib8 = FreeImage_ConvertTo8Bits(_dib);
 		return replace(dib8);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::convertTo16Bits555() {
-	if(m_dib) {
-		FIBITMAP *dib16_555 = FreeImage_ConvertTo16Bits555(m_dib);
+	if(_dib) {
+		FIBITMAP *dib16_555 = FreeImage_ConvertTo16Bits555(_dib);
 		return replace(dib16_555);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::convertTo16Bits565() {
-	if(m_dib) {
-		FIBITMAP *dib16_565 = FreeImage_ConvertTo16Bits565(m_dib);
+	if(_dib) {
+		FIBITMAP *dib16_565 = FreeImage_ConvertTo16Bits565(_dib);
 		return replace(dib16_565);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::convertTo24Bits() {
-	if(m_dib) {
-		FIBITMAP *dibRGB = FreeImage_ConvertTo24Bits(m_dib);
+	if(_dib) {
+		FIBITMAP *dibRGB = FreeImage_ConvertTo24Bits(_dib);
 		return replace(dibRGB);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::convertTo32Bits() {
-	if(m_dib) {
-		FIBITMAP *dib32 = FreeImage_ConvertTo32Bits(m_dib);
+	if(_dib) {
+		FIBITMAP *dib32 = FreeImage_ConvertTo32Bits(_dib);
 		return replace(dib32);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::convertToGrayscale() {
-	if(m_dib) {
-		if(FreeImage_GetColorType(m_dib) == FIC_PALETTE) {
+	if(_dib) {
+		if(FreeImage_GetColorType(_dib) == FIC_PALETTE) {
 			// Convert the palette to 24-bit, then to 8-bit
 			BOOL bResult;
 			bResult = convertTo24Bits();
 			bResult &= convertTo8Bits();
 			return bResult;
-		} else if(FreeImage_GetBPP(m_dib) != 8) {
+		} else if(FreeImage_GetBPP(_dib) != 8) {
 			// Convert the bitmap to 8-bit greyscale
 			return convertTo8Bits();
 		}
@@ -385,16 +421,16 @@ BOOL fipImage::convertToGrayscale() {
 }
 
 BOOL fipImage::colorQuantize(FREE_IMAGE_QUANTIZE algorithm) {
-	if(m_dib) {
-		FIBITMAP *dib8 = FreeImage_ColorQuantize(m_dib, algorithm);
+	if(_dib) {
+		FIBITMAP *dib8 = FreeImage_ColorQuantize(_dib, algorithm);
 		return replace(dib8);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::dither(FREE_IMAGE_DITHER algorithm) {
-	if(m_dib) {
-		FIBITMAP *dib = FreeImage_Dither(m_dib, algorithm);
+	if(_dib) {
+		FIBITMAP *dib = FreeImage_Dither(_dib, algorithm);
 		return replace(dib);
 	}
 	return FALSE;
@@ -404,10 +440,10 @@ BOOL fipImage::dither(FREE_IMAGE_DITHER algorithm) {
 // Channel processing support
 
 BOOL fipImage::splitChannels(fipImage& RedChannel, fipImage& GreenChannel, fipImage& BlueChannel) {
-	if(m_dib) {
-		RedChannel = FreeImage_GetChannel(m_dib, FICC_RED);
-		GreenChannel = FreeImage_GetChannel(m_dib, FICC_GREEN);
-		BlueChannel = FreeImage_GetChannel(m_dib, FICC_BLUE);
+	if(_dib) {
+		RedChannel = FreeImage_GetChannel(_dib, FICC_RED);
+		GreenChannel = FreeImage_GetChannel(_dib, FICC_GREEN);
+		BlueChannel = FreeImage_GetChannel(_dib, FICC_BLUE);
 
 		return (RedChannel.isValid() && GreenChannel.isValid() && BlueChannel.isValid());
 	}
@@ -415,70 +451,75 @@ BOOL fipImage::splitChannels(fipImage& RedChannel, fipImage& GreenChannel, fipIm
 }
 
 BOOL fipImage::getChannel(fipImage& image, FREE_IMAGE_COLOR_CHANNEL channel) {
-	if(m_dib) {
-		image = FreeImage_GetChannel(m_dib, channel);
+	if(_dib) {
+		image = FreeImage_GetChannel(_dib, channel);
 		return image.isValid();
 	}
 	return FALSE;
 }
 
 BOOL fipImage::getRedChannel(fipImage& red) {
-	if(m_dib) {
-		red = FreeImage_GetChannel(m_dib, FICC_RED);
+	if(_dib) {
+		red = FreeImage_GetChannel(_dib, FICC_RED);
 		return red.isValid();
 	}
 	return FALSE;
 }
 
 BOOL fipImage::getGreenChannel(fipImage& green) {
-	if(m_dib) {
-		green = FreeImage_GetChannel(m_dib, FICC_GREEN);
+	if(_dib) {
+		green = FreeImage_GetChannel(_dib, FICC_GREEN);
 		return green.isValid();
 	}
 	return FALSE;
 }
 
 BOOL fipImage::getBlueChannel(fipImage& blue) {
-	if(m_dib) {
-		blue = FreeImage_GetChannel(m_dib, FICC_BLUE);
+	if(_dib) {
+		blue = FreeImage_GetChannel(_dib, FICC_BLUE);
 		return blue.isValid();
 	}
 	return FALSE;
 }
 
 BOOL fipImage::getAlphaChannel(fipImage& alpha) {
-	if(m_dib) {
-		alpha = FreeImage_GetChannel(m_dib, FICC_ALPHA);
+	if(_dib) {
+		alpha = FreeImage_GetChannel(_dib, FICC_ALPHA);
 		return alpha.isValid();
 	}
 	return FALSE;
 }
 
 BOOL fipImage::setAlphaChannel(fipImage& alpha) {
-	if(!m_dib) {
+	if(!_dib) {
 		int width = alpha.getWidth();
 		int height = alpha.getHeight();
-		m_dib = FreeImage_Allocate(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
+		_dib = FreeImage_Allocate(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
 	}
 
-	if(m_dib) {
-		return FreeImage_SetChannel(m_dib, alpha.m_dib, FICC_ALPHA);
+	if(_dib) {
+		_bHasChanged = TRUE;
+
+		return FreeImage_SetChannel(_dib, alpha._dib, FICC_ALPHA);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::combineChannels(fipImage& red, fipImage& green, fipImage& blue) {
-	if(!m_dib) {
+	if(!_dib) {
 		int width = red.getWidth();
 		int height = red.getHeight();
-		m_dib = FreeImage_Allocate(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+		_dib = FreeImage_Allocate(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
 	}
 
-	if(m_dib) {
-		BOOL bResult = FreeImage_SetChannel(m_dib, red.m_dib, FICC_RED);
-		bResult &= FreeImage_SetChannel(m_dib, green.m_dib, FICC_GREEN);
-		bResult &= FreeImage_SetChannel(m_dib, blue.m_dib, FICC_BLUE);
-		updateInfo();
+	if(_dib) {
+		BOOL bResult = TRUE;
+		bResult &= FreeImage_SetChannel(_dib, red._dib, FICC_RED);
+		bResult &= FreeImage_SetChannel(_dib, green._dib, FICC_GREEN);
+		bResult &= FreeImage_SetChannel(_dib, blue._dib, FICC_BLUE);
+
+		_bHasChanged = TRUE;
+
 		return bResult;
 	}
 	return FALSE;
@@ -488,9 +529,9 @@ BOOL fipImage::combineChannels(fipImage& red, fipImage& green, fipImage& blue) {
 // Rotation and flipping
 
 BOOL fipImage::rotateEx(double angle, double x_shift, double y_shift, double x_origin, double y_origin, BOOL use_mask) {
-	if(m_dib) {
-		if(FreeImage_GetBPP(m_dib) >= 8) {
-			FIBITMAP *rotated = FreeImage_RotateEx(m_dib, angle, x_shift, y_shift, x_origin, y_origin, use_mask);
+	if(_dib) {
+		if(FreeImage_GetBPP(_dib) >= 8) {
+			FIBITMAP *rotated = FreeImage_RotateEx(_dib, angle, x_shift, y_shift, x_origin, y_origin, use_mask);
 			return replace(rotated);
 		}
 	}
@@ -498,9 +539,9 @@ BOOL fipImage::rotateEx(double angle, double x_shift, double y_shift, double x_o
 }
 
 BOOL fipImage::rotate(double angle) {
-	if(m_dib) {
-		if(FreeImage_GetBPP(m_dib) >= 8) {
-			FIBITMAP *rotated = FreeImage_RotateClassic(m_dib, angle);
+	if(_dib) {
+		if(FreeImage_GetBPP(_dib) >= 8) {
+			FIBITMAP *rotated = FreeImage_RotateClassic(_dib, angle);
 			return replace(rotated);
 		}
 	}
@@ -508,15 +549,19 @@ BOOL fipImage::rotate(double angle) {
 }
 
 BOOL fipImage::flipVertical() {
-	if(m_dib) {
-		return FreeImage_FlipVertical(m_dib);
+	if(_dib) {
+		_bHasChanged = TRUE;
+
+		return FreeImage_FlipVertical(_dib);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::flipHorizontal() {
-	if(m_dib) {
-		return FreeImage_FlipHorizontal(m_dib);
+	if(_dib) {
+		_bHasChanged = TRUE;
+
+		return FreeImage_FlipHorizontal(_dib);
 	}
 	return FALSE;
 }
@@ -525,43 +570,53 @@ BOOL fipImage::flipHorizontal() {
 // Color manipulation routines
 
 BOOL fipImage::invert() {
-	if(m_dib) {
-		return FreeImage_Invert(m_dib);
+	if(_dib) {
+		_bHasChanged = TRUE;
+
+		return FreeImage_Invert(_dib);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::adjustCurve(BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel) {
-	if(m_dib) {
-		return FreeImage_AdjustCurve(m_dib, LUT, channel);
+	if(_dib) {
+		_bHasChanged = TRUE;
+
+		return FreeImage_AdjustCurve(_dib, LUT, channel);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::adjustGamma(double gamma) {
-	if(m_dib) {
-		return FreeImage_AdjustGamma(m_dib, gamma);
+	if(_dib) {
+		_bHasChanged = TRUE;
+
+		return FreeImage_AdjustGamma(_dib, gamma);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::adjustBrightness(double percentage) {
-	if(m_dib) {
-		return FreeImage_AdjustBrightness(m_dib, percentage);
+	if(_dib) {
+		_bHasChanged = TRUE;
+
+		return FreeImage_AdjustBrightness(_dib, percentage);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::adjustContrast(double percentage) {
-	if(m_dib) {
-		return FreeImage_AdjustContrast(m_dib, percentage);
+	if(_dib) {
+		_bHasChanged = TRUE;
+
+		return FreeImage_AdjustContrast(_dib, percentage);
 	}
 	return FALSE;
 }
 
 BOOL fipImage::getHistogram(DWORD *histo, FREE_IMAGE_COLOR_CHANNEL channel) {
-	if(m_dib) {
-		return FreeImage_GetHistogram(m_dib, histo, channel);
+	if(_dib) {
+		return FreeImage_GetHistogram(_dib, histo, channel);
 	}
 	return FALSE;
 }
@@ -571,14 +626,14 @@ BOOL fipImage::getHistogram(DWORD *histo, FREE_IMAGE_COLOR_CHANNEL channel) {
 
 BOOL fipImage::rescale(WORD new_width, WORD new_height, FREE_IMAGE_FILTER filter) {
 	FIBITMAP *src = NULL;
-	if(m_dib) {
+	if(_dib) {
 		// Convert to 32-bit
-		if(FreeImage_GetBPP(m_dib) != 32) {
+		if(FreeImage_GetBPP(_dib) != 32) {
 			if(!convertTo32Bits())
 				return FALSE;
 		}
 		// Perform upsampling / downsampling
-		FIBITMAP *dst = FreeImage_Rescale(m_dib, new_width, new_height, filter);
+		FIBITMAP *dst = FreeImage_Rescale(_dib, new_width, new_height, filter);
 		return replace(dst);
 	}
 	return FALSE;

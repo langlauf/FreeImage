@@ -3,7 +3,7 @@
 //
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Alexander Dymerets (sashad@te.net.ua)
-// - Hervé Drolon (drolon@iut.univ-lehavre.fr)
+// - Hervé Drolon (drolon@infonie.fr)
 // - Manfred Tausch (manfred.tausch@t-online.de)
 //
 // This file is part of FreeImage 3

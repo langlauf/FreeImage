@@ -42,6 +42,7 @@ FreeImage_ZLibCompress(BYTE *target, DWORD target_size, BYTE *source, DWORD sour
 	switch(zerr) {
 		case Z_MEM_ERROR:	// not enough memory
 		case Z_BUF_ERROR:	// not enough room in the output buffer
+			FreeImage_OutputMessageProc(FIF_UNKNOWN, "Zlib error : %s", zError(zerr));
 			return 0;
 		case Z_OK:
 			return dest_len;
@@ -74,6 +75,7 @@ FreeImage_ZLibUncompress(BYTE *target, DWORD target_size, BYTE *source, DWORD so
 		case Z_MEM_ERROR:	// not enough memory
 		case Z_BUF_ERROR:	// not enough room in the output buffer
 		case Z_DATA_ERROR:	// input data was corrupted
+			FreeImage_OutputMessageProc(FIF_UNKNOWN, "Zlib error : %s", zError(zerr));
 			return 0;
 		case Z_OK:
 			return dest_len;

@@ -6,6 +6,7 @@
 // - Jani Kajala (janik@remedy.fi)
 // - Martin Weber (martweb@gmx.net)
 // - Machiel ten Brinke (brinkem@uni-one.nl)
+// - Peter Lemmens (peter.lemmens@planetinternet.be)
 //
 // This file is part of FreeImage 3
 //
@@ -141,6 +142,79 @@ MimeType() {
 }
 
 static BOOL DLL_CALLCONV
+Validate(FreeImageIO *io, fi_handle handle) {
+	TGAHEADER header;
+	char extra[256]; // 256 temporary bytes (only 255 will be used though)
+
+	// try to read the header in a whole
+	if(io->read_proc(&header, sizeof(tagTGAHEADER), 1, handle) != 1)
+		return FALSE;
+
+	// The Color Map Type should be a 0 or a 1...
+	// NOTE: are other values possible?
+	//   NO, according to http://cvs.sf.net/viewcvs.py/eifogl/eifogl/utility/tga/tga_file.e?rev=1.3
+	//       and it seems that the current Targa implementation for FreeImage
+	//       assumes that anything other than 0 means that there is a Color Map
+	if(header.color_map_type != 0 && header.color_map_type != 1)
+		return FALSE;
+
+	// If the Color Map Type is 1 then we validate the map entry information...
+	// NOTA: let's stay compatible with the current FreeImage Targa implementation
+	//       and check against Type 0 instead against Type 1
+	if(header.color_map_type != 0) {
+		// It doesn't make any sense if the first entry is larger than the Color Map Table
+		if(header.cm_first_entry >= header.cm_length)
+			return FALSE;
+
+		// NOTE : maybe we should check header.cm_size for known values?
+		//        for now, don't allow 0 or anything bigger than 32
+		if(header.cm_size <= 0 || header.cm_size > 32)
+			return FALSE;
+	}
+	else {
+		// I have disabled this because I'm not really sure
+		// but can one assume that if there is no Color Map
+		// than all 3 related values are zeroed?
+		// NOTE: atleast in my test files that seems to be the case...
+		/*
+		if(header.cm_first_entry != 0 || header.cm_length != 0 || header.cm_size != 0)
+			return FALSE;
+		*/
+	}
+
+	// the width/height shouldn't be 0, right?
+	if(header.is_width == 0 || header.is_height == 0)
+		return FALSE;
+
+	// the extra data (following after the header) should be there
+	if(io->read_proc(extra, 1, header.id_length, handle) != header.id_length)
+		return FALSE;
+
+	// let's now verify all the types that are supported by FreeImage
+	// NOTE : this is our final verification
+	switch(header.is_pixel_depth) {
+		case 8: 
+			switch(header.image_type) {
+			  case TGA_CMAP:
+			  case TGA_MONO:
+			  case TGA_RLECMAP:
+			  case TGA_RLEMONO: return TRUE;
+			}
+			break;
+		case 15:
+		case 16:
+		case 24:
+		case 32: 
+			switch(header.image_type) {
+				case TGA_RGB:
+				case TGA_RLERGB: return TRUE;
+			}
+	}
+
+	return FALSE;
+}
+
+static BOOL DLL_CALLCONV
 SupportsExportDepth(int depth) {
 	return (
 			(depth == 1) ||
@@ -150,6 +224,11 @@ SupportsExportDepth(int depth) {
 			(depth == 24) ||
 			(depth == 32)
 		);
+}
+
+static BOOL DLL_CALLCONV 
+SupportsExportType(FREE_IMAGE_TYPE type) {
+	return (type == FIT_BITMAP) ? TRUE : FALSE;
 }
 
 // ----------------------------------------------------------
@@ -918,8 +997,9 @@ InitTARGA(Plugin *plugin, int format_id) {
 	plugin->pagecapability_proc = NULL;
 	plugin->load_proc = Load;
 	plugin->save_proc = Save;
-	plugin->validate_proc = NULL;
+	plugin->validate_proc = Validate;
 	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_export_type_proc = SupportsExportType;
 	plugin->supports_icc_profiles_proc = NULL;
 }

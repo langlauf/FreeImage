@@ -5,6 +5,23 @@ What's New for FreeImage
 ! : changed
 + : added
 
+January 26, 2004 - 3.1.0
+! FreeImage now uses ZLib 1.2.1
++ [Herve Drolon] added support for integer, real and complex image types (see below)
++                added FREE_IMAGE_TYPE enum
++                added FreeImage_AllocateT
++                added FreeImage_GetImageType
++                added FreeImage_FIFSupportsExportType
++                added FreeImage_ConvertToStandardType
++                added FreeImage_ConvertToType
++                added load/save support of all image types to TIFF plugin
++ [Peter Lemmens] added a Validate function to TARGA plugin
++ [Herve Drolon] added FreeImage_GetPixelIndex / FreeImage_SetPixelIndex
++ [Herve Drolon] added FreeImage_GetPixelColor / FreeImage_SetPixelColor
++ [Herve Drolon] added FreeImage_GetComplexChannel / FreeImage_SetComplexChannel
+* [Serge Ivanchenko] TIFF_DEFLATE compression is now enabled in TIFF plugin
+* [Herve Drolon] fixed a bug in NeuQuant color reduction algorithm 
+
 November 16, 2003 - 3.0.4
 * [Tobias Persson] fixed FreeImage_GetChannel not working with FICC_ALPHA channel
 * [Detlev Vendt] fixed a minor bug with PNG plugin and PNG_IGNOREGAMMA flag

@@ -591,6 +591,19 @@ FreeImage_FIFSupportsExportBPP(FREE_IMAGE_FORMAT fif, int depth) {
 }
 
 BOOL DLL_CALLCONV
+FreeImage_FIFSupportsExportType(FREE_IMAGE_FORMAT fif, FREE_IMAGE_TYPE type) {
+	if (s_plugins != NULL) {
+		PluginNode *node = s_plugins->FindNodeFromFIF(fif);
+
+		return (node != NULL) ? 
+			(node->m_plugin->supports_export_type_proc != NULL) ? 
+				node->m_plugin->supports_export_type_proc(type) : FALSE : FALSE;
+	}
+
+	return FALSE;
+}
+
+BOOL DLL_CALLCONV
 FreeImage_FIFSupportsICCProfiles(FREE_IMAGE_FORMAT fif) {
 	if (s_plugins != NULL) {
 		PluginNode *node = s_plugins->FindNodeFromFIF(fif);

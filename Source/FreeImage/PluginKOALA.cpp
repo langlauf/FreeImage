@@ -127,6 +127,11 @@ SupportsExportDepth(int depth) {
 	return FALSE;
 }
 
+static BOOL DLL_CALLCONV 
+SupportsExportType(FREE_IMAGE_TYPE type) {
+	return FALSE;
+}
+
 // ----------------------------------------------------------
 
 FIBITMAP * DLL_CALLCONV

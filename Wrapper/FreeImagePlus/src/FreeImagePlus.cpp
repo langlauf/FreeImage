@@ -1,5 +1,5 @@
 // ==========================================================
-// FreeImagePlus implementation
+// FreeImagePlus.cpp : Defines the entry point for the DLL application.
 //
 // Design and implementation by
 // - Hervé Drolon (drolon@infonie.fr)
@@ -19,14 +19,15 @@
 // Use at your own risk!
 // ==========================================================
 
+#ifdef WIN32
+#include <windows.h>
+#endif // WIN32
+
+#include "FreeImagePlus.h"
+
 //----------------------------------------------------------------------
-// FreeImagePlus.cpp : Defines the entry point for the DLL application.
-//
 
 #ifdef WIN32
-
-#include <windows.h>
-#include "FreeImagePlus.h"
 
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {

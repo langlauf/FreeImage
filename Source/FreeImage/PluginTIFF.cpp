@@ -230,6 +230,9 @@ CheckPhotometric(FIBITMAP *dib, uint16 bitspersample) {
 
 			return PHOTOMETRIC_MINISBLACK;
 			
+		case 16:
+			return PHOTOMETRIC_MINISBLACK;			
+
 		case 24:
 		case 32:
 			return PHOTOMETRIC_RGB;			
@@ -295,6 +298,20 @@ SupportsExportDepth(int depth) {
 		);
 }
 
+static BOOL DLL_CALLCONV 
+SupportsExportType(FREE_IMAGE_TYPE type) {
+	return (
+		(type == FIT_BITMAP) ||
+		(type == FIT_UINT16) ||
+		(type == FIT_INT16)  ||
+		(type == FIT_UINT32) ||
+		(type == FIT_INT32)  ||
+		(type == FIT_FLOAT)  ||
+		(type == FIT_DOUBLE) ||
+		(type == FIT_COMPLEX)
+	);
+}
+
 static BOOL DLL_CALLCONV
 SupportsICCProfiles() {
 	return TRUE;
@@ -336,6 +353,170 @@ PageCount(FreeImageIO *io, fi_handle handle, void *data) {
 
 // ----------------------------------------------------------
 
+static FIBITMAP* CreateImageType(FREE_IMAGE_TYPE fit, int width, int height, uint16 bitspersample, uint16 samplesperpixel) {
+	FIBITMAP *dib = NULL;
+
+	uint16 bpp = bitspersample * samplesperpixel;
+
+	if(fit == FIT_BITMAP) {
+		// standard bitmap type 
+
+		if(bitspersample == 16) {
+			if(samplesperpixel == 1) {
+				// 16-bit greyscale -> convert to 8-bit
+				dib = FreeImage_Allocate(width, height, 8);
+			}
+			else if(samplesperpixel = 3) {
+				// 48-bit RGB -> convert to 24-bit RGB
+				dib = FreeImage_Allocate(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+			}
+		}
+		else if(bpp == 16) {
+			// 16-bit RGB -> expect it to be 565
+			dib = FreeImage_Allocate(width, height, bpp, 0x1F, 0x7E0, 0xF800);
+		}
+		else if((bpp == 24) || (bpp == 32)) {
+			// BGR(A)
+			dib = FreeImage_Allocate(width, height, bpp, 0xFF, 0xFF00, 0xFF0000);
+		}
+		else {
+			// anything else <= 8-bit
+			dib = FreeImage_Allocate(width, height, bpp);
+		}
+	} else {
+		// other bitmap types
+		
+		dib = FreeImage_AllocateT(fit, width, height, bpp);
+	}
+
+	return dib;
+}
+
+/** 
+Read the TIFFTAG_SAMPLEFORMAT tag and convert to FREE_IMAGE_TYPE
+@param tiff LibTIFF TIFF Handle
+@param bitspersample # bit per sample
+@param samplesperpixel # samples per pixel
+@return Returns the image type as a FREE_IMAGE_TYPE value
+*/
+static FREE_IMAGE_TYPE GetImageType(TIFF *tiff, uint16 bitspersample, uint16 samplesperpixel) {
+	uint16 sampleformat = 0;
+	FREE_IMAGE_TYPE fit = FIT_BITMAP;
+
+	// try the sampleformat tag
+    if(TIFFGetField(tiff, TIFFTAG_SAMPLEFORMAT, &sampleformat)) {
+
+        switch (sampleformat) {
+			case SAMPLEFORMAT_UINT:
+				switch (bitspersample) {
+					case 1:
+					case 4:
+					case 8:
+					case 24:
+						fit = FIT_BITMAP;
+						break;
+					case 16:
+						if(samplesperpixel == 3) {
+							fit = FIT_BITMAP;
+						} else {
+							fit = FIT_UINT16;
+						}
+						break;
+
+					case 32:
+						if(samplesperpixel == 4) {
+							fit = FIT_BITMAP;
+						} else {
+							fit = FIT_UINT32;
+						}
+						break;
+				}
+				break;
+
+			case SAMPLEFORMAT_INT:
+				switch (bitspersample) {
+					case 16:
+						if(samplesperpixel == 3) {
+							fit = FIT_BITMAP;
+						} else {
+							fit = FIT_INT16;
+						}
+						break;
+					case 32:
+						fit = FIT_INT32;
+						break;
+				}
+				break;
+
+			case SAMPLEFORMAT_IEEEFP:
+				switch (bitspersample) {
+					case 32:
+						fit = FIT_FLOAT;
+						break;
+					case 64:
+						fit = FIT_DOUBLE;
+						break;
+				}
+				break;
+			case SAMPLEFORMAT_COMPLEXIEEEFP:
+				switch (bitspersample) {
+					case 64:
+						break;
+					case 128:
+						fit = FIT_COMPLEX;
+						break;
+				}
+				break;
+
+			}
+    }
+	// no sampleformat tag : assume SAMPLEFORMAT_UINT
+	else {
+		if(samplesperpixel == 1) {
+			switch (bitspersample) {
+				case 16:
+					fit = FIT_UINT16;
+					break;
+					
+				case 32:
+					fit = FIT_UINT32;
+					break;
+			}
+		}
+	}
+
+    return fit;
+}
+
+/** 
+Convert FREE_IMAGE_TYPE and write TIFFTAG_SAMPLEFORMAT
+@param tiff LibTIFF TIFF Handle
+@param fit Image type as a FREE_IMAGE_TYPE value
+*/
+static void SetImageType(TIFF *tiff, FREE_IMAGE_TYPE fit) {
+	switch(fit) {
+		case FIT_BITMAP:	// standard image: 1-, 4-, 8-, 16-, 24-, 32-bit
+		case FIT_UINT16:	// array of unsigned short	: unsigned 16-bit
+		case FIT_UINT32:	// array of unsigned long	: unsigned 32-bit
+			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
+			break;
+
+		case FIT_INT16:		// array of short	: signed 16-bit
+		case FIT_INT32:		// array of long	: signed 32-bit
+			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_INT);
+			break;
+
+		case FIT_FLOAT:		// array of float	: 32-bit
+		case FIT_DOUBLE:	// array of double	: 64-bit
+			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
+			break;
+
+		case FIT_COMPLEX:	// array of COMPLEX : 2 x 64-bit
+			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_COMPLEXIEEEFP);
+			break;
+	}
+}
+
 static FIBITMAP * DLL_CALLCONV
 Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if ((handle != NULL) && (data != NULL)) {
@@ -358,331 +539,299 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		void *iccBuf = NULL;
 		uint32 iccSize = 0;
     
-		if (handle) {
-			try {			
-				tif = (TIFF *)data;
-    
-				if (page != -1)
-					if (!tif || !TIFFSetDirectory(tif, page))
-						throw "Error encountered while opening TIFF file";			
+		try {			
+			tif = (TIFF *)data;
 
-				TIFFGetField(tif, TIFFTAG_COMPRESSION, &compression);
-				TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
-				TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
-				TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
-				TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);
-				TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip);   
-				TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric);
-				TIFFGetField(tif, TIFFTAG_ICCPROFILE, &iccSize, &iccBuf);
+			if (page != -1)
+				if (!tif || !TIFFSetDirectory(tif, page))
+					throw "Error encountered while opening TIFF file";			
 
-				if (compression == COMPRESSION_LZW)
-					throw "LZW compression is no longer supported due to Unisys patent enforcement";
+			TIFFGetField(tif, TIFFTAG_COMPRESSION, &compression);
+			TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
+			TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+			TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
+			TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);
+			TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip);   
+			TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric);
+			TIFFGetField(tif, TIFFTAG_ICCPROFILE, &iccSize, &iccBuf);
 
-				if (compression == COMPRESSION_OJPEG)
-					throw "6.0 JPEG encoding is not supported";
+			// get image data type
 
-				if((photometric == PHOTOMETRIC_SEPARATED) && (bitspersample == 16))
-					throw "Unable to handle 16-bit CMYK TIFF";
+			FREE_IMAGE_TYPE image_type = GetImageType(tif, bitspersample, samplesperpixel);
 
-				// Convert to 24 or 32 bits RGB if the image is full color
+			if (compression == COMPRESSION_LZW)
+				throw "LZW compression is no longer supported due to Unisys patent enforcement";
 
-				BOOL isRGB = (bitspersample >= 8) &&
-					(photometric == PHOTOMETRIC_RGB) ||
-					(photometric == PHOTOMETRIC_YCBCR) ||
-					(photometric == PHOTOMETRIC_SEPARATED) ||
-					(photometric == PHOTOMETRIC_LOGLUV);
+			if (compression == COMPRESSION_OJPEG)
+				throw "6.0 JPEG encoding is not supported";
 
-				// if image is PHOTOMETRIC_SEPARATED _and_ comes with an ICC profile, 
-				// then the image should preserve its original (CMYK) colour model and 
-				// should be read as CMYK (to keep the match of pixel and profile and 
-				// to avoid multiple conversions. Conversion can be done by changing 
-				// the profile from it's original CMYK to an RGB profile with an 
-				// apropriate color management system. Works with non-tiled TIFFs.
+			if((photometric == PHOTOMETRIC_SEPARATED) && (bitspersample == 16))
+				throw "Unable to handle 16-bit CMYK TIFF";
 
-				if (photometric == PHOTOMETRIC_SEPARATED &&	
-					((flags & TIFF_CMYK) == TIFF_CMYK) && !TIFFIsTiled(tif))
-					isRGB = false;
+			// Convert to 24 or 32 bits RGB if the image is full color
 
-				if (isRGB) {
-					// Read the whole image into one big RGBA buffer and then 
-					// convert it to a DIB. This is using the traditional
-					// TIFFReadRGBAImage() API that we trust.
+			BOOL isRGB = (bitspersample >= 8) &&
+				(photometric == PHOTOMETRIC_RGB) ||
+				(photometric == PHOTOMETRIC_YCBCR) ||
+				(photometric == PHOTOMETRIC_SEPARATED) ||
+				(photometric == PHOTOMETRIC_LOGLUV);
 
-					uint32 *raster = (uint32*)_TIFFmalloc(width * height * sizeof(uint32));
+			// if image is PHOTOMETRIC_SEPARATED _and_ comes with an ICC profile, 
+			// then the image should preserve its original (CMYK) colour model and 
+			// should be read as CMYK (to keep the match of pixel and profile and 
+			// to avoid multiple conversions. Conversion can be done by changing 
+			// the profile from it's original CMYK to an RGB profile with an 
+			// apropriate color management system. Works with non-tiled TIFFs.
 
-					if (raster == NULL)
-						throw "No space for raster buffer";
+			if (photometric == PHOTOMETRIC_SEPARATED &&	
+				((flags & TIFF_CMYK) == TIFF_CMYK) && !TIFFIsTiled(tif))
+				isRGB = false;
 
-					// read the image in one chunk into an RGBA array
+			if (isRGB) {
 
-					if (!TIFFReadRGBAImage(tif, width, height, raster, 0)) {
-						_TIFFfree(raster);
-						return NULL;
-					}
+				// Read the whole image into one big RGBA buffer and then 
+				// convert it to a DIB. This is using the traditional
+				// TIFFReadRGBAImage() API that we trust.
 
-					// create a new DIB
+				uint32 *raster = (uint32*)_TIFFmalloc(width * height * sizeof(uint32));
 
-					if (samplesperpixel == 4)
-						dib = FreeImage_Allocate(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
-					else
-						dib = FreeImage_Allocate(width, height, 24, 0xFF, 0xFF00, 0xFF0000);
+				if (raster == NULL)
+					throw "No space for raster buffer";
 
+				// read the image in one chunk into an RGBA array
+
+				if (!TIFFReadRGBAImage(tif, width, height, raster, 0)) {
+					_TIFFfree(raster);
+					return NULL;
+				}
+
+				// create a new DIB
+
+				dib = CreateImageType(image_type, width, height, bitspersample, samplesperpixel);
+				if (dib == NULL) {
 					// free the raster pointer and output an error if allocation failed
-
-					if (dib == NULL) {
-						_TIFFfree(raster);
-
-						throw "DIB allocation failed";
-					}
-					
-					// fill in the metrics (english or universal)
-
-					float fResX = 300.0;
-					float fResY = 300.0;
-					uint16 resUnit = RESUNIT_INCH;
-
-					TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
-					TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fResX);
-					TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fResY);
-
-					BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-
-					if (resUnit == RESUNIT_INCH) {
-						pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
-						pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
-					} else if(resUnit == RESUNIT_CENTIMETER) {
-						pInfoHeader->biXPelsPerMeter = (int) (fResX*100.0 + 0.5);
-						pInfoHeader->biYPelsPerMeter = (int) (fResY*100.0 + 0.5);
-					}
-
-					// read the raster lines and save them in the DIB
-					// with RGB mode, we have to change the order of the 3 samples RGB
-					// We use macros for extracting components from the packed ABGR 
-					// form returned by TIFFReadRGBAImage.
-
-					BOOL has_alpha = FALSE;
-					uint32 *row = &raster[0];
-
-					for (y = 0; y < height; y++) {
-						bits = FreeImage_GetScanLine(dib, y);
-
-						if (samplesperpixel == 4) {
-							for (x = 0; x < width; x++) {
-								bits[0] = (BYTE)TIFFGetB(row[x]);
-								bits[1] = (BYTE)TIFFGetG(row[x]);
-								bits[2] = (BYTE)TIFFGetR(row[x]);
-								bits[3] = (BYTE)TIFFGetA(row[x]);
-
-								if (bits[3] != 0)
-									has_alpha = TRUE;								
-
-								bits += 4;
-							}
-						} else {
-							for (x = 0; x < width; x++) {
-								bits[0] = (BYTE)TIFFGetB(row[x]);
-								bits[1] = (BYTE)TIFFGetG(row[x]);
-								bits[2] = (BYTE)TIFFGetR(row[x]);
-
-								bits += 3;
-							}
-						}
-
-						row += width;
-					}
-
-					FreeImage_SetTransparent(dib, has_alpha);
 
 					_TIFFfree(raster);
 
-				} else {
-					// calculate the line + pitch
+					throw "DIB allocation failed";
+				}
+				
+				// fill in the metrics (english or universal)
 
-					int line = CalculateLine(width, bitspersample * samplesperpixel);
-					int pitch = CalculatePitch(line);
+				float fResX = 300.0;
+				float fResY = 300.0;
+				uint16 resUnit = RESUNIT_INCH;
 
-					// create a new DIB
-					// ----------------
+				TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
+				TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fResX);
+				TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fResY);
 
-					if ((bitspersample == 16) && (samplesperpixel == 1)) {
-						// 16-bit greyscale -> convert to 8-bit
-						dib = FreeImage_Allocate(width, height, 8);
+				BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
+
+				if (resUnit == RESUNIT_INCH) {
+					pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
+					pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
+				} else if(resUnit == RESUNIT_CENTIMETER) {
+					pInfoHeader->biXPelsPerMeter = (int) (fResX*100.0 + 0.5);
+					pInfoHeader->biYPelsPerMeter = (int) (fResY*100.0 + 0.5);
+				}
+
+				// read the raster lines and save them in the DIB
+				// with RGB mode, we have to change the order of the 3 samples RGB
+				// We use macros for extracting components from the packed ABGR 
+				// form returned by TIFFReadRGBAImage.
+
+				BOOL has_alpha = FALSE;
+				uint32 *row = &raster[0];
+
+				for (y = 0; y < height; y++) {
+					bits = FreeImage_GetScanLine(dib, y);
+
+					if (samplesperpixel == 4) {
+						for (x = 0; x < width; x++) {
+							bits[0] = (BYTE)TIFFGetB(row[x]);
+							bits[1] = (BYTE)TIFFGetG(row[x]);
+							bits[2] = (BYTE)TIFFGetR(row[x]);
+							bits[3] = (BYTE)TIFFGetA(row[x]);
+
+							if (bits[3] != 0)
+								has_alpha = TRUE;								
+
+							bits += 4;
+						}
+					} else {
+						for (x = 0; x < width; x++) {
+							bits[0] = (BYTE)TIFFGetB(row[x]);
+							bits[1] = (BYTE)TIFFGetG(row[x]);
+							bits[2] = (BYTE)TIFFGetR(row[x]);
+
+							bits += 3;
+						}
 					}
-					else if (bitspersample * samplesperpixel == 16) {
-						// 16-bit RGB -> expect it to be 565
-						dib = FreeImage_Allocate(width, height, bitspersample * samplesperpixel, 0x1F, 0x7E0, 0xF800);
-					}
-					else if ((bitspersample * samplesperpixel == 24) || (bitspersample * samplesperpixel == 32)) {
-						// BGR(A) (should be handled by isRGB test ?)
-						dib = FreeImage_Allocate(width, height, bitspersample * samplesperpixel, 0xFF, 0xFF00, 0xFF0000);
-					}
-					else {
-						// anything else <= 8-bit
-						dib = FreeImage_Allocate(width, height, bitspersample * samplesperpixel);
-					}
 
-					if (dib == NULL) {
-						throw "No space for DIB image";
-					}
+					row += width;
+				}
 
-					// fill metrics
+				FreeImage_SetTransparent(dib, has_alpha);
 
-					float fResX = 300.0;
-					float fResY = 300.0;
-					uint16 resUnit = RESUNIT_INCH;
+				_TIFFfree(raster);
 
-					TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
-					TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fResX);
-					TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fResY);
+			} else {
+				// calculate the line + pitch
 
-					if (resUnit == RESUNIT_INCH) {
-						BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-						pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
-						pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
-					} else if (resUnit == RESUNIT_CENTIMETER) {
-						BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-						pInfoHeader->biXPelsPerMeter = (int) (fResX * 100.0 + 0.5);
-						pInfoHeader->biYPelsPerMeter = (int) (fResY * 100.0 + 0.5);
-					}
+				int line = CalculateLine(width, bitspersample * samplesperpixel);
+				int pitch = CalculatePitch(line);
 
-					// set up the colormap based on photometric	
+				// create a new DIB
+				// ----------------
 
-					pal = FreeImage_GetPalette(dib);
+				dib = CreateImageType(image_type, width, height, bitspersample, samplesperpixel);
+				if (dib == NULL) {
+					throw "No space for DIB image";
+				}
 
-					switch(photometric) {
-						case PHOTOMETRIC_MINISBLACK:	// bitmap and greyscale image types
-						case PHOTOMETRIC_MINISWHITE:
-							// Monochrome image
+				// fill metrics
 
-							if (bitspersample == 1) {
-								int value = 0;
+				float fResX = 300.0;
+				float fResY = 300.0;
+				uint16 resUnit = RESUNIT_INCH;
 
-								if ((compression == COMPRESSION_CCITTFAX3) || (compression == COMPRESSION_CCITTFAX4) || (photometric == PHOTOMETRIC_MINISWHITE))
-									value = 255;
+				TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
+				TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fResX);
+				TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fResY);
 
-								if (photometric == PHOTOMETRIC_MINISWHITE) {
-									pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = value;
-									pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255 - value;
-								} else {
-									pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 255 - value;
-									pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = value;
-								}
+				if (resUnit == RESUNIT_INCH) {
+					BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
+					pInfoHeader->biXPelsPerMeter = (int) (fResX/0.0254000 + 0.5);
+					pInfoHeader->biYPelsPerMeter = (int) (fResY/0.0254000 + 0.5);
+				} else if (resUnit == RESUNIT_CENTIMETER) {
+					BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
+					pInfoHeader->biXPelsPerMeter = (int) (fResX * 100.0 + 0.5);
+					pInfoHeader->biYPelsPerMeter = (int) (fResY * 100.0 + 0.5);
+				}
 
-							} else if ((bitspersample == 4) ||(bitspersample == 8) || (bitspersample == 16)) {
-								// need to build the scale for greyscale images
-								int ncolors = FreeImage_GetColorsUsed(dib);
+				// set up the colormap based on photometric	
 
-								if (photometric == PHOTOMETRIC_MINISBLACK) {
-									for (int i = 0; i < ncolors; i++) {
-										pal[i].rgbRed	=
-										pal[i].rgbGreen =
-										pal[i].rgbBlue	= (BYTE)(i*(255/(ncolors-1)));
-									}
-								} else {
-									for (int i = 0; i < ncolors; i++) {
-										pal[i].rgbRed	=
-										pal[i].rgbGreen =
-										pal[i].rgbBlue	= (BYTE)(255-i*(255/(ncolors-1)));
-									}
-								}
+				pal = FreeImage_GetPalette(dib);
+
+				switch(photometric) {
+					case PHOTOMETRIC_MINISBLACK:	// bitmap and greyscale image types
+					case PHOTOMETRIC_MINISWHITE:
+						// Monochrome image
+
+						if (bitspersample == 1) {
+							int value = 0;
+
+							if ((compression == COMPRESSION_CCITTFAX3) || (compression == COMPRESSION_CCITTFAX4) || (photometric == PHOTOMETRIC_MINISWHITE))
+								value = 255;
+
+							if (photometric == PHOTOMETRIC_MINISWHITE) {
+								pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = value;
+								pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = 255 - value;
+							} else {
+								pal[0].rgbRed = pal[0].rgbGreen = pal[0].rgbBlue = 255 - value;
+								pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = value;
 							}
 
-							break;
+						} else if ((bitspersample == 4) ||(bitspersample == 8)) {
+							// need to build the scale for greyscale images
+							int ncolors = FreeImage_GetColorsUsed(dib);
 
-						case PHOTOMETRIC_PALETTE:	// color map indexed
-							uint16 *red;
-							uint16 *green;
-							uint16 *blue;
-							
-							TIFFGetField(tif, TIFFTAG_COLORMAP, &red, &green, &blue); 
-
-							// load the palette in the DIB
-
-							if (CheckColormap(1<<bitspersample, red, green, blue) == 16) {
-								for (int i = (1 << bitspersample) - 1; i >= 0; i--) {
-									pal[i].rgbRed =(BYTE) CVT(red[i]);
-									pal[i].rgbGreen = (BYTE) CVT(green[i]);
-									pal[i].rgbBlue = (BYTE) CVT(blue[i]);           
+							if (photometric == PHOTOMETRIC_MINISBLACK) {
+								for (int i = 0; i < ncolors; i++) {
+									pal[i].rgbRed	=
+									pal[i].rgbGreen =
+									pal[i].rgbBlue	= (BYTE)(i*(255/(ncolors-1)));
 								}
 							} else {
-								for (int i = (1 << bitspersample) - 1; i >= 0; i--) {
-									pal[i].rgbRed = (BYTE) red[i];
-									pal[i].rgbGreen = (BYTE) green[i];
-									pal[i].rgbBlue = (BYTE) blue[i];        
-								}
-							}
-
-							break;						
-					}
-
-					// In the tiff file the lines are save from up to down 
-					// In a DIB the lines must be saved from down to up
-
-					bits = FreeImage_GetBits(dib) + height * FreeImage_GetPitch(dib);
-
-					// read the tiff lines and save them in the DIB
-
-					buf = (BYTE*)malloc(TIFFStripSize(tif) * sizeof(BYTE));
-
-					for (y = 0; y < height; y += rowsperstrip) {
-						nrow = (y + rowsperstrip > height ? height - y : rowsperstrip);
-
-						if (TIFFReadEncodedStrip(tif, TIFFComputeStrip(tif, y, 0), buf, nrow * line) == -1) {
-							free(buf);
-							throw "Parsing error";
-						} else {
-							if ((samplesperpixel == 1) && (bitspersample == 16)) {
-								// 16-bit grayscale picture... convert to 8 bits
-
-								int pitch = FreeImage_GetPitch(dib);
-
-								for (int l = 0; l < nrow; l++) {
-									bits -= pitch;
-
-									WORD *tmp_bits = (WORD *)(buf + l * line);
-
-									for (unsigned x = 0; x < width; x++) {
-										bits[x] = SCALE( tmp_bits[x] );
-									}
-								}
-							} else {
-								// color picture... just copy
-
-								for (int l = 0; l < nrow; l++) {
-									bits -= pitch;
-									memcpy(bits, buf + l * line, line);
+								for (int i = 0; i < ncolors; i++) {
+									pal[i].rgbRed	=
+									pal[i].rgbGreen =
+									pal[i].rgbBlue	= (BYTE)(255-i*(255/(ncolors-1)));
 								}
 							}
 						}
-					}
-					if (photometric == PHOTOMETRIC_SEPARATED && ((flags & TIFF_CMYK) == TIFF_CMYK)) {
-						FreeImage_GetICCProfile(dib)->flags |= FIICC_COLOR_IS_CMYK;
-					}
-					
-					free(buf);
+
+						break;
+
+					case PHOTOMETRIC_PALETTE:	// color map indexed
+						uint16 *red;
+						uint16 *green;
+						uint16 *blue;
+						
+						TIFFGetField(tif, TIFFTAG_COLORMAP, &red, &green, &blue); 
+
+						// load the palette in the DIB
+
+						if (CheckColormap(1<<bitspersample, red, green, blue) == 16) {
+							for (int i = (1 << bitspersample) - 1; i >= 0; i--) {
+								pal[i].rgbRed =(BYTE) CVT(red[i]);
+								pal[i].rgbGreen = (BYTE) CVT(green[i]);
+								pal[i].rgbBlue = (BYTE) CVT(blue[i]);           
+							}
+						} else {
+							for (int i = (1 << bitspersample) - 1; i >= 0; i--) {
+								pal[i].rgbRed = (BYTE) red[i];
+								pal[i].rgbGreen = (BYTE) green[i];
+								pal[i].rgbBlue = (BYTE) blue[i];        
+							}
+						}
+
+						break;						
 				}
 
-				// copy ICC profile data (must be done after FreeImage_Allocate)
+				// In the tiff file the lines are save from up to down 
+				// In a DIB the lines must be saved from down to up
 
-				FIICCPROFILE *iccProfile = FreeImage_GetICCProfile(dib);
-				if ((iccProfile->size = iccSize) && iccBuf) {
-					if (iccProfile->data = malloc(iccProfile->size)) {
-						memcpy (iccProfile->data, iccBuf, iccProfile->size);
+				bits = FreeImage_GetBits(dib) + height * FreeImage_GetPitch(dib);
+
+				// read the tiff lines and save them in the DIB
+
+				buf = (BYTE*)malloc(TIFFStripSize(tif) * sizeof(BYTE));
+
+				for (y = 0; y < height; y += rowsperstrip) {
+					nrow = (y + rowsperstrip > height ? height - y : rowsperstrip);
+
+					if (TIFFReadEncodedStrip(tif, TIFFComputeStrip(tif, y, 0), buf, nrow * line) == -1) {
+						free(buf);
+						throw "Parsing error";
 					} else {
-						iccProfile->size = 0;
+						// color/greyscale picture (1-, 4-, 8-bit) or special type (int, long, double, ...)
+						// ... just copy
+
+						for (int l = 0; l < nrow; l++) {
+							bits -= pitch;
+							memcpy(bits, buf + l * line, line);
+						}
 					}
-				} 
-
-				return (FIBITMAP *)dib;
-
-			} catch (const char *message) {
-				FreeImage_OutputMessageProc(s_format_id, message);
-
-				if(dib)
-					FreeImage_Unload(dib);
-
-				return NULL;
+				}
+				if (photometric == PHOTOMETRIC_SEPARATED && ((flags & TIFF_CMYK) == TIFF_CMYK)) {
+					FreeImage_GetICCProfile(dib)->flags |= FIICC_COLOR_IS_CMYK;
+				}
+				
+				free(buf);
 			}
+
+			// copy ICC profile data (must be done after FreeImage_Allocate)
+
+			FIICCPROFILE *iccProfile = FreeImage_GetICCProfile(dib);
+			if ((iccProfile->size = iccSize) && iccBuf) {
+				if (iccProfile->data = malloc(iccProfile->size)) {
+					memcpy (iccProfile->data, iccBuf, iccProfile->size);
+				} else {
+					iccProfile->size = 0;
+				}
+			} 
+
+			return (FIBITMAP *)dib;
+
+		} catch (const char *message) {
+			FreeImage_OutputMessageProc(s_format_id, message);
+
+			if(dib)
+				FreeImage_Unload(dib);
+
+			return NULL;
 		}
 	}
 
@@ -704,20 +853,48 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		uint16 pitch;
 		int32 x, y;
 
+		FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
+
 		width = FreeImage_GetWidth(dib);
 		height = FreeImage_GetHeight(dib);
 		bitspersample = FreeImage_GetBPP(dib);
-		samplesperpixel = ((bitspersample == 24) ? 3 : ((bitspersample == 32) ? 4 : 1));
-		photometric = CheckPhotometric(dib, bitspersample);
-
-		// CMYK support
 
 		FIICCPROFILE *iccProfile = FreeImage_GetICCProfile(dib);
-		if ((bitspersample == 32) &&
-			(((iccProfile->flags & FIICC_COLOR_IS_CMYK) == FIICC_COLOR_IS_CMYK) ||
-			((flags & TIFF_CMYK) == TIFF_CMYK))) {
-			photometric = PHOTOMETRIC_SEPARATED;
+
+		if(image_type == FIT_BITMAP) {
+			// standard image: 1-, 4-, 8-, 16-, 24-, 32-bit
+
+			samplesperpixel = ((bitspersample == 24) ? 3 : ((bitspersample == 32) ? 4 : 1));
+			photometric	= CheckPhotometric(dib, bitspersample);
+
+			if(bitspersample == 32) {
+				// 32-bit images : check for CMYK or alpha transparency
+
+				if((((iccProfile->flags & FIICC_COLOR_IS_CMYK) == FIICC_COLOR_IS_CMYK) || ((flags & TIFF_CMYK) == TIFF_CMYK))) {
+					// CMYK support
+					photometric = PHOTOMETRIC_SEPARATED;
+					TIFFSetField(out, TIFFTAG_INKSET, INKSET_CMYK);
+					TIFFSetField(out, TIFFTAG_NUMBEROFINKS, 4);
+				}
+				else if(photometric == PHOTOMETRIC_RGB) {
+					// transparency mask support
+					uint16 sampleinfo[1]; 
+					// unassociated alpha data is transparency information
+					sampleinfo[0] = EXTRASAMPLE_UNASSALPHA;
+					TIFFSetField(out, TIFFTAG_EXTRASAMPLES, 1, sampleinfo);
+				}
+			}
+
+		} else {
+			// special image type (int, long, double, ...)
+
+			samplesperpixel = 1;
+			photometric	= PHOTOMETRIC_MINISBLACK;
 		}
+
+		// set image data type
+
+		SetImageType(out, image_type);
 		
 		// write possible ICC profile
 
@@ -735,18 +912,6 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);	// single image plane 
 		TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 		TIFFSetField(out, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(out, rowsperstrip));
-
-		if ((bitspersample == 32) && (photometric == PHOTOMETRIC_SEPARATED)) {
-			// CMYK support (see TIFF 6 specifications [section 16])
-			TIFFSetField(out, TIFFTAG_INKSET, INKSET_CMYK);
-			TIFFSetField(out, TIFFTAG_NUMBEROFINKS, 4);
-		} else if ((bitspersample == 32) && (photometric == PHOTOMETRIC_RGB)) {
-			// transparency mask support (see TIFF 6 specifications [section 8 & 18])
-			uint16 sampleinfo[1]; 
-			// unassociated alpha data is transparency information
-			sampleinfo[0] = EXTRASAMPLE_UNASSALPHA;
-			TIFFSetField(out, TIFFTAG_EXTRASAMPLES, 1, sampleinfo);
-		}
 
 		// handle metrics
 
@@ -803,8 +968,11 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			case 4 :
 			case 8 :
+			case 16 :
 			case 24 :
 			case 32 :
+			case 64 :
+			case 128:
 				compression = COMPRESSION_PACKBITS;
 
 				if ((flags & TIFF_PACKBITS) == TIFF_PACKBITS)
@@ -830,49 +998,72 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		// -------------------------------------
 		
 		pitch = FreeImage_GetPitch(dib);
+
+		if(image_type == FIT_BITMAP) {
+			// standard bitmap type
 		
-		switch(bitspersample) {
-			case 1 :
-			case 4 :
-			case 8 :
-			{
-				for (y = height - 1; y >= 0; y--) {
-					BYTE *bits = FreeImage_GetScanLine(dib, y);
+			switch(bitspersample) {
+				case 1 :
+				case 4 :
+				case 8 :
+				{
+					for (y = height - 1; y >= 0; y--) {
+						BYTE *bits = FreeImage_GetScanLine(dib, y);
 
-					TIFFWriteScanline(out, bits, height - y - 1, 0);
-				}
-
-				break;
-			}				
-
-			case 24:
-			case 32:
-			{
-				BYTE *buffer = (BYTE *)malloc(pitch * sizeof(BYTE));
-
-				for (y = 0; y < height; y++) {
-					// get a copy of the scanline
-
-					memcpy(buffer, FreeImage_GetScanLine(dib, height - y - 1), pitch);
-
-					if (photometric != PHOTOMETRIC_SEPARATED) {
-						// TIFFs store color data RGB(A) instead of BGR(A)
-	
-						BYTE *pBuf = buffer;
-	
-						for (x = 0; x < width; x++) {
-							INPLACESWAP(pBuf[0], pBuf[2]);
-							pBuf += samplesperpixel;
-						}
+						TIFFWriteScanline(out, bits, height - y - 1, 0);
 					}
-					// write the scanline to disc
 
-					TIFFWriteScanline(out, buffer, y, 0);
+					break;
+				}				
+
+				case 24:
+				case 32:
+				{
+					BYTE *buffer = (BYTE *)malloc(pitch * sizeof(BYTE));
+
+					for (y = 0; y < height; y++) {
+						// get a copy of the scanline
+
+						memcpy(buffer, FreeImage_GetScanLine(dib, height - y - 1), pitch);
+
+						if (photometric != PHOTOMETRIC_SEPARATED) {
+							// TIFFs store color data RGB(A) instead of BGR(A)
+		
+							BYTE *pBuf = buffer;
+		
+							for (x = 0; x < width; x++) {
+								INPLACESWAP(pBuf[0], pBuf[2]);
+								pBuf += samplesperpixel;
+							}
+						}
+						// write the scanline to disc
+
+						TIFFWriteScanline(out, buffer, y, 0);
+					}
+
+					free(buffer);
+
+					break;
 				}
+			}
 
-				free(buffer);
+		} else {
+			// special bitmap type (int, long, double, etc.)
 
-				break;
+			switch(bitspersample) {
+				case 16:
+				case 32:
+				case 64:
+				case 128:
+				{
+					for (y = height - 1; y >= 0; y--) {
+						BYTE *bits = FreeImage_GetScanLine(dib, y);
+
+						TIFFWriteScanline(out, bits, height - y - 1, 0);
+					}
+
+					break;
+				}				
 			}
 		}
 
@@ -908,5 +1099,6 @@ InitTIFF(Plugin *plugin, int format_id) {
 	plugin->validate_proc = Validate;
 	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_export_type_proc = SupportsExportType;
 	plugin->supports_icc_profiles_proc = SupportsICCProfiles;
 }

@@ -186,357 +186,401 @@
 00180         FIF_XPM         = 23
 00181 };
 00182 
-00185 FI_ENUM(FREE_IMAGE_COLOR_TYPE) {
-00186         FIC_MINISWHITE = 0,             <span class="comment">// min value is white</span>
-00187     FIC_MINISBLACK = 1,         <span class="comment">// min value is black</span>
-00188     FIC_RGB        = 2,         <span class="comment">// RGB color model</span>
-00189     FIC_PALETTE    = 3,         <span class="comment">// color map indexed</span>
-00190         FIC_RGBALPHA   = 4,             <span class="comment">// RGB color model with alpha channel</span>
-00191         FIC_CMYK       = 5              <span class="comment">// CMYK color model</span>
-00192 };
-00193 
-00197 FI_ENUM(FREE_IMAGE_QUANTIZE) {
-00198     FIQ_WUQUANT = 0,            <span class="comment">// Xiaolin Wu color quantization algorithm</span>
-00199     FIQ_NNQUANT = 1                     <span class="comment">// NeuQuant neural-net quantization algorithm by Anthony Dekker</span>
-00200 };
-00201 
-00205 FI_ENUM(FREE_IMAGE_DITHER) {
-00206     FID_FS                      = 0,    <span class="comment">// Floyd &amp; Steinberg error diffusion</span>
-00207         FID_BAYER4x4    = 1,    <span class="comment">// Bayer ordered dispersed dot dithering (order 2 dithering matrix)</span>
-00208         FID_BAYER8x8    = 2,    <span class="comment">// Bayer ordered dispersed dot dithering (order 3 dithering matrix)</span>
-00209         FID_CLUSTER6x6  = 3,    <span class="comment">// Ordered clustered dot dithering (order 3 - 6x6 matrix)</span>
-00210         FID_CLUSTER8x8  = 4,    <span class="comment">// Ordered clustered dot dithering (order 4 - 8x8 matrix)</span>
-00211         FID_CLUSTER16x16= 5             <span class="comment">// Ordered clustered dot dithering (order 8 - 16x16 matrix)</span>
-00212 };
-00213 
-00217 FI_ENUM(FREE_IMAGE_FILTER) {
-00218         FILTER_BOX                = 0,  <span class="comment">// Box, pulse, Fourier window, 1st order (constant) b-spline</span>
-00219         FILTER_BICUBIC    = 1,  <span class="comment">// Mitchell &amp; Netravali's two-param cubic filter</span>
-00220         FILTER_BILINEAR   = 2,  <span class="comment">// Bilinear filter</span>
-00221         FILTER_BSPLINE    = 3,  <span class="comment">// 4th order (cubic) b-spline</span>
-00222         FILTER_CATMULLROM = 4,  <span class="comment">// Catmull-Rom spline, Overhauser spline</span>
-00223         FILTER_LANCZOS3   = 5   <span class="comment">// Lanczos3 filter</span>
-00224 };
-00225 
-00229 FI_ENUM(FREE_IMAGE_COLOR_CHANNEL) {
-00230         FICC_RGB        = 0,    <span class="comment">// Use red, green and blue channels</span>
-00231         FICC_RED        = 1,    <span class="comment">// Use red channel</span>
-00232         FICC_GREEN      = 2,    <span class="comment">// Use green channel</span>
-00233         FICC_BLUE       = 3,    <span class="comment">// Use blue channel</span>
-00234         FICC_ALPHA      = 4,    <span class="comment">// Use alpha channel</span>
-00235         FICC_BLACK      = 5             <span class="comment">// Use black channel</span>
-00236 };
-00237 
-00238 <span class="comment">// File IO routines ---------------------------------------------------------</span>
-00239 
-00240 <span class="preprocessor">#ifndef FREEIMAGE_IO</span>
-00241 <span class="preprocessor"></span><span class="preprocessor">#define FREEIMAGE_IO</span>
-00242 <span class="preprocessor"></span>
-00243 <span class="keyword">typedef</span> <span class="keywordtype">void</span>* fi_handle;
-00244 <span class="keyword">typedef</span> unsigned (DLL_CALLCONV *FI_ReadProc) (<span class="keywordtype">void</span> *buffer, <span class="keywordtype">unsigned</span> size, <span class="keywordtype">unsigned</span> count, fi_handle handle);
-00245 <span class="keyword">typedef</span> unsigned (DLL_CALLCONV *FI_WriteProc) (<span class="keywordtype">void</span> *buffer, <span class="keywordtype">unsigned</span> size, <span class="keywordtype">unsigned</span> count, fi_handle handle);
-00246 <span class="keyword">typedef</span> int (DLL_CALLCONV *FI_SeekProc) (fi_handle handle, <span class="keywordtype">long</span> offset, <span class="keywordtype">int</span> origin);
-00247 <span class="keyword">typedef</span> long (DLL_CALLCONV *FI_TellProc) (fi_handle handle);
+00185 FI_ENUM(FREE_IMAGE_TYPE) {
+00186         FIT_UNKNOWN = 0,        <span class="comment">// unknown type</span>
+00187         FIT_BITMAP  = 1,        <span class="comment">// standard image                       : 1-, 4-, 8-, 16-, 24-, 32-bit</span>
+00188         FIT_UINT16      = 2,    <span class="comment">// array of unsigned short      : unsigned 16-bit</span>
+00189         FIT_INT16       = 3,    <span class="comment">// array of short                       : signed 16-bit</span>
+00190         FIT_UINT32      = 4,    <span class="comment">// array of unsigned long       : unsigned 32-bit</span>
+00191         FIT_INT32       = 5,    <span class="comment">// array of long                        : signed 32-bit</span>
+00192         FIT_FLOAT       = 6,    <span class="comment">// array of float                       : 32-bit IEEE floating point</span>
+00193         FIT_DOUBLE      = 7,    <span class="comment">// array of double                      : 64-bit IEEE floating point</span>
+00194         FIT_COMPLEX     = 8             <span class="comment">// array of FICOMPLEX           : 2 x 64-bit IEEE floating point</span>
+00195 };
+00196 
+<a name="l00199"></a><a class="code" href="structtagFreeImageComplex.html">00199</a> <span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code" href="structtagFreeImageComplex.html">tagFreeImageComplex</a> {
+<a name="l00201"></a><a class="code" href="structtagFreeImageComplex.html#o0">00201</a>         <span class="keywordtype">double</span> <a class="code" href="structtagFreeImageComplex.html#o0">r</a>;
+<a name="l00203"></a><a class="code" href="structtagFreeImageComplex.html#o1">00203</a>     <span class="keywordtype">double</span> <a class="code" href="structtagFreeImageComplex.html#o1">i</a>;
+00204 } <a class="code" href="structtagFreeImageComplex.html">FICOMPLEX</a>;
+00205 
+00208 FI_ENUM(FREE_IMAGE_COLOR_TYPE) {
+00209         FIC_MINISWHITE = 0,             <span class="comment">// min value is white</span>
+00210     FIC_MINISBLACK = 1,         <span class="comment">// min value is black</span>
+00211     FIC_RGB        = 2,         <span class="comment">// RGB color model</span>
+00212     FIC_PALETTE    = 3,         <span class="comment">// color map indexed</span>
+00213         FIC_RGBALPHA   = 4,             <span class="comment">// RGB color model with alpha channel</span>
+00214         FIC_CMYK       = 5              <span class="comment">// CMYK color model</span>
+00215 };
+00216 
+00220 FI_ENUM(FREE_IMAGE_QUANTIZE) {
+00221     FIQ_WUQUANT = 0,            <span class="comment">// Xiaolin Wu color quantization algorithm</span>
+00222     FIQ_NNQUANT = 1                     <span class="comment">// NeuQuant neural-net quantization algorithm by Anthony Dekker</span>
+00223 };
+00224 
+00228 FI_ENUM(FREE_IMAGE_DITHER) {
+00229     FID_FS                      = 0,    <span class="comment">// Floyd &amp; Steinberg error diffusion</span>
+00230         FID_BAYER4x4    = 1,    <span class="comment">// Bayer ordered dispersed dot dithering (order 2 dithering matrix)</span>
+00231         FID_BAYER8x8    = 2,    <span class="comment">// Bayer ordered dispersed dot dithering (order 3 dithering matrix)</span>
+00232         FID_CLUSTER6x6  = 3,    <span class="comment">// Ordered clustered dot dithering (order 3 - 6x6 matrix)</span>
+00233         FID_CLUSTER8x8  = 4,    <span class="comment">// Ordered clustered dot dithering (order 4 - 8x8 matrix)</span>
+00234         FID_CLUSTER16x16= 5             <span class="comment">// Ordered clustered dot dithering (order 8 - 16x16 matrix)</span>
+00235 };
+00236 
+00240 FI_ENUM(FREE_IMAGE_FILTER) {
+00241         FILTER_BOX                = 0,  <span class="comment">// Box, pulse, Fourier window, 1st order (constant) b-spline</span>
+00242         FILTER_BICUBIC    = 1,  <span class="comment">// Mitchell &amp; Netravali's two-param cubic filter</span>
+00243         FILTER_BILINEAR   = 2,  <span class="comment">// Bilinear filter</span>
+00244         FILTER_BSPLINE    = 3,  <span class="comment">// 4th order (cubic) b-spline</span>
+00245         FILTER_CATMULLROM = 4,  <span class="comment">// Catmull-Rom spline, Overhauser spline</span>
+00246         FILTER_LANCZOS3   = 5   <span class="comment">// Lanczos3 filter</span>
+00247 };
 00248 
-00249 <span class="preprocessor">#ifdef WIN32</span>
-00250 <span class="preprocessor"></span><span class="preprocessor">#pragma pack(push, 1)</span>
-00251 <span class="preprocessor"></span><span class="preprocessor">#else</span>
-00252 <span class="preprocessor"></span><span class="preprocessor">#pragma pack(1)</span>
-00253 <span class="preprocessor"></span><span class="preprocessor">#endif // WIN32</span>
-00254 <span class="preprocessor"></span>
-00255 FI_STRUCT(FreeImageIO) {
-00256         FI_ReadProc  read_proc;     <span class="comment">// pointer to the function used to read data</span>
-00257     FI_WriteProc write_proc;    <span class="comment">// pointer to the function used to write data</span>
-00258     FI_SeekProc  seek_proc;     <span class="comment">// pointer to the function used to seek</span>
-00259     FI_TellProc  tell_proc;     <span class="comment">// pointer to the function used to aquire the current position</span>
-00260 };
-00261 
-00262 <span class="preprocessor">#ifdef WIN32</span>
-00263 <span class="preprocessor"></span><span class="preprocessor">#pragma pack(pop)</span>
-00264 <span class="preprocessor"></span><span class="preprocessor">#else</span>
-00265 <span class="preprocessor"></span><span class="preprocessor">#pragma pack()</span>
-00266 <span class="preprocessor"></span><span class="preprocessor">#endif // WIN32</span>
-00267 <span class="preprocessor"></span>
-00268 <span class="preprocessor">#endif // FREEIMAGE_IO</span>
+00252 FI_ENUM(FREE_IMAGE_COLOR_CHANNEL) {
+00253         FICC_RGB        = 0,    <span class="comment">// Use red, green and blue channels</span>
+00254         FICC_RED        = 1,    <span class="comment">// Use red channel</span>
+00255         FICC_GREEN      = 2,    <span class="comment">// Use green channel</span>
+00256         FICC_BLUE       = 3,    <span class="comment">// Use blue channel</span>
+00257         FICC_ALPHA      = 4,    <span class="comment">// Use alpha channel</span>
+00258         FICC_BLACK      = 5,    <span class="comment">// Use black channel</span>
+00259         FICC_REAL       = 6,    <span class="comment">// Complex images: use real part</span>
+00260         FICC_IMAG       = 7,    <span class="comment">// Complex images: use imaginary part</span>
+00261         FICC_MAG        = 8,    <span class="comment">// Complex images: use magnitude</span>
+00262         FICC_PHASE      = 9             <span class="comment">// Complex images: use phase</span>
+00263 };
+00264 
+00265 <span class="comment">// File IO routines ---------------------------------------------------------</span>
+00266 
+00267 <span class="preprocessor">#ifndef FREEIMAGE_IO</span>
+00268 <span class="preprocessor"></span><span class="preprocessor">#define FREEIMAGE_IO</span>
 00269 <span class="preprocessor"></span>
-00270 <span class="comment">// Plugin routines ----------------------------------------------------------</span>
-00271 
-00272 <span class="preprocessor">#ifndef PLUGINS</span>
-00273 <span class="preprocessor"></span><span class="preprocessor">#define PLUGINS</span>
-00274 <span class="preprocessor"></span>
-00275 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_FormatProc) ();
-00276 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_DescriptionProc) ();
-00277 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_ExtensionListProc) ();
-00278 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_RegExprProc) ();
-00279 <span class="keyword">typedef</span> <span class="keywordtype">void</span> *(DLL_CALLCONV *FI_OpenProc)(FreeImageIO *io, fi_handle handle, BOOL read);
-00280 <span class="keyword">typedef</span> void (DLL_CALLCONV *FI_CloseProc)(FreeImageIO *io, fi_handle handle, <span class="keywordtype">void</span> *data);
-00281 <span class="keyword">typedef</span> int (DLL_CALLCONV *FI_PageCountProc)(FreeImageIO *io, fi_handle handle, <span class="keywordtype">void</span> *data);
-00282 <span class="keyword">typedef</span> int (DLL_CALLCONV *FI_PageCapabilityProc)(FreeImageIO *io, fi_handle handle, <span class="keywordtype">void</span> *data);
-00283 <span class="keyword">typedef</span> FIBITMAP *(DLL_CALLCONV *FI_LoadProc)(FreeImageIO *io, fi_handle handle, <span class="keywordtype">int</span> page, <span class="keywordtype">int</span> flags, <span class="keywordtype">void</span> *data);
-00284 <span class="keyword">typedef</span> BOOL (DLL_CALLCONV *FI_SaveProc)(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, <span class="keywordtype">int</span> page, <span class="keywordtype">int</span> flags, <span class="keywordtype">void</span> *data);
-00285 <span class="keyword">typedef</span> BOOL (DLL_CALLCONV *FI_ValidateProc)(FreeImageIO *io, fi_handle handle);
-00286 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_MimeProc) ();
-00287 <span class="keyword">typedef</span> BOOL (DLL_CALLCONV *FI_SupportsExportBPPProc)(<span class="keywordtype">int</span> bpp);
-00288 <span class="keyword">typedef</span> BOOL (DLL_CALLCONV *FI_SupportsICCProfilesProc)();
-00289 
-00290 FI_STRUCT (Plugin) {
-00291         FI_FormatProc format_proc;
-00292         FI_DescriptionProc description_proc;
-00293         FI_ExtensionListProc extension_proc;
-00294         FI_RegExprProc regexpr_proc;
-00295         FI_OpenProc open_proc;
-00296         FI_CloseProc close_proc;
-00297         FI_PageCountProc pagecount_proc;
-00298         FI_PageCapabilityProc pagecapability_proc;
-00299         FI_LoadProc load_proc;
-00300         FI_SaveProc save_proc;
-00301         FI_ValidateProc validate_proc;
-00302         FI_MimeProc mime_proc;
-00303         FI_SupportsExportBPPProc supports_export_bpp_proc;
-00304         FI_SupportsICCProfilesProc supports_icc_profiles_proc;
-00305 };
-00306 
-00307 <span class="keyword">typedef</span> void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, <span class="keywordtype">int</span> format_id);
-00308 
-00309 <span class="preprocessor">#endif // PLUGINS</span>
-00310 <span class="preprocessor"></span>
-00311 
-00312 <span class="comment">// Load / Save flag constants -----------------------------------------------</span>
-00313 
-00314 <span class="preprocessor">#define BMP_DEFAULT         0</span>
-00315 <span class="preprocessor"></span><span class="preprocessor">#define BMP_SAVE_RLE        1</span>
-00316 <span class="preprocessor"></span><span class="preprocessor">#define CUT_DEFAULT         0</span>
-00317 <span class="preprocessor"></span><span class="preprocessor">#define ICO_DEFAULT         0</span>
-00318 <span class="preprocessor"></span><span class="preprocessor">#define IFF_DEFAULT         0</span>
-00319 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_DEFAULT        0</span>
-00320 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_FAST           1</span>
-00321 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_ACCURATE       2</span>
-00322 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYSUPERB  0x80</span>
-00323 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYGOOD    0x100</span>
-00324 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYNORMAL  0x200</span>
-00325 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYAVERAGE 0x400</span>
-00326 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYBAD     0x800</span>
-00327 <span class="preprocessor"></span><span class="preprocessor">#define KOALA_DEFAULT       0</span>
-00328 <span class="preprocessor"></span><span class="preprocessor">#define LBM_DEFAULT         0</span>
-00329 <span class="preprocessor"></span><span class="preprocessor">#define MNG_DEFAULT         0</span>
-00330 <span class="preprocessor"></span><span class="preprocessor">#define PCD_DEFAULT         0</span>
-00331 <span class="preprocessor"></span><span class="preprocessor">#define PCD_BASE            1           // load the bitmap sized 768 x 512</span>
-00332 <span class="preprocessor"></span><span class="preprocessor">#define PCD_BASEDIV4        2           // load the bitmap sized 384 x 256</span>
-00333 <span class="preprocessor"></span><span class="preprocessor">#define PCD_BASEDIV16       3           // load the bitmap sized 192 x 128</span>
-00334 <span class="preprocessor"></span><span class="preprocessor">#define PCX_DEFAULT         0</span>
-00335 <span class="preprocessor"></span><span class="preprocessor">#define PNG_DEFAULT         0</span>
-00336 <span class="preprocessor"></span><span class="preprocessor">#define PNG_IGNOREGAMMA         1               // avoid gamma correction</span>
-00337 <span class="preprocessor"></span><span class="preprocessor">#define PNM_DEFAULT         0</span>
-00338 <span class="preprocessor"></span><span class="preprocessor">#define PNM_SAVE_RAW        0       // If set the writer saves in RAW format (i.e. P4, P5 or P6)</span>
-00339 <span class="preprocessor"></span><span class="preprocessor">#define PNM_SAVE_ASCII      1       // If set the writer saves in ASCII format (i.e. P1, P2 or P3)</span>
-00340 <span class="preprocessor"></span><span class="preprocessor">#define PSD_DEFAULT         0</span>
-00341 <span class="preprocessor"></span><span class="preprocessor">#define RAS_DEFAULT         0</span>
-00342 <span class="preprocessor"></span><span class="preprocessor">#define TARGA_DEFAULT       0</span>
-00343 <span class="preprocessor"></span><span class="preprocessor">#define TARGA_LOAD_RGB888   1       // If set the loader converts RGB555 and ARGB8888 -&gt; RGB888.</span>
-00344 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_DEFAULT        0</span>
-00345 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_CMYK                       0x0001  // reads/stores tags for separated CMYK (use | to combine with compression flags)</span>
-00346 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_PACKBITS       0x0100  // save using PACKBITS compression</span>
-00347 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_DEFLATE        0x0200  // save using DEFLATE compression</span>
-00348 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_ADOBE_DEFLATE  0x0400  // save using ADOBE DEFLATE compression</span>
-00349 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_NONE           0x0800  // save without any compression</span>
-00350 <span class="preprocessor"></span><span class="preprocessor">#define WBMP_DEFAULT        0</span>
-00351 <span class="preprocessor"></span><span class="preprocessor">#define XBM_DEFAULT                     0</span>
-00352 <span class="preprocessor"></span><span class="preprocessor">#define XPM_DEFAULT                     0</span>
-00353 <span class="preprocessor"></span>
-00354 
-00355 <span class="preprocessor">#ifdef __cplusplus</span>
-00356 <span class="preprocessor"></span><span class="keyword">extern</span> <span class="stringliteral">"C"</span> {
-00357 <span class="preprocessor">#endif</span>
-00358 <span class="preprocessor"></span>
-00359 <span class="comment">// Init / Error routines ----------------------------------------------------</span>
-00360 
-00361 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_Initialise(BOOL load_local_plugins_only FI_DEFAULT(FALSE));
-00362 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_DeInitialise();
-00363 
-00364 <span class="comment">// Version routines ---------------------------------------------------------</span>
-00365 
-00366 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetVersion();
-00367 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetCopyrightMessage();
-00368 
-00369 <span class="comment">// Message output functions -------------------------------------------------</span>
-00370 
-00371 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_OutputMessageProc(<span class="keywordtype">int</span> fif, <span class="keyword">const</span> <span class="keywordtype">char</span> *fmt, ...);
-00372 
-00373 <span class="keyword">typedef</span> void (*FreeImage_OutputMessageFunction)(FREE_IMAGE_FORMAT fif, <span class="keyword">const</span> <span class="keywordtype">char</span> *msg);
-00374 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_SetOutputMessage(FreeImage_OutputMessageFunction omf);
-00375 
-00376 <span class="comment">// Allocate / Clone / Unload routines ---------------------------------------</span>
-00377 
-00378 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Allocate(<span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> bpp, <span class="keywordtype">unsigned</span> red_mask FI_DEFAULT(0), <span class="keywordtype">unsigned</span> green_mask FI_DEFAULT(0), <span class="keywordtype">unsigned</span> blue_mask FI_DEFAULT(0));
-00379 DLL_API FIBITMAP * DLL_CALLCONV FreeImage_Clone(FIBITMAP *dib);
-00380 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_Unload(FIBITMAP *dib);
-00381 
-00382 <span class="comment">// Load / Save routines -----------------------------------------------------</span>
+00270 <span class="keyword">typedef</span> <span class="keywordtype">void</span>* fi_handle;
+00271 <span class="keyword">typedef</span> unsigned (DLL_CALLCONV *FI_ReadProc) (<span class="keywordtype">void</span> *buffer, <span class="keywordtype">unsigned</span> size, <span class="keywordtype">unsigned</span> count, fi_handle handle);
+00272 <span class="keyword">typedef</span> unsigned (DLL_CALLCONV *FI_WriteProc) (<span class="keywordtype">void</span> *buffer, <span class="keywordtype">unsigned</span> size, <span class="keywordtype">unsigned</span> count, fi_handle handle);
+00273 <span class="keyword">typedef</span> int (DLL_CALLCONV *FI_SeekProc) (fi_handle handle, <span class="keywordtype">long</span> offset, <span class="keywordtype">int</span> origin);
+00274 <span class="keyword">typedef</span> long (DLL_CALLCONV *FI_TellProc) (fi_handle handle);
+00275 
+00276 <span class="preprocessor">#ifdef WIN32</span>
+00277 <span class="preprocessor"></span><span class="preprocessor">#pragma pack(push, 1)</span>
+00278 <span class="preprocessor"></span><span class="preprocessor">#else</span>
+00279 <span class="preprocessor"></span><span class="preprocessor">#pragma pack(1)</span>
+00280 <span class="preprocessor"></span><span class="preprocessor">#endif // WIN32</span>
+00281 <span class="preprocessor"></span>
+00282 FI_STRUCT(FreeImageIO) {
+00283         FI_ReadProc  read_proc;     <span class="comment">// pointer to the function used to read data</span>
+00284     FI_WriteProc write_proc;    <span class="comment">// pointer to the function used to write data</span>
+00285     FI_SeekProc  seek_proc;     <span class="comment">// pointer to the function used to seek</span>
+00286     FI_TellProc  tell_proc;     <span class="comment">// pointer to the function used to aquire the current position</span>
+00287 };
+00288 
+00289 <span class="preprocessor">#ifdef WIN32</span>
+00290 <span class="preprocessor"></span><span class="preprocessor">#pragma pack(pop)</span>
+00291 <span class="preprocessor"></span><span class="preprocessor">#else</span>
+00292 <span class="preprocessor"></span><span class="preprocessor">#pragma pack()</span>
+00293 <span class="preprocessor"></span><span class="preprocessor">#endif // WIN32</span>
+00294 <span class="preprocessor"></span>
+00295 <span class="preprocessor">#endif // FREEIMAGE_IO</span>
+00296 <span class="preprocessor"></span>
+00297 <span class="comment">// Plugin routines ----------------------------------------------------------</span>
+00298 
+00299 <span class="preprocessor">#ifndef PLUGINS</span>
+00300 <span class="preprocessor"></span><span class="preprocessor">#define PLUGINS</span>
+00301 <span class="preprocessor"></span>
+00302 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_FormatProc) ();
+00303 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_DescriptionProc) ();
+00304 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_ExtensionListProc) ();
+00305 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_RegExprProc) ();
+00306 <span class="keyword">typedef</span> <span class="keywordtype">void</span> *(DLL_CALLCONV *FI_OpenProc)(FreeImageIO *io, fi_handle handle, BOOL read);
+00307 <span class="keyword">typedef</span> void (DLL_CALLCONV *FI_CloseProc)(FreeImageIO *io, fi_handle handle, <span class="keywordtype">void</span> *data);
+00308 <span class="keyword">typedef</span> int (DLL_CALLCONV *FI_PageCountProc)(FreeImageIO *io, fi_handle handle, <span class="keywordtype">void</span> *data);
+00309 <span class="keyword">typedef</span> int (DLL_CALLCONV *FI_PageCapabilityProc)(FreeImageIO *io, fi_handle handle, <span class="keywordtype">void</span> *data);
+00310 <span class="keyword">typedef</span> FIBITMAP *(DLL_CALLCONV *FI_LoadProc)(FreeImageIO *io, fi_handle handle, <span class="keywordtype">int</span> page, <span class="keywordtype">int</span> flags, <span class="keywordtype">void</span> *data);
+00311 <span class="keyword">typedef</span> BOOL (DLL_CALLCONV *FI_SaveProc)(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, <span class="keywordtype">int</span> page, <span class="keywordtype">int</span> flags, <span class="keywordtype">void</span> *data);
+00312 <span class="keyword">typedef</span> BOOL (DLL_CALLCONV *FI_ValidateProc)(FreeImageIO *io, fi_handle handle);
+00313 <span class="keyword">typedef</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *(DLL_CALLCONV *FI_MimeProc) ();
+00314 <span class="keyword">typedef</span> BOOL (DLL_CALLCONV *FI_SupportsExportBPPProc)(<span class="keywordtype">int</span> bpp);
+00315 <span class="keyword">typedef</span> BOOL (DLL_CALLCONV *FI_SupportsExportTypeProc)(FREE_IMAGE_TYPE type);
+00316 <span class="keyword">typedef</span> BOOL (DLL_CALLCONV *FI_SupportsICCProfilesProc)();
+00317 
+00318 FI_STRUCT (Plugin) {
+00319         FI_FormatProc format_proc;
+00320         FI_DescriptionProc description_proc;
+00321         FI_ExtensionListProc extension_proc;
+00322         FI_RegExprProc regexpr_proc;
+00323         FI_OpenProc open_proc;
+00324         FI_CloseProc close_proc;
+00325         FI_PageCountProc pagecount_proc;
+00326         FI_PageCapabilityProc pagecapability_proc;
+00327         FI_LoadProc load_proc;
+00328         FI_SaveProc save_proc;
+00329         FI_ValidateProc validate_proc;
+00330         FI_MimeProc mime_proc;
+00331         FI_SupportsExportBPPProc supports_export_bpp_proc;
+00332         FI_SupportsExportTypeProc supports_export_type_proc;
+00333         FI_SupportsICCProfilesProc supports_icc_profiles_proc;
+00334 };
+00335 
+00336 <span class="keyword">typedef</span> void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, <span class="keywordtype">int</span> format_id);
+00337 
+00338 <span class="preprocessor">#endif // PLUGINS</span>
+00339 <span class="preprocessor"></span>
+00340 
+00341 <span class="comment">// Load / Save flag constants -----------------------------------------------</span>
+00342 
+00343 <span class="preprocessor">#define BMP_DEFAULT         0</span>
+00344 <span class="preprocessor"></span><span class="preprocessor">#define BMP_SAVE_RLE        1</span>
+00345 <span class="preprocessor"></span><span class="preprocessor">#define CUT_DEFAULT         0</span>
+00346 <span class="preprocessor"></span><span class="preprocessor">#define ICO_DEFAULT         0</span>
+00347 <span class="preprocessor"></span><span class="preprocessor">#define IFF_DEFAULT         0</span>
+00348 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_DEFAULT        0</span>
+00349 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_FAST           1</span>
+00350 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_ACCURATE       2</span>
+00351 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYSUPERB  0x80</span>
+00352 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYGOOD    0x100</span>
+00353 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYNORMAL  0x200</span>
+00354 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYAVERAGE 0x400</span>
+00355 <span class="preprocessor"></span><span class="preprocessor">#define JPEG_QUALITYBAD     0x800</span>
+00356 <span class="preprocessor"></span><span class="preprocessor">#define KOALA_DEFAULT       0</span>
+00357 <span class="preprocessor"></span><span class="preprocessor">#define LBM_DEFAULT         0</span>
+00358 <span class="preprocessor"></span><span class="preprocessor">#define MNG_DEFAULT         0</span>
+00359 <span class="preprocessor"></span><span class="preprocessor">#define PCD_DEFAULT         0</span>
+00360 <span class="preprocessor"></span><span class="preprocessor">#define PCD_BASE            1           // load the bitmap sized 768 x 512</span>
+00361 <span class="preprocessor"></span><span class="preprocessor">#define PCD_BASEDIV4        2           // load the bitmap sized 384 x 256</span>
+00362 <span class="preprocessor"></span><span class="preprocessor">#define PCD_BASEDIV16       3           // load the bitmap sized 192 x 128</span>
+00363 <span class="preprocessor"></span><span class="preprocessor">#define PCX_DEFAULT         0</span>
+00364 <span class="preprocessor"></span><span class="preprocessor">#define PNG_DEFAULT         0</span>
+00365 <span class="preprocessor"></span><span class="preprocessor">#define PNG_IGNOREGAMMA         1               // avoid gamma correction</span>
+00366 <span class="preprocessor"></span><span class="preprocessor">#define PNM_DEFAULT         0</span>
+00367 <span class="preprocessor"></span><span class="preprocessor">#define PNM_SAVE_RAW        0       // If set the writer saves in RAW format (i.e. P4, P5 or P6)</span>
+00368 <span class="preprocessor"></span><span class="preprocessor">#define PNM_SAVE_ASCII      1       // If set the writer saves in ASCII format (i.e. P1, P2 or P3)</span>
+00369 <span class="preprocessor"></span><span class="preprocessor">#define PSD_DEFAULT         0</span>
+00370 <span class="preprocessor"></span><span class="preprocessor">#define RAS_DEFAULT         0</span>
+00371 <span class="preprocessor"></span><span class="preprocessor">#define TARGA_DEFAULT       0</span>
+00372 <span class="preprocessor"></span><span class="preprocessor">#define TARGA_LOAD_RGB888   1       // If set the loader converts RGB555 and ARGB8888 -&gt; RGB888.</span>
+00373 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_DEFAULT        0</span>
+00374 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_CMYK                       0x0001  // reads/stores tags for separated CMYK (use | to combine with compression flags)</span>
+00375 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_PACKBITS       0x0100  // save using PACKBITS compression</span>
+00376 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_DEFLATE        0x0200  // save using DEFLATE compression</span>
+00377 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_ADOBE_DEFLATE  0x0400  // save using ADOBE DEFLATE compression</span>
+00378 <span class="preprocessor"></span><span class="preprocessor">#define TIFF_NONE           0x0800  // save without any compression</span>
+00379 <span class="preprocessor"></span><span class="preprocessor">#define WBMP_DEFAULT        0</span>
+00380 <span class="preprocessor"></span><span class="preprocessor">#define XBM_DEFAULT                     0</span>
+00381 <span class="preprocessor"></span><span class="preprocessor">#define XPM_DEFAULT                     0</span>
+00382 <span class="preprocessor"></span>
 00383 
-00384 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Load(FREE_IMAGE_FORMAT fif, <span class="keyword">const</span> <span class="keywordtype">char</span> *filename, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
-00385 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
-00386 DLL_API BOOL DLL_CALLCONV FreeImage_Save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, <span class="keyword">const</span> <span class="keywordtype">char</span> *filename, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
-00387 DLL_API BOOL DLL_CALLCONV FreeImage_SaveToHandle(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, FreeImageIO *io, fi_handle handle, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
-00388 
-00389 <span class="comment">// Plugin Interface ---------------------------------------------------------</span>
-00390 
-00391 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterLocalPlugin(FI_InitProc proc_address, <span class="keyword">const</span> <span class="keywordtype">char</span> *format FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *description FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *extension FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *regexpr FI_DEFAULT(0));
-00392 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterExternalPlugin(<span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keyword">const</span> <span class="keywordtype">char</span> *format FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *description FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *extension FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *regexpr FI_DEFAULT(0));
-00393 DLL_API <span class="keywordtype">int</span> DLL_CALLCONV FreeImage_GetFIFCount();
-00394 DLL_API <span class="keywordtype">int</span> DLL_CALLCONV FreeImage_SetPluginEnabled(FREE_IMAGE_FORMAT fif, BOOL enable);
-00395 DLL_API <span class="keywordtype">int</span> DLL_CALLCONV FreeImage_IsPluginEnabled(FREE_IMAGE_FORMAT fif);
-00396 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFormat(<span class="keyword">const</span> <span class="keywordtype">char</span> *format);
-00397 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromMime(<span class="keyword">const</span> <span class="keywordtype">char</span> *mime);
-00398 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetFormatFromFIF(FREE_IMAGE_FORMAT fif);
-00399 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetFIFExtensionList(FREE_IMAGE_FORMAT fif);
-00400 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetFIFDescription(FREE_IMAGE_FORMAT fif);
-00401 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> * DLL_CALLCONV FreeImage_GetFIFRegExpr(FREE_IMAGE_FORMAT fif);
-00402 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFilename(<span class="keyword">const</span> <span class="keywordtype">char</span> *filename);
-00403 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsReading(FREE_IMAGE_FORMAT fif);
-00404 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsWriting(FREE_IMAGE_FORMAT fif);
-00405 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsExportBPP(FREE_IMAGE_FORMAT fif, <span class="keywordtype">int</span> bpp);
-00406 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsICCProfiles(FREE_IMAGE_FORMAT fif);
-00407 
-00408 <span class="comment">// Multipaging interface ----------------------------------------------------</span>
-00409 
-00410 DLL_API FIMULTIBITMAP * DLL_CALLCONV FreeImage_OpenMultiBitmap(FREE_IMAGE_FORMAT fif, <span class="keyword">const</span> <span class="keywordtype">char</span> *filename, BOOL create_new, BOOL read_only, BOOL keep_cache_in_memory FI_DEFAULT(FALSE));
-00411 DLL_API BOOL DLL_CALLCONV FreeImage_CloseMultiBitmap(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
-00412 DLL_API <span class="keywordtype">int</span> DLL_CALLCONV FreeImage_GetPageCount(FIMULTIBITMAP *bitmap);
-00413 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_AppendPage(FIMULTIBITMAP *bitmap, FIBITMAP *data);
-00414 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_InsertPage(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> page, FIBITMAP *data);
-00415 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_DeletePage(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> page);
-00416 DLL_API FIBITMAP * DLL_CALLCONV FreeImage_LockPage(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> page);
-00417 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_UnlockPage(FIMULTIBITMAP *bitmap, FIBITMAP *page, BOOL changed);
-00418 DLL_API BOOL DLL_CALLCONV FreeImage_MovePage(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> target, <span class="keywordtype">int</span> source);
-00419 DLL_API BOOL DLL_CALLCONV FreeImage_GetLockedPageNumbers(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> *pages, <span class="keywordtype">int</span> *count);
+00384 <span class="preprocessor">#ifdef __cplusplus</span>
+00385 <span class="preprocessor"></span><span class="keyword">extern</span> <span class="stringliteral">"C"</span> {
+00386 <span class="preprocessor">#endif</span>
+00387 <span class="preprocessor"></span>
+00388 <span class="comment">// Init / Error routines ----------------------------------------------------</span>
+00389 
+00390 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_Initialise(BOOL load_local_plugins_only FI_DEFAULT(FALSE));
+00391 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_DeInitialise();
+00392 
+00393 <span class="comment">// Version routines ---------------------------------------------------------</span>
+00394 
+00395 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetVersion();
+00396 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetCopyrightMessage();
+00397 
+00398 <span class="comment">// Message output functions -------------------------------------------------</span>
+00399 
+00400 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_OutputMessageProc(<span class="keywordtype">int</span> fif, <span class="keyword">const</span> <span class="keywordtype">char</span> *fmt, ...);
+00401 
+00402 <span class="keyword">typedef</span> void (*FreeImage_OutputMessageFunction)(FREE_IMAGE_FORMAT fif, <span class="keyword">const</span> <span class="keywordtype">char</span> *msg);
+00403 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_SetOutputMessage(FreeImage_OutputMessageFunction omf);
+00404 
+00405 <span class="comment">// Allocate / Clone / Unload routines ---------------------------------------</span>
+00406 
+00407 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Allocate(<span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> bpp, <span class="keywordtype">unsigned</span> red_mask FI_DEFAULT(0), <span class="keywordtype">unsigned</span> green_mask FI_DEFAULT(0), <span class="keywordtype">unsigned</span> blue_mask FI_DEFAULT(0));
+00408 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_AllocateT(FREE_IMAGE_TYPE type, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> bpp FI_DEFAULT(8), <span class="keywordtype">unsigned</span> red_mask FI_DEFAULT(0), <span class="keywordtype">unsigned</span> green_mask FI_DEFAULT(0), <span class="keywordtype">unsigned</span> blue_mask FI_DEFAULT(0));
+00409 DLL_API FIBITMAP * DLL_CALLCONV FreeImage_Clone(FIBITMAP *dib);
+00410 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_Unload(FIBITMAP *dib);
+00411 
+00412 <span class="comment">// Load / Save routines -----------------------------------------------------</span>
+00413 
+00414 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Load(FREE_IMAGE_FORMAT fif, <span class="keyword">const</span> <span class="keywordtype">char</span> *filename, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
+00415 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
+00416 DLL_API BOOL DLL_CALLCONV FreeImage_Save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, <span class="keyword">const</span> <span class="keywordtype">char</span> *filename, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
+00417 DLL_API BOOL DLL_CALLCONV FreeImage_SaveToHandle(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, FreeImageIO *io, fi_handle handle, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
+00418 
+00419 <span class="comment">// Plugin Interface ---------------------------------------------------------</span>
 00420 
-00421 <span class="comment">// Filetype request routines ------------------------------------------------</span>
-00422 
-00423 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileType(<span class="keyword">const</span> <span class="keywordtype">char</span> *filename, <span class="keywordtype">int</span> size FI_DEFAULT(0));
-00424 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileTypeFromHandle(FreeImageIO *io, fi_handle handle, <span class="keywordtype">int</span> size FI_DEFAULT(0));
-00425 
-00426 <span class="comment">// FreeImage info routines --------------------------------------------------</span>
-00427 
-00428 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetRedMask(FIBITMAP *dib);
-00429 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetGreenMask(FIBITMAP *dib);
-00430 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetBlueMask(FIBITMAP *dib);
-00431 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetTransparencyCount(FIBITMAP *dib);
-00432 DLL_API BYTE * DLL_CALLCONV FreeImage_GetTransparencyTable(FIBITMAP *dib);
-00433 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_SetTransparent(FIBITMAP *dib, BOOL enabled);
-00434 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_SetTransparencyTable(FIBITMAP *dib, BYTE *table, <span class="keywordtype">int</span> count);
-00435 DLL_API BOOL DLL_CALLCONV FreeImage_IsTransparent(FIBITMAP *dib);
-00436 
-00437 <span class="comment">// DIB info routines --------------------------------------------------------</span>
+00421 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterLocalPlugin(FI_InitProc proc_address, <span class="keyword">const</span> <span class="keywordtype">char</span> *format FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *description FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *extension FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *regexpr FI_DEFAULT(0));
+00422 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterExternalPlugin(<span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keyword">const</span> <span class="keywordtype">char</span> *format FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *description FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *extension FI_DEFAULT(0), <span class="keyword">const</span> <span class="keywordtype">char</span> *regexpr FI_DEFAULT(0));
+00423 DLL_API <span class="keywordtype">int</span> DLL_CALLCONV FreeImage_GetFIFCount();
+00424 DLL_API <span class="keywordtype">int</span> DLL_CALLCONV FreeImage_SetPluginEnabled(FREE_IMAGE_FORMAT fif, BOOL enable);
+00425 DLL_API <span class="keywordtype">int</span> DLL_CALLCONV FreeImage_IsPluginEnabled(FREE_IMAGE_FORMAT fif);
+00426 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFormat(<span class="keyword">const</span> <span class="keywordtype">char</span> *format);
+00427 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromMime(<span class="keyword">const</span> <span class="keywordtype">char</span> *mime);
+00428 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetFormatFromFIF(FREE_IMAGE_FORMAT fif);
+00429 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetFIFExtensionList(FREE_IMAGE_FORMAT fif);
+00430 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> *DLL_CALLCONV FreeImage_GetFIFDescription(FREE_IMAGE_FORMAT fif);
+00431 DLL_API <span class="keyword">const</span> <span class="keywordtype">char</span> * DLL_CALLCONV FreeImage_GetFIFRegExpr(FREE_IMAGE_FORMAT fif);
+00432 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFilename(<span class="keyword">const</span> <span class="keywordtype">char</span> *filename);
+00433 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsReading(FREE_IMAGE_FORMAT fif);
+00434 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsWriting(FREE_IMAGE_FORMAT fif);
+00435 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsExportBPP(FREE_IMAGE_FORMAT fif, <span class="keywordtype">int</span> bpp);
+00436 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsExportType(FREE_IMAGE_FORMAT fif, FREE_IMAGE_TYPE type);
+00437 DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsICCProfiles(FREE_IMAGE_FORMAT fif);
 00438 
-00439 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetColorsUsed(FIBITMAP *dib);
-00440 DLL_API BYTE *DLL_CALLCONV FreeImage_GetBits(FIBITMAP *dib);
-00441 DLL_API BYTE *DLL_CALLCONV FreeImage_GetScanLine(FIBITMAP *dib, <span class="keywordtype">int</span> scanline);
-00442 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetBPP(FIBITMAP *dib);
-00443 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetWidth(FIBITMAP *dib);
-00444 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetHeight(FIBITMAP *dib);
-00445 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetLine(FIBITMAP *dib);
-00446 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetPitch(FIBITMAP *dib);
-00447 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetDIBSize(FIBITMAP *dib);
-00448 DLL_API RGBQUAD *DLL_CALLCONV FreeImage_GetPalette(FIBITMAP *dib);
-00449 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetDotsPerMeterX(FIBITMAP *dib);
-00450 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetDotsPerMeterY(FIBITMAP *dib);
-00451 DLL_API BITMAPINFOHEADER *DLL_CALLCONV FreeImage_GetInfoHeader(FIBITMAP *dib);
-00452 DLL_API BITMAPINFO *DLL_CALLCONV FreeImage_GetInfo(FIBITMAP *dib);
-00453 DLL_API FREE_IMAGE_COLOR_TYPE DLL_CALLCONV FreeImage_GetColorType(FIBITMAP *dib);
-00454 
-00455 <span class="comment">// ICC profile routines -----------------------------------------------------</span>
+00439 <span class="comment">// Multipaging interface ----------------------------------------------------</span>
+00440 
+00441 DLL_API FIMULTIBITMAP * DLL_CALLCONV FreeImage_OpenMultiBitmap(FREE_IMAGE_FORMAT fif, <span class="keyword">const</span> <span class="keywordtype">char</span> *filename, BOOL create_new, BOOL read_only, BOOL keep_cache_in_memory FI_DEFAULT(FALSE));
+00442 DLL_API BOOL DLL_CALLCONV FreeImage_CloseMultiBitmap(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> flags FI_DEFAULT(0));
+00443 DLL_API <span class="keywordtype">int</span> DLL_CALLCONV FreeImage_GetPageCount(FIMULTIBITMAP *bitmap);
+00444 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_AppendPage(FIMULTIBITMAP *bitmap, FIBITMAP *data);
+00445 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_InsertPage(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> page, FIBITMAP *data);
+00446 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_DeletePage(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> page);
+00447 DLL_API FIBITMAP * DLL_CALLCONV FreeImage_LockPage(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> page);
+00448 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_UnlockPage(FIMULTIBITMAP *bitmap, FIBITMAP *page, BOOL changed);
+00449 DLL_API BOOL DLL_CALLCONV FreeImage_MovePage(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> target, <span class="keywordtype">int</span> source);
+00450 DLL_API BOOL DLL_CALLCONV FreeImage_GetLockedPageNumbers(FIMULTIBITMAP *bitmap, <span class="keywordtype">int</span> *pages, <span class="keywordtype">int</span> *count);
+00451 
+00452 <span class="comment">// Filetype request routines ------------------------------------------------</span>
+00453 
+00454 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileType(<span class="keyword">const</span> <span class="keywordtype">char</span> *filename, <span class="keywordtype">int</span> size FI_DEFAULT(0));
+00455 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileTypeFromHandle(FreeImageIO *io, fi_handle handle, <span class="keywordtype">int</span> size FI_DEFAULT(0));
 00456 
-00457 DLL_API FIICCPROFILE *DLL_CALLCONV FreeImage_GetICCProfile(FIBITMAP *dib);
-00458 DLL_API FIICCPROFILE *DLL_CALLCONV FreeImage_CreateICCProfile(FIBITMAP *dib, <span class="keywordtype">void</span> *data, <span class="keywordtype">long</span> size);
-00459 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_DestroyICCProfile(FIBITMAP *dib);
+00457 <span class="comment">// Image type request routine -----------------------------------------------</span>
+00458 
+00459 DLL_API FREE_IMAGE_TYPE DLL_CALLCONV FreeImage_GetImageType(FIBITMAP *dib);
 00460 
-00461 <span class="comment">// Line conversion routines -------------------------------------------------</span>
+00461 <span class="comment">// FreeImage info routines --------------------------------------------------</span>
 00462 
-00463 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To8(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00464 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To8(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00465 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To8_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00466 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To8_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00467 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine24To8(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00468 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine32To8(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00469 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00470 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00471 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine8To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00472 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16_565_To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00473 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine24To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00474 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine32To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00475 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00476 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00477 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine8To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00478 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16_555_To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00479 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine24To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00480 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine32To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00481 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To24(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00482 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To24(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00483 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine8To24(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00484 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To24_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00485 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To24_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00486 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine32To24(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00487 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To32(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00488 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To32(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00489 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine8To32(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
-00490 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To32_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00491 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To32_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00492 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine24To32(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
-00493 
-00494 <span class="comment">// Smart conversion routines ------------------------------------------------</span>
-00495 
-00496 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo8Bits(FIBITMAP *dib);
-00497 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo16Bits555(FIBITMAP *dib);
-00498 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo16Bits565(FIBITMAP *dib);
-00499 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo24Bits(FIBITMAP *dib);
-00500 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo32Bits(FIBITMAP *dib);
-00501 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ColorQuantize(FIBITMAP *dib, FREE_IMAGE_QUANTIZE quantize);
-00502 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Threshold(FIBITMAP *dib, BYTE T);
-00503 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Dither(FIBITMAP *dib, FREE_IMAGE_DITHER algorithm);
+00463 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetRedMask(FIBITMAP *dib);
+00464 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetGreenMask(FIBITMAP *dib);
+00465 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetBlueMask(FIBITMAP *dib);
+00466 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetTransparencyCount(FIBITMAP *dib);
+00467 DLL_API BYTE * DLL_CALLCONV FreeImage_GetTransparencyTable(FIBITMAP *dib);
+00468 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_SetTransparent(FIBITMAP *dib, BOOL enabled);
+00469 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_SetTransparencyTable(FIBITMAP *dib, BYTE *table, <span class="keywordtype">int</span> count);
+00470 DLL_API BOOL DLL_CALLCONV FreeImage_IsTransparent(FIBITMAP *dib);
+00471 DLL_API BOOL DLL_CALLCONV FreeImage_IsLittleEndian();
+00472 
+00473 <span class="comment">// Pixel access routines ----------------------------------------------------</span>
+00474 
+00475 DLL_API BYTE *DLL_CALLCONV FreeImage_GetBits(FIBITMAP *dib);
+00476 DLL_API BYTE *DLL_CALLCONV FreeImage_GetScanLine(FIBITMAP *dib, <span class="keywordtype">int</span> scanline);
+00477 
+00478 DLL_API BOOL DLL_CALLCONV FreeImage_GetPixelIndex(FIBITMAP *dib, <span class="keywordtype">unsigned</span> x, <span class="keywordtype">unsigned</span> y, BYTE *value);
+00479 DLL_API BOOL DLL_CALLCONV FreeImage_GetPixelColor(FIBITMAP *dib, <span class="keywordtype">unsigned</span> x, <span class="keywordtype">unsigned</span> y, RGBQUAD *value);
+00480 DLL_API BOOL DLL_CALLCONV FreeImage_SetPixelIndex(FIBITMAP *dib, <span class="keywordtype">unsigned</span> x, <span class="keywordtype">unsigned</span> y, BYTE *value);
+00481 DLL_API BOOL DLL_CALLCONV FreeImage_SetPixelColor(FIBITMAP *dib, <span class="keywordtype">unsigned</span> x, <span class="keywordtype">unsigned</span> y, RGBQUAD *value);
+00482 
+00483 <span class="comment">// DIB info routines --------------------------------------------------------</span>
+00484 
+00485 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetColorsUsed(FIBITMAP *dib);
+00486 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetBPP(FIBITMAP *dib);
+00487 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetWidth(FIBITMAP *dib);
+00488 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetHeight(FIBITMAP *dib);
+00489 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetLine(FIBITMAP *dib);
+00490 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetPitch(FIBITMAP *dib);
+00491 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetDIBSize(FIBITMAP *dib);
+00492 DLL_API RGBQUAD *DLL_CALLCONV FreeImage_GetPalette(FIBITMAP *dib);
+00493 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetDotsPerMeterX(FIBITMAP *dib);
+00494 DLL_API <span class="keywordtype">unsigned</span> DLL_CALLCONV FreeImage_GetDotsPerMeterY(FIBITMAP *dib);
+00495 DLL_API BITMAPINFOHEADER *DLL_CALLCONV FreeImage_GetInfoHeader(FIBITMAP *dib);
+00496 DLL_API BITMAPINFO *DLL_CALLCONV FreeImage_GetInfo(FIBITMAP *dib);
+00497 DLL_API FREE_IMAGE_COLOR_TYPE DLL_CALLCONV FreeImage_GetColorType(FIBITMAP *dib);
+00498 
+00499 <span class="comment">// ICC profile routines -----------------------------------------------------</span>
+00500 
+00501 DLL_API FIICCPROFILE *DLL_CALLCONV FreeImage_GetICCProfile(FIBITMAP *dib);
+00502 DLL_API FIICCPROFILE *DLL_CALLCONV FreeImage_CreateICCProfile(FIBITMAP *dib, <span class="keywordtype">void</span> *data, <span class="keywordtype">long</span> size);
+00503 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_DestroyICCProfile(FIBITMAP *dib);
 00504 
-00505 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertFromRawBits(BYTE *bits, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> pitch, <span class="keywordtype">unsigned</span> bpp, <span class="keywordtype">unsigned</span> red_mask, <span class="keywordtype">unsigned</span> green_mask, <span class="keywordtype">unsigned</span> blue_mask, BOOL topdown FI_DEFAULT(FALSE));
-00506 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertToRawBits(BYTE *bits, FIBITMAP *dib, <span class="keywordtype">int</span> pitch, <span class="keywordtype">unsigned</span> bpp, <span class="keywordtype">unsigned</span> red_mask, <span class="keywordtype">unsigned</span> green_mask, <span class="keywordtype">unsigned</span> blue_mask, BOOL topdown FI_DEFAULT(FALSE));
-00507 
-00508 <span class="comment">// ZLib interface -----------------------------------------------------------</span>
-00509 
-00510 DLL_API DWORD DLL_CALLCONV FreeImage_ZLibCompress(BYTE *target, DWORD target_size, BYTE *source, DWORD source_size);
-00511 DLL_API DWORD DLL_CALLCONV FreeImage_ZLibUncompress(BYTE *target, DWORD target_size, BYTE *source, DWORD source_size);
-00512 
-00513 <span class="comment">// --------------------------------------------------------------------------</span>
-00514 <span class="comment">// Image manipulation toolkit -----------------------------------------------</span>
-00515 <span class="comment">// --------------------------------------------------------------------------</span>
-00516 
-00517 <span class="comment">// rotation and flipping</span>
-00518 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_RotateClassic(FIBITMAP *dib, <span class="keywordtype">double</span> angle);
-00519 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_RotateEx(FIBITMAP *dib, <span class="keywordtype">double</span> angle, <span class="keywordtype">double</span> x_shift, <span class="keywordtype">double</span> y_shift, <span class="keywordtype">double</span> x_origin, <span class="keywordtype">double</span> y_origin, BOOL use_mask);
-00520 DLL_API BOOL DLL_CALLCONV FreeImage_FlipHorizontal(FIBITMAP *dib);
-00521 DLL_API BOOL DLL_CALLCONV FreeImage_FlipVertical(FIBITMAP *dib);
-00522 
-00523 <span class="comment">// upsampling / downsampling</span>
-00524 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Rescale(FIBITMAP *dib, <span class="keywordtype">int</span> dst_width, <span class="keywordtype">int</span> dst_height, FREE_IMAGE_FILTER filter);
-00525 
-00526 <span class="comment">// color manipulation routines (point operations)</span>
-00527 DLL_API BOOL DLL_CALLCONV FreeImage_AdjustCurve(FIBITMAP *dib, BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel);
-00528 DLL_API BOOL DLL_CALLCONV FreeImage_AdjustGamma(FIBITMAP *dib, <span class="keywordtype">double</span> gamma);
-00529 DLL_API BOOL DLL_CALLCONV FreeImage_AdjustBrightness(FIBITMAP *dib, <span class="keywordtype">double</span> percentage);
-00530 DLL_API BOOL DLL_CALLCONV FreeImage_AdjustContrast(FIBITMAP *dib, <span class="keywordtype">double</span> percentage);
-00531 DLL_API BOOL DLL_CALLCONV FreeImage_Invert(FIBITMAP *dib);
-00532 DLL_API BOOL DLL_CALLCONV FreeImage_GetHistogram(FIBITMAP *dib, DWORD *histo, FREE_IMAGE_COLOR_CHANNEL channel FI_DEFAULT(FICC_BLACK));
-00533 
-00534 <span class="comment">// channel processing routines</span>
-00535 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_GetChannel(FIBITMAP *dib, FREE_IMAGE_COLOR_CHANNEL channel);
-00536 DLL_API BOOL DLL_CALLCONV FreeImage_SetChannel(FIBITMAP *dib, FIBITMAP *dib8, FREE_IMAGE_COLOR_CHANNEL channel);
+00505 <span class="comment">// Line conversion routines -------------------------------------------------</span>
+00506 
+00507 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To8(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00508 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To8(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00509 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To8_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00510 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To8_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00511 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine24To8(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00512 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine32To8(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00513 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00514 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00515 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine8To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00516 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16_565_To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00517 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine24To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00518 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine32To16_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00519 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00520 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00521 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine8To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00522 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16_555_To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00523 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine24To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00524 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine32To16_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00525 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To24(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00526 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To24(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00527 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine8To24(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00528 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To24_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00529 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To24_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00530 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine32To24(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00531 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine1To32(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00532 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine4To32(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00533 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine8To32(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels, RGBQUAD *palette);
+00534 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To32_555(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00535 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine16To32_565(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
+00536 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertLine24To32(BYTE *target, BYTE *source, <span class="keywordtype">int</span> width_in_pixels);
 00537 
-00538 <span class="comment">// copy / paste routines</span>
-00539 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Copy(FIBITMAP *dib, <span class="keywordtype">int</span> left, <span class="keywordtype">int</span> top, <span class="keywordtype">int</span> right, <span class="keywordtype">int</span> bottom);
-00540 DLL_API BOOL DLL_CALLCONV FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, <span class="keywordtype">int</span> left, <span class="keywordtype">int</span> top, <span class="keywordtype">int</span> alpha);
-00541 
-00542 
-00543 <span class="preprocessor">#ifdef __cplusplus</span>
-00544 <span class="preprocessor"></span>}
-00545 <span class="preprocessor">#endif</span>
-00546 <span class="preprocessor"></span>
-00547 <span class="preprocessor">#endif // FREEIMAGE_H</span>
+00538 <span class="comment">// Smart conversion routines ------------------------------------------------</span>
+00539 
+00540 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo8Bits(FIBITMAP *dib);
+00541 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo16Bits555(FIBITMAP *dib);
+00542 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo16Bits565(FIBITMAP *dib);
+00543 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo24Bits(FIBITMAP *dib);
+00544 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertTo32Bits(FIBITMAP *dib);
+00545 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ColorQuantize(FIBITMAP *dib, FREE_IMAGE_QUANTIZE quantize);
+00546 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Threshold(FIBITMAP *dib, BYTE T);
+00547 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Dither(FIBITMAP *dib, FREE_IMAGE_DITHER algorithm);
+00548 
+00549 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertFromRawBits(BYTE *bits, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> pitch, <span class="keywordtype">unsigned</span> bpp, <span class="keywordtype">unsigned</span> red_mask, <span class="keywordtype">unsigned</span> green_mask, <span class="keywordtype">unsigned</span> blue_mask, BOOL topdown FI_DEFAULT(FALSE));
+00550 DLL_API <span class="keywordtype">void</span> DLL_CALLCONV FreeImage_ConvertToRawBits(BYTE *bits, FIBITMAP *dib, <span class="keywordtype">int</span> pitch, <span class="keywordtype">unsigned</span> bpp, <span class="keywordtype">unsigned</span> red_mask, <span class="keywordtype">unsigned</span> green_mask, <span class="keywordtype">unsigned</span> blue_mask, BOOL topdown FI_DEFAULT(FALSE));
+00551 
+00552 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertToStandardType(FIBITMAP *src, BOOL scale_linear FI_DEFAULT(TRUE));
+00553 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_linear FI_DEFAULT(TRUE));
+00554 
+00555 
+00556 <span class="comment">// ZLib interface -----------------------------------------------------------</span>
+00557 
+00558 DLL_API DWORD DLL_CALLCONV FreeImage_ZLibCompress(BYTE *target, DWORD target_size, BYTE *source, DWORD source_size);
+00559 DLL_API DWORD DLL_CALLCONV FreeImage_ZLibUncompress(BYTE *target, DWORD target_size, BYTE *source, DWORD source_size);
+00560 
+00561 <span class="comment">// --------------------------------------------------------------------------</span>
+00562 <span class="comment">// Image manipulation toolkit -----------------------------------------------</span>
+00563 <span class="comment">// --------------------------------------------------------------------------</span>
+00564 
+00565 <span class="comment">// rotation and flipping</span>
+00566 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_RotateClassic(FIBITMAP *dib, <span class="keywordtype">double</span> angle);
+00567 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_RotateEx(FIBITMAP *dib, <span class="keywordtype">double</span> angle, <span class="keywordtype">double</span> x_shift, <span class="keywordtype">double</span> y_shift, <span class="keywordtype">double</span> x_origin, <span class="keywordtype">double</span> y_origin, BOOL use_mask);
+00568 DLL_API BOOL DLL_CALLCONV FreeImage_FlipHorizontal(FIBITMAP *dib);
+00569 DLL_API BOOL DLL_CALLCONV FreeImage_FlipVertical(FIBITMAP *dib);
+00570 
+00571 <span class="comment">// upsampling / downsampling</span>
+00572 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Rescale(FIBITMAP *dib, <span class="keywordtype">int</span> dst_width, <span class="keywordtype">int</span> dst_height, FREE_IMAGE_FILTER filter);
+00573 
+00574 <span class="comment">// color manipulation routines (point operations)</span>
+00575 DLL_API BOOL DLL_CALLCONV FreeImage_AdjustCurve(FIBITMAP *dib, BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel);
+00576 DLL_API BOOL DLL_CALLCONV FreeImage_AdjustGamma(FIBITMAP *dib, <span class="keywordtype">double</span> gamma);
+00577 DLL_API BOOL DLL_CALLCONV FreeImage_AdjustBrightness(FIBITMAP *dib, <span class="keywordtype">double</span> percentage);
+00578 DLL_API BOOL DLL_CALLCONV FreeImage_AdjustContrast(FIBITMAP *dib, <span class="keywordtype">double</span> percentage);
+00579 DLL_API BOOL DLL_CALLCONV FreeImage_Invert(FIBITMAP *dib);
+00580 DLL_API BOOL DLL_CALLCONV FreeImage_GetHistogram(FIBITMAP *dib, DWORD *histo, FREE_IMAGE_COLOR_CHANNEL channel FI_DEFAULT(FICC_BLACK));
+00581 
+00582 <span class="comment">// channel processing routines</span>
+00583 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_GetChannel(FIBITMAP *dib, FREE_IMAGE_COLOR_CHANNEL channel);
+00584 DLL_API BOOL DLL_CALLCONV FreeImage_SetChannel(FIBITMAP *dib, FIBITMAP *dib8, FREE_IMAGE_COLOR_CHANNEL channel);
+00585 DLL_API FIBITMAP * DLL_CALLCONV FreeImage_GetComplexChannel(FIBITMAP *src, FREE_IMAGE_COLOR_CHANNEL channel);
+00586 DLL_API BOOL DLL_CALLCONV FreeImage_SetComplexChannel(FIBITMAP *dst, FIBITMAP *src, FREE_IMAGE_COLOR_CHANNEL channel);
+00587 
+00588 <span class="comment">// copy / paste routines</span>
+00589 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Copy(FIBITMAP *dib, <span class="keywordtype">int</span> left, <span class="keywordtype">int</span> top, <span class="keywordtype">int</span> right, <span class="keywordtype">int</span> bottom);
+00590 DLL_API BOOL DLL_CALLCONV FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, <span class="keywordtype">int</span> left, <span class="keywordtype">int</span> top, <span class="keywordtype">int</span> alpha);
+00591 
+00592 
+00593 <span class="preprocessor">#ifdef __cplusplus</span>
+00594 <span class="preprocessor"></span>}
+00595 <span class="preprocessor">#endif</span>
+00596 <span class="preprocessor"></span>
+00597 <span class="preprocessor">#endif // FREEIMAGE_H</span>
 </pre></div><hr>
 <p align="right">
 <img src="freeimage.png"><br>

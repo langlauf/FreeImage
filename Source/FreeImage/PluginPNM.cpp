@@ -161,6 +161,10 @@ SupportsExportDepth(int depth) {
 		);
 }
 
+static BOOL DLL_CALLCONV 
+SupportsExportType(FREE_IMAGE_TYPE type) {
+	return (type == FIT_BITMAP) ? TRUE : FALSE;
+}
 
 // ----------------------------------------------------------
 
@@ -606,5 +610,6 @@ InitPNM(Plugin *plugin, int format_id) {
 	plugin->validate_proc = Validate;
 	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
+	plugin->supports_export_type_proc = SupportsExportType;
 	plugin->supports_icc_profiles_proc = NULL;
 }

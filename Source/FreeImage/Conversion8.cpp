@@ -43,9 +43,9 @@ FreeImage_ConvertLine4To8(BYTE *target, BYTE *source, int width_in_pixels) {
 
 	while (count_new < width_in_pixels) {
 		if (hinibble) {
-			target[count_new] = (source[count_org] & 0xf0) >> 4;
+			target[count_new] = (source[count_org] & 0xF0) >> 4;
 		} else {
-			target[count_new] = (source[count_org] & 0x0f);
+			target[count_new] = (source[count_org] & 0x0F);
 
 			count_org++;
 		}

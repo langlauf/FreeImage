@@ -138,13 +138,17 @@ static void initnet(BYTE *thepic, DWORD len, int sample)
 
 static void unbiasnet()
 {
-	int i, j;
+	int i, j, temp;
 
 	for (i = 0; i < netsize; i++) {
 		for (j = 0; j < 3; j++) {
-			network[i][j] >>= netbiasshift;
+			// OLD CODE: network[i][j] >>= netbiasshift; 
+			// Fix based on bug report by Juergen Weigert jw@suse.de
+			temp = (network[i][j] + (1 << (netbiasshift - 1))) >> netbiasshift;
+			if (temp > 255) temp = 255;
+			network[i][j] = temp;
 		}
-		network[i][3] = i;			// record colour no
+		network[i][3] = i;			// record colour no 
 	}
 }
 
@@ -388,6 +392,10 @@ static void learn()
 	lim = thepicture + lengthcount;
 	samplepixels = lengthcount / (3*samplefac);
 	delta = samplepixels / ncycles;
+	if(delta == 0) {
+		// avoid 'divide by zero' error
+		delta = 1;
+	}
 	alpha = initalpha;
 	radius = initradius;
 	
@@ -457,7 +465,7 @@ NNQuantizer(FIBITMAP *dib, int sampling)
 		return NULL;
 	}
 
-	// 1) select a sampling factor in range 1..30 (input parameter 'sampling')
+	// 1) Select a sampling factor in range 1..30 (input parameter 'sampling')
 	//    1 => slower, 30 => faster. Default value is 15
 
 
@@ -467,6 +475,12 @@ NNQuantizer(FIBITMAP *dib, int sampling)
 	height = FreeImage_GetHeight(dib);	// DIB height
 	dib_bits = FreeImage_GetBits(dib);	// pointer to DIB pixels
 	length = 3L * width * height;		// image size in bytes
+
+	// For small images, adjust the sampling factor to avoid a 'divide by zero' error later 
+	// (see delta in learn() routine)
+	int adjust = (width * height) / ncycles;
+	if(sampling >= adjust)
+		sampling = 1;
 
 	// 3) Initialize the network and apply the learning algorithm
 
