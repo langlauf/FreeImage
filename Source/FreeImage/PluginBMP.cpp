@@ -22,7 +22,6 @@
 // ==========================================================
 
 #include <assert.h>
-
 #include "FreeImage.h"
 #include "Utilities.h"
 
@@ -98,6 +97,8 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 	FIBITMAP *dib;
 
 	try {
+		long info_header_position = io->tell_proc(handle);
+
 		// load the info header
 
 		BITMAPINFOHEADER bih;
@@ -126,7 +127,7 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 				dib = freeimage->allocate_proc(width, height, bit_count);
 
 				if (dib == NULL)
-					throw "DIB allocation failed";						
+					throw "DIB allocation failed";
 
 				BITMAPINFOHEADER *pInfoHeader = freeimage->get_info_header_proc(dib);
 				pInfoHeader->biXPelsPerMeter = bih.biXPelsPerMeter;
@@ -380,9 +381,12 @@ LoadWindowsBMP(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int flag
 				// Skip over the optional palette 
 				// A 24 or 32 bit DIB may contain a palette for faster color reduction
 
-				if (pInfoHeader->biClrUsed > 0)
-					io->seek_proc(handle, pInfoHeader->biClrUsed * sizeof(RGBQUAD), SEEK_CUR);
-				
+				if (pInfoHeader->biClrUsed > 0) {
+				    io->seek_proc(handle, pInfoHeader->biClrUsed * sizeof(RGBQUAD), SEEK_CUR);
+				} else if ((bih.biCompression != BI_BITFIELDS) && (bitmap_bits_offset > sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER))) {
+					io->seek_proc(handle, bitmap_bits_offset, SEEK_CUR);
+				}
+
 				// read in the bitmap bits
 
 				io->read_proc(freeimage->get_bits_proc(dib), height * pitch, 1, handle);

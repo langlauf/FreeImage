@@ -28,6 +28,8 @@
 #include "FreeImageIO.h"
 #include "Utilities.h"
 
+#include "../DeprecationManager/DeprecationMgr.h"
+
 // ----------------------------------------------------------
 
 const int EXTRA_DATA_SIZE = 0;
@@ -39,7 +41,7 @@ FI_STRUCT (FREEIMAGEHEADER) {
 	unsigned green_mask;
 	unsigned blue_mask;
 	BOOL transparent;
-	BYTE transparency_count;
+	int  transparency_count;
 	BYTE transparent_table[256]; // why another table? for easy transparency table retrieval!
 	BYTE filler[3];              // transparency could be stored in the palette, which is better
 	                             // overall, but it requires quite some changes and it will render
@@ -49,6 +51,11 @@ FI_STRUCT (FREEIMAGEHEADER) {
 // ----------------------------------------------------------
 //  Internal
 // ----------------------------------------------------------
+
+int
+FreeImage_GetFreeImageHeaderSize() {
+	return sizeof(FREEIMAGEHEADER);
+}
 
 int * DLL_CALLCONV
 FreeImage_GetExtraDataPointer(FIBITMAP *bitmap, int entry) {
@@ -229,7 +236,7 @@ FreeImage_GetBlueMask(FIBITMAP *dib) {
 
 BOOL DLL_CALLCONV
 FreeImage_IsTransparent(FIBITMAP *dib) {
-	return (dib != NULL) ? ((FREEIMAGEHEADER *)dib->data)->transparent : FALSE;
+	return (dib != NULL) ? ((FreeImage_GetBPP(dib) == 32) ? true : ((FREEIMAGEHEADER *)dib->data)->transparent) : false;
 }
 
 BYTE * DLL_CALLCONV
@@ -254,7 +261,7 @@ FreeImage_GetTransparencyCount(FIBITMAP *dib) {
 }
 
 void DLL_CALLCONV
-FreeImage_SetTransparencyTable(FIBITMAP *dib, BYTE *table, BYTE count) {
+FreeImage_SetTransparencyTable(FIBITMAP *dib, BYTE *table, int count) {
 	if (dib) {
 		if (FreeImage_GetBPP(dib) == 8) {
 			((FREEIMAGEHEADER *)dib->data)->transparent = TRUE;
@@ -310,20 +317,8 @@ FreeImage_GetBits(FIBITMAP *dib) {
 
 BYTE * DLL_CALLCONV
 FreeImage_GetBitsRowCol(FIBITMAP *dib, int col, int row) {
-	if (dib) {
-		// why do i calculate this width? it's not used anywhere else!
-
-		int width = FreeImage_GetWidth(dib);
-
-		if (FreeImage_GetBPP(dib) == 4)
-			width /= 2;
-		else if (FreeImage_GetBPP(dib) == 1)
-			width /= 8;
-
-		return FreeImage_GetBits(dib) + ((FreeImage_GetHeight(dib) - row - 1) * FreeImage_GetPitch(dib)) + (col * FreeImage_GetBPP(dib) / 8);
-	} else {
-		return NULL;
-	}
+	DEPRECATE("FreeImage_GetBitsRowCol()", "FreeImage_GetScanLine()") \
+	return (dib) ? FreeImage_GetBits(dib) + ((FreeImage_GetHeight(dib) - row - 1) * FreeImage_GetPitch(dib)) + (col * FreeImage_GetBPP(dib) / 8) : NULL;
 }
 
 BYTE * DLL_CALLCONV
@@ -360,4 +355,3 @@ BITMAPINFO * DLL_CALLCONV
 FreeImage_GetInfo(FIBITMAP *dib) {
 	return (BITMAPINFO *)FreeImage_GetInfoHeader(dib);
 }
-

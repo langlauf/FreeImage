@@ -474,6 +474,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			// PNG_INTERLACE_ADAM7, and the compression_type and filter_type MUST
 			// currently be PNG_COMPRESSION_TYPE_BASE and PNG_FILTER_TYPE_BASE. REQUIRED
 
+			interlace_type = PNG_INTERLACE_NONE;	// Default value
 			width = freeimage->get_width_proc(dib);
 			height = freeimage->get_height_proc(dib);
 			bpp = bit_depth = freeimage->get_bpp_proc(dib);			
@@ -486,12 +487,9 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 			bit_depth = (bit_depth > 8) ? 8 : bit_depth;
 
-			interlace_type = PNG_INTERLACE_NONE;	// Default value
-
 			switch (freeimage->get_color_type_proc(dib)) {
 				case FIC_MINISWHITE:
-					// Invert monochrome files to have 0 as black and 1 as white
-					// (no break here)
+					// Invert monochrome files to have 0 as black and 1 as white (no break here)
 					png_set_invert_mono(png_ptr);
 
 				case FIC_MINISBLACK:
@@ -528,19 +526,15 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 				}
 
 				case FIC_RGBALPHA :
-					if (freeimage->is_transparent_proc(dib)) {
-						has_alpha_channel = TRUE;
+					has_alpha_channel = TRUE;
 
-						png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, 
-							PNG_COLOR_TYPE_RGBA, interlace_type, 
-							PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+					png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, 
+						PNG_COLOR_TYPE_RGBA, interlace_type, 
+						PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
-						png_set_bgr(png_ptr); // flip BGR pixels to RGB
-						break;
-					}
-
-					// intentionally no break here...
-					
+					png_set_bgr(png_ptr); // flip BGR pixels to RGB
+					break;
+	
 				case FIC_RGB:
 					png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, 
 						PNG_COLOR_TYPE_RGB, interlace_type, 

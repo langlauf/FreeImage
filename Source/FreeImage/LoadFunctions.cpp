@@ -19,60 +19,61 @@
 // Use at your own risk!
 // ==========================================================
 
-#include "../DeprecationManager/DeprecationMgr.h"
 #include "FreeImage.h"
+
+#include "../DeprecationManager/DeprecationMgr.h"
 
 // ----------------------------------------------------------
 
-#define LOAD(what) \
+#define LOAD(what, registered_type) \
 FIBITMAP * DLL_CALLCONV \
 FreeImage_Load##what##(const char *filename, int flags) { \
 	DEPRECATE("FreeImage_Load" #what "()", "FreeImage_Load()") \
-	return FreeImage_Load(FreeImage_GetFIFFromFormat(#what), filename, flags); \
+	return FreeImage_Load(FreeImage_GetFIFFromFormat(#registered_type), filename, flags); \
 } \
 \
 FIBITMAP * DLL_CALLCONV \
 FreeImage_Load##what##FromHandle(FreeImageIO *io, fi_handle handle, int flags) { \
 	DEPRECATE("FreeImage_Load" #what "FromHandle()", "FreeImage_LoadFromHandle()") \
-	return FreeImage_LoadFromHandle(FreeImage_GetFIFFromFormat(#what), io, handle, flags); \
+	return FreeImage_LoadFromHandle(FreeImage_GetFIFFromFormat(#registered_type), io, handle, flags); \
 }
 
-#define SAVE(what) \
+#define SAVE(what, registered_type) \
 BOOL DLL_CALLCONV \
 FreeImage_Save##what##(FIBITMAP *dib, const char *filename, int flags) { \
 	DEPRECATE("FreeImage_Save" #what "()", "FreeImage_Save()") \
-	return FreeImage_Save(FreeImage_GetFIFFromFormat(#what), dib, filename, flags); \
+	return FreeImage_Save(FreeImage_GetFIFFromFormat(#registered_type), dib, filename, flags); \
 } \
 \
 BOOL DLL_CALLCONV \
 FreeImage_Save##what##ToHandle(FIBITMAP *dib, FreeImageIO *io, fi_handle handle, int flags) { \
 	DEPRECATE("FreeImage_Save" #what "ToHandle()", "FreeImage_SaveToHandle()") \
-	return FreeImage_SaveToHandle(FreeImage_GetFIFFromFormat(#what), dib, io, handle, flags); \
+	return FreeImage_SaveToHandle(FreeImage_GetFIFFromFormat(#registered_type), dib, io, handle, flags); \
 }
 
 // ----------------------------------------------------------
 
-LOAD(BMP)
-LOAD(CUT)
-LOAD(ICO)
-LOAD(IFF)
-LOAD(JPEG)
-LOAD(KOALA)
-LOAD(LBM)
-LOAD(MNG)
-LOAD(PCD)
-LOAD(PCX)
-LOAD(PNG)
-LOAD(PNM)
-LOAD(PSD)
-LOAD(RAS)
-LOAD(TARGA)
-LOAD(TIFF)
-LOAD(WBMP)
+LOAD(BMP, BMP)
+LOAD(CUT, CUT)
+LOAD(ICO, ICO)
+LOAD(IFF, IFF)
+LOAD(JPEG, JPEG)
+LOAD(KOALA, KOALA)
+LOAD(LBM, IFF)
+LOAD(MNG, MNG)
+LOAD(PCD, PCD)
+LOAD(PCX, PCX)
+LOAD(PNG, PNG)
+LOAD(PNM, PPM)
+LOAD(PSD, PSD)
+LOAD(RAS, RAS)
+LOAD(TARGA, TARGA)
+LOAD(TIFF, TIFF)
+LOAD(WBMP, WBMP)
 
-SAVE(BMP)
-SAVE(JPEG)
-SAVE(PNG)
-SAVE(PNM)
-SAVE(TIFF)
-SAVE(WBMP)
+SAVE(BMP, BMP)
+SAVE(JPEG, JPEG)
+SAVE(PNG, PNG)
+SAVE(PNM, PPM)
+SAVE(TIFF, TIFF)
+SAVE(WBMP, WBMP)

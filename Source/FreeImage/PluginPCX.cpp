@@ -32,6 +32,8 @@
 
 #define IO_BUF_SIZE	2048
 
+// ----------------------------------------------------------
+
 #ifdef WIN32
 #pragma pack(push, 1)
 #else
@@ -144,25 +146,75 @@ static int s_format_id;
 // Plugin Implementation
 // ==========================================================
 
+/*!
+    Returns the format string for the plugin. Each plugin,
+	both internal in the DLL and external in a .fip file, must have
+	a unique format string to be addressable.
+*/
+
 static const char * DLL_CALLCONV
 Format() {
 	return "PCX";
 }
+
+/*!
+    Returns a description string for the plugin. Though a
+	description is not necessary per-se,
+	it is advised to return an unique string in order to tell the
+	user what type of bitmaps this plugin will read and/or write.
+*/
 
 static const char * DLL_CALLCONV
 Description() {
 	return "Zsoft Paintbrush";
 }
 
+/*!
+    Returns a comma seperated list of file
+	extensions indicating what files this plugin can open. The
+	list, being used by FreeImage_GetFIFFromFilename, is usually
+	used as a last resort in finding the type of the bitmap we
+	are dealing with. Best is to check the first few bytes on
+	the low-level bits level first and compare them with a known
+	signature . If this fails, FreeImage_GetFIFFromFilename can be
+	used.
+*/
+
 static const char * DLL_CALLCONV
 Extension() {
 	return "pcx";
 }
 
+/*!
+    Returns an (optional) regular expression to help
+	software identifying a bitmap type. The
+	expression can be applied to the first few bytes (header) of
+	the bitmap. FreeImage is not capable of processing regular expression itself,
+	but FreeImageQt, the FreeImage Trolltech support library, can. If RegExpr
+	returns NULL, FreeImageQt will automatically bypass Trolltech's regular
+	expression support and use its internal functions to find the bitmap type.
+*/
+
 static const char * DLL_CALLCONV
 RegExpr() {
 	return NULL;
 }
+
+/*!
+    Validates a bitmap by reading the first few bytes
+	and comparing them with a known bitmap signature.
+	TRUE is returned if the bytes match the signature, FALSE otherwise.
+	The Validate function is used by using FreeImage_GetFileType.
+	
+	Note: a plugin can safely read data any data from the bitmap without seeking back
+	to the original entry point; the entry point is stored prior to calling this
+	function and restored after.
+
+    Note: because of FreeImage's io redirection support, the header for the bitmap
+	must be on the start of the bitmap or at least on a known part in the bitmap. It is
+	forbidden to seek to the end of the bitmap or to a point relative to the end of a bitmap,
+	because the end of the bitmap is not always known.
+*/
 
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO *io, fi_handle handle) {
@@ -174,12 +226,64 @@ Validate(FreeImageIO *io, fi_handle handle) {
 	return (pcx_signature == signature);
 }
 
+/*!
+    This function is used to 'ask' the plugin if it can write
+	a bitmap in a certain bitdepth. Different bitmap types have different
+	capabilities, for example not all formats allow writing in palettized mode.
+	This function is there provide an uniform interface to the plugin's
+	capabilities. SupportsExportDepth returns TRUE if the plugin support writing
+	in the asked bitdepth, or FALSE if it doesn't. The function also
+	returns FALSE if bitmap saving is not supported by the plugin at all.
+*/
+
 static BOOL DLL_CALLCONV
 SupportsExportDepth(int depth) {
 	return FALSE;
 }
 
 // ----------------------------------------------------------
+
+/*!
+    Loads a bitmap into memory. On entry it is assumed that
+	the bitmap to be loaded is of the correct type. If the bitmap
+	is of an incorrect type, the plugin might not gracefully fail but
+	crash or enter an endless loop. It is also assumed that all
+	the bitmap data is available at one time. If the bitmap is not complete,
+	for example because it is being downloaded while loaded, the plugin
+	might also not gracefully fail.
+
+	The Load function has the following parameters:
+
+    The first parameter (FreeImage *freeimage) is a structure providing function
+	pointers in order to access FreeImage's internal bitmap handling functions.
+	Plugins never 'talk' to the main DLL directly, because that would make the design
+	of particularly external plugins very difficult and error phrone.
+
+    The second parameter (FreeImageIO *io) is a structure providing
+	function pointers in order to make use of FreeImage's IO redirection. Using
+	FreeImage's file i/o functions instead of standard ones it is garantueed
+	that all bitmap types, both current and future ones, can be loaded from
+	memory, file cabinets, the internet and more. The third parameter (fi_handle handle)
+	is a companion of FreeImageIO and can be best compared with the standard FILE* type,
+	in a generalized form.
+
+	The fourth parameter (int page) indicates wether we will be loading a certain page
+	in the bitmap or if we will load the default one. This parameter is only used if
+	the plugin supports multi-paged bitmaps, e.g. cabinet bitmaps that contain a series
+	of images or pages. If the plugin does support multi-paging, the page parameter
+	can contain either a number higher or equal to 0 to load a certain page, or -1 to 
+	load the default page. If the plugin does not support multi-paging,
+	the page parameter is always -1.
+	
+	The fifth parameter (int flags) manipulates the load function to load a bitmap
+	in a certain way. Every plugin has a different flag parameter with different meanings.
+
+	The last parameter (void *data) can contain a special data block used when
+	the file is read multi-paged. Because not every plugin supports multi-paging
+	not every plugin will use the data parameter and it will be set to NULL.However,
+	when the plugin does support multi-paging the parameter contains a pointer to a
+	block of data allocated by the Open function.
+*/
 
 static FIBITMAP * DLL_CALLCONV
 Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
@@ -423,6 +527,28 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 // ==========================================================
 //   Init
 // ==========================================================
+
+/*!
+    Initialises the plugin. The first parameter (Plugin *plugin)
+	contains a pointer to a pre-allocated Plugin structure
+	wherein pointers to the available plugin functions
+	has to be stored. The second parameter (int format_id) is an identification
+	number that the plugin may use to show plugin specific warning messages
+	or other information to the user. The plugin number
+	is generated by FreeImage and can differ everytime the plugin is
+	initialised.
+
+    If you want to create your own plugin you have to take some
+	rules into account. Plugin functions have to be compiled
+	__stdcall using the multithreaded c runtime libraries. Throwing
+	exceptions in plugin functions is allowed, as long as those exceptions
+	are being caught inside the same plugin. It is forbidden for a plugin
+	function to directly call FreeImage functions or to allocate memory
+	and pass it to the main DLL. Exception to this rule is the special file data
+	block that may be allocated the Open function. Allocating a FIBITMAP inside a
+	plugin can be using the function allocate_proc in the FreeImage structure,
+	which will allocate the memory using the DLL's c runtime library.
+*/
 
 void DLL_CALLCONV
 InitPCX(Plugin *plugin, int format_id) {

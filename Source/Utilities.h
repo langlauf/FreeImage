@@ -38,6 +38,10 @@
 #include <stdio.h>
 #endif
 
+#ifndef _INC_STRING
+#include <string.h>
+#endif
+
 // ==========================================================
 //   Utility functions
 // ==========================================================
@@ -94,6 +98,22 @@ CalculateUsedPaletteEntries(int bit_count) {
 inline unsigned char *
 CalculateScanLine(unsigned char *bits, unsigned pitch, int scanline) {
 	return (bits + (pitch * scanline));
+}
+
+inline void
+ReplaceExtension(char *result, const char *filename, const char *extension) {
+	for (int i = strlen(filename) - 1; i > 0; --i) {
+		if (filename[i] == '.') {
+			memcpy(result, filename, i);
+			result[i] = '.';
+			memcpy(result + i + 1, extension, strlen(extension) + 1);
+			return;
+		}
+	}
+
+	memcpy(result, filename, strlen(filename));
+	result[strlen(filename)] = '.';
+	memcpy(result + strlen(filename) + 1, extension, strlen(extension) + 1);
 }
 
 #endif

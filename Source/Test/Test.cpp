@@ -20,8 +20,8 @@
 // ==========================================================
 
 //#define QT
-#define API
-//#define MULTI
+//#define API
+#define MULTI
 
 #include <assert.h>
 #include <stdio.h>
@@ -104,13 +104,13 @@ int __cdecl
 TestMulti(int argc, char *argv[]) {
 	FreeImage_Initialise();
 
-	FIMULTIBITMAP *bitmap = FreeImage_OpenMultiBitmap(FIF_TIFF, "c:\\projects\\test images\\Kopie van money-256.tif", FALSE);
+	FIMULTIBITMAP *bitmap = FreeImage_OpenMultiBitmap(FIF_TIFF, "Kopie van money-256.tif", FALSE, FALSE, TRUE);
 
 	int count = FreeImage_GetPageCount(bitmap);
 
-	if (FreeImage_SelectPage(bitmap, 0)) {
-		FIBITMAP *bmp = FreeImage_GetCurrentPage(bitmap); // no need to free the page; it is managed by the multi-paging engine
-	}
+	FIBITMAP *clone = FreeImage_LoadBMP("e:\\test images\\MK50TEMP.BMP");
+	FreeImage_AppendPage(bitmap, clone);
+	FreeImage_Unload(clone);
 
 	FreeImage_CloseMultiBitmap(bitmap);
 
@@ -131,12 +131,12 @@ struct Extensions {
 };
 
 static Extensions s_extensions[] = {
-/*	"bmp", FreeImage_SaveBMP,
+	"bmp", FreeImage_SaveBMP,
 	"jpg", FreeImage_SaveJPEG,
 	"png", FreeImage_SavePNG,
-	"pnm", FreeImage_SavePNM,
-*/	"tif", FreeImage_SaveTIFF,
-//	"wbmp", FreeImage_SaveWBMP,
+	"tif", FreeImage_SaveTIFF,
+	"wbmp", FreeImage_SaveWBMP,
+	"ppm", FreeImage_SavePNM,
 };
 
 int __cdecl
@@ -160,7 +160,7 @@ TestAPI(int argc, char *argv[]) {
 
 	long handle;
 
-	if ((handle = _findfirst("c:\\projects\\test images\\*.tif", &finddata)) != -1) {
+	if ((handle = _findfirst("e:\\test images\\test.psd", &finddata)) != -1) {
 		do {
 			dib = NULL;
 
@@ -173,7 +173,7 @@ TestAPI(int argc, char *argv[]) {
 			// make a path to a directory
 
 			char directory[128];
-			strcpy(directory, "c:\\projects\\test images\\");
+			strcpy(directory, "e:\\test images\\");
 			strcat(directory, finddata.name);
 
 			// open the file
@@ -182,7 +182,9 @@ TestAPI(int argc, char *argv[]) {
 
 			printf("loading %s... ", finddata.name);
 
-			switch(FreeImage_GetFIFFromFilename(directory)) {
+			FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(directory);
+
+			switch(fif) {
 				case FIF_BMP :
 					dib = FreeImage_LoadBMP(directory, BMP_DEFAULT);
 					break;
@@ -253,7 +255,12 @@ TestAPI(int argc, char *argv[]) {
 					break;
 
 				default :
-					strcpy(s_error_message, "file extension not bound to plugin");
+					if ((fif == FreeImage_GetFIFFromFormat("GIF")) || (fif == FreeImage_GetFIFFromFormat("JBIG"))) {
+						dib = FreeImage_Load(fif, directory, 0);
+					} else {
+						strcpy(s_error_message, "file extension not bound to plugin");
+					}
+
 					break;
 			};
 

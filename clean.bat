@@ -45,3 +45,4 @@ del *.fip /s
 del *.pyd /s
 del *.png /s
 del *.wbmp /s
+del .inslog2 /s

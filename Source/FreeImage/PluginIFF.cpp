@@ -253,10 +253,10 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 									io->read_proc(src + x, t, 1, handle);
 
 									x += t;
-								} else if( t!=-128 ){
+								} else if(t != -128){
 									signed char b;
 
-									io->read_proc( &b,1,1,handle );
+									io->read_proc(&b, 1, 1, handle);
 
 									t =- t +1;
 
@@ -274,6 +274,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 						for (unsigned x = 0; x < width; ++x) {
 							for (unsigned n = 0; n < planes; ++n) {
 								char bit = src[n * plane_size + (x / 8)] >> ((x^7) & 7);
+
 								dest[x * pixel_size + (n / 8)] |= (bit & 1) << (n & 7);
 							}
 						}

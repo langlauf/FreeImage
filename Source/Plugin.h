@@ -87,6 +87,7 @@ void DLL_CALLCONV FreeImage_OutputMessage(int fif, const char *message, ...);
 // =====================================================================
 
 int FreeImage_stricmp(const char *s1, const char *s2);
+int FreeImage_GetFreeImageHeaderSize(); // bitmapaccess.cpp
 
 // ==========================================================
 //   Internal functions

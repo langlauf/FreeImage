@@ -136,7 +136,7 @@ readExtHeader(FreeImageIO *io, fi_handle handle, BYTE b) {
     // Read the extension header fields
     // (since we don't use them for the moment, we skip them).
 
-	switch(b & 0x60) {
+	switch (b & 0x60) {
 		// Type 00: read multi-byte bitfield
 
 		case 0x00:
@@ -209,7 +209,7 @@ MimeType() {
 static BOOL DLL_CALLCONV
 SupportsExportDepth(int depth) {
 	return (
-			(depth == 1)
+		(depth == 1)
 		);
 }
 
@@ -241,7 +241,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 			io->read_proc(&header.FixHeaderField, 1, 1, handle);
 
 			// ExtHeaderFields
-			// 1 = More will follow, 0 = Last octet
+			// 1 = more will follow, 0 = last octet
 
 			if (header.FixHeaderField & 0x80) {
 				header.ExtHeaderFields = 0x80;
@@ -253,7 +253,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 				}
 			}
 
-			// Width & Height
+			// width & height
 
 			width  = (WORD)multiByteRead(io, handle);
 			height = (WORD)multiByteRead(io, handle);
@@ -306,11 +306,11 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			if (freeimage->get_bpp_proc(dib) != 1)
 				throw "Only 1-bit depth bitmaps can be saved as WBMP";
 
-			// Write the header
+			// write the header
 
 			WBMPHEADER header;
-			header.TypeField = 0;						// Type 0: B/W, no compression
-			header.FixHeaderField = 0;					// No ExtHeaderField
+			header.TypeField = 0;								// Type 0: B/W, no compression
+			header.FixHeaderField = 0;							// No ExtHeaderField
 			header.Width = freeimage->get_width_proc(dib);		// Image width
 			header.Height = freeimage->get_height_proc(dib);	// Image height
 

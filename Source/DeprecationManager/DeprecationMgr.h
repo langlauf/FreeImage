@@ -38,15 +38,12 @@
 
 // ==========================================================
 
-#ifdef _DEBUG
-#define DEPRECATE(a,b) { \
+#define DEPRECATE(a,b) \
+	{ \
 		void *fptr;	\
 		_asm { mov fptr, ebp }	\
 		DeprecationMgr::GetInstance()->AddDeprecatedFunction(a, b, fptr); \
 	}
-#else
-#define DEPRECATE(a,b)
-#endif
 
 // ==========================================================
 

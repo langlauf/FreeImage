@@ -5,6 +5,20 @@ Whats New for FreeImage
 ! : changed
 + : added
 
+March 2nd 2001 - 2.5.1
+* fixed pluginTIFF not being able to save 32-bit bitmaps
+* fixed not being able to save PNM bitmaps through the LoadXXX wrappers
+* fixed a webcam generated BMP image being loaded with wrong colors
+! FI_ReadProc, FI_WriteProc, etc. do now carry the DLL_CALLCONV flag
+! the function FreeImage_GetBitsRowCol is now deprecated
+! FreeImage_SetTransparencyTable now taken an integer as count parameter
+! FreeImage_IsTransparent now always returns true for 32-bit bitmaps
+! PluginPNG::Save now ignores the result of FreeImage_IsTransparent
+! PluginTIFF now converts all 32-bit bitmaps to 24-bit, until our patch
+  to fully support alpha in TIFF is applied in libtiff
++ added full multi-paging support
++ added octal and hexadecimal number support to FreeImage_OutputMessage
+
 January 3rd 2001 - 2.5.0
 * fixed bug in FreeImage_SaveJPEG
 * fixed bug in FreeImage_LoadMNG

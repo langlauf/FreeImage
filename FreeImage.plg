@@ -3,14 +3,14 @@
 <pre>
 <h1>Build Log</h1>
 <h3>
---------------------Configuration: FreeImage - Win32 Debug--------------------
+--------------------Configuration: FreeImage - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
 
 
 
 <h3>Results</h3>
-FreeImaged.dll - 0 error(s), 0 warning(s)
+FreeImage.dll - 0 error(s), 0 warning(s)
 </pre>
 </body>
 </html>

@@ -203,6 +203,18 @@ SOURCE=..\FreeImage\PluginWBMP.cpp
 SOURCE=..\DeprecationManager\DeprecationMgr.cpp
 # End Source File
 # End Group
+# Begin Group "MultiPaging"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\FreeImage\CacheFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\MultiPage.cpp
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\FreeImage\BitmapAccess.cpp
@@ -223,14 +235,14 @@ SOURCE=..\FreeImage\GetType.cpp
 
 SOURCE=..\FreeImage\LoadFunctions.cpp
 # End Source File
-# Begin Source File
-
-SOURCE=..\FreeImage\MultiPage.cpp
-# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=..\CacheFile.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\DeprecationManager\DeprecationMgr.h

@@ -221,6 +221,18 @@ SOURCE=.\Source\FreeImage\WuQuantizer.cpp
 SOURCE=.\Source\DeprecationManager\DeprecationMgr.cpp
 # End Source File
 # End Group
+# Begin Group "MultiPaging"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\CacheFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\MultiPage.cpp
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\Source\FreeImage\BitmapAccess.cpp
@@ -245,14 +257,14 @@ SOURCE=.\Source\FreeImage\GetType.cpp
 
 SOURCE=.\Source\FreeImage\LoadFunctions.cpp
 # End Source File
-# Begin Source File
-
-SOURCE=.\Source\FreeImage\MultiPage.cpp
-# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\Source\CacheFile.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\Source\DeprecationManager\DeprecationMgr.h

@@ -244,7 +244,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 											if (y >= header.is_height)
 												goto done89;
 											
-											if(fliphoriz)
+											if (fliphoriz)
 												bits = Internal_GetScanLine(freeimage, dib, header.is_height-y-1, flipvert);
 											else
 												bits = Internal_GetScanLine(freeimage, dib, y, flipvert);

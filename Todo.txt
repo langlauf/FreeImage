@@ -1,5 +1,5 @@
 What's there to do for FreeImage
 
 Short term development:
-* add better support for bitmap paging
 * add independent palette storage support
+* add more bitmap formats

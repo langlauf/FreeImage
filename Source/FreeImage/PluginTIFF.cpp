@@ -567,8 +567,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 								}
 							}
 
-							break;
-						
+							break;						
 					}
 
 					// In the tiff file the lines are save from up to down 
@@ -633,11 +632,6 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 		bitspersample = freeimage->get_bpp_proc(dib);
 		samplesperpixel = ((bitspersample == 24) || (bitspersample == 32)) ? 3 : 1;
 		photometric = CheckPhotometric(freeimage, dib, (bitspersample == 32) ? 24 : bitspersample);
-
-		// don't accept ALPHA at this moment
-
-		if ((bitspersample == 32) && (freeimage->is_transparent_proc(dib)))
-			throw "alpha channels are currently unsupported";
 
 		// handle standard width/height/bpp stuff
 
@@ -733,6 +727,7 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 			}				
 
 			case 24:
+			case 32:
 			{
 				BYTE *buffer = (BYTE *)malloc(CalculatePitch(CalculateLine(width, 24)));
 
@@ -769,9 +764,8 @@ Save(FreeImage *freeimage, FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int
 
 		// write out the directory tag if we wrote a page other than -1
 
-		if (page >= 0) {
-			TIFFWriteDirectory(out);
-		}
+		if (page >= 0)
+			TIFFWriteDirectory(out);		
 
 		return TRUE;
 	}

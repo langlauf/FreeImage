@@ -30,7 +30,7 @@
 
 //----------------------------------------------------------------------
 
-static const char *s_version = "2.5.0";
+static const char *s_version = "2.5.1";
 static const char *s_copyright = "This program uses FreeImage, a free, open source image library supporting all common bitmap formats. Get your free copy from http://www.6ixsoft.com.";
 
 //----------------------------------------------------------------------
@@ -38,7 +38,7 @@ static const char *s_copyright = "This program uses FreeImage, a free, open sour
 #ifdef WIN32
 #ifndef _LIB
 BOOL APIENTRY
-DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
+DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
 	switch (ul_reason_for_call) {
 		case DLL_PROCESS_ATTACH :
 			FreeImage_Initialise(FALSE);
@@ -82,7 +82,7 @@ FreeImage_SetOutputMessage(FreeImage_OutputMessageFunction omf) {
 void DLL_CALLCONV
 FreeImage_OutputMessage(int fif, const char *fmt, ...) {
 	if (FreeImage_OutputMessageProc != NULL) {
-		// 128 bytes should be more than enough for a short message
+		// 256 bytes should be more than enough for a short message
 
 		char message[256];
 		memset(message, 0, 256);
@@ -102,7 +102,23 @@ FreeImage_OutputMessage(int fif, const char *fmt, ...) {
 							message[j++] = '%';
 							break;
 
-						case 'd' : // decimal numbers
+						case 'o' : // octal numbers
+						{
+							char tmp[16];
+
+							_itoa(va_arg(arg, int), tmp, 8);
+
+							strcat(message, tmp);
+
+							j += strlen(tmp);
+
+							++i;
+
+							break;
+						}
+
+						case 'i' : // decimal numbers
+						case 'd' :
 						{
 							char tmp[16];
 
@@ -111,7 +127,24 @@ FreeImage_OutputMessage(int fif, const char *fmt, ...) {
 							strcat(message, tmp);
 
 							j += strlen(tmp);
+
 							++i;
+
+							break;
+						}
+
+						case 'x' : // hexadecimal numbers
+						{
+							char tmp[16];
+
+							_itoa(va_arg(arg, int), tmp, 16);
+
+							strcat(message, tmp);
+
+							j += strlen(tmp);
+
+							++i;
+
 							break;
 						}
 
@@ -122,7 +155,9 @@ FreeImage_OutputMessage(int fif, const char *fmt, ...) {
 							strcat(message, tmp);
 
 							j += strlen(tmp);
+
 							++i;
+
 							break;
 						}
 					};
