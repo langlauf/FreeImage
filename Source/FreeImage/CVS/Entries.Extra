@@ -1,5 +1,7 @@
+/PluginTIFF.cpp///
 /BitmapAccess.cpp///
 /CacheFile.cpp///
+/ColorLookup.cpp///
 /Conversion.cpp///
 /Conversion16_555.cpp///
 /Conversion16_565.cpp///
@@ -18,6 +20,7 @@
 /PluginBMP.cpp///
 /PluginCUT.cpp///
 /PluginDDS.cpp///
+/PluginGIF.cpp///
 /PluginICO.cpp///
 /PluginIFF.cpp///
 /PluginJPEG.cpp///
@@ -30,7 +33,6 @@
 /PluginPSD.cpp///
 /PluginRAS.cpp///
 /PluginTARGA.cpp///
-/PluginTIFF.cpp///
 /PluginWBMP.cpp///
 /PluginXBM.cpp///
 /PluginXPM.cpp///

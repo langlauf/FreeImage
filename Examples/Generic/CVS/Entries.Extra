@@ -1,5 +1,6 @@
 /BatchLoad.cpp///
 /CloneMultiPage.cpp///
+/CreateAlpha.cpp///
 /FIFImportExport.cpp///
 /FIIO_Mem.cpp///
 /FIIO_Mem.h///

@@ -42,6 +42,12 @@
 #ifndef FREEIMAGE_H
 #define FREEIMAGE_H
 
+// Version information ------------------------------------------------------
+
+#define FREEIMAGE_MAJOR_VERSION   3
+#define FREEIMAGE_MINOR_VERSION   4
+#define FREEIMAGE_RELEASE_SERIAL  0
+
 // Compiler options ---------------------------------------------------------
 
 #if defined(FREEIMAGE_LIB) || !defined(WIN32)
@@ -109,6 +115,8 @@ FI_STRUCT (FIMULTIBITMAP) { void *data; };
 #define SEEK_END  2
 #endif
 
+#ifndef __MINGW32__		// prevents a bug in mingw32
+
 typedef long BOOL;
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
@@ -170,6 +178,8 @@ typedef struct tagBITMAPINFO {
   BITMAPINFOHEADER bmiHeader; 
   RGBQUAD          bmiColors[1];
 } BITMAPINFO, *PBITMAPINFO;
+
+#endif // __MINGW32__
 
 #endif // _WINDOWS_
 
@@ -265,7 +275,8 @@ FI_ENUM(FREE_IMAGE_FORMAT) {
 	FIF_CUT		= 21,
 	FIF_XBM		= 22,
 	FIF_XPM		= 23,
-	FIF_DDS		= 24
+	FIF_DDS		= 24,
+	FIF_GIF     = 25
 };
 
 /** Image type used in FreeImage.
@@ -432,6 +443,7 @@ typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
 #define BMP_SAVE_RLE        1
 #define CUT_DEFAULT         0
 #define DDS_DEFAULT			0
+#define GIF_DEFAULT			0
 #define ICO_DEFAULT         0
 #define ICO_MAKEALPHA		1		// convert to 32bpp and create an alpha channel from the AND-mask when loading
 #define IFF_DEFAULT         0
@@ -466,6 +478,9 @@ typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
 #define TIFF_DEFLATE        0x0200  // save using DEFLATE compression (a.k.a. ZLIB compression)
 #define TIFF_ADOBE_DEFLATE  0x0400  // save using ADOBE DEFLATE compression
 #define TIFF_NONE           0x0800  // save without any compression
+#define TIFF_CCITTFAX3		0x1000  // save using CCITT Group 3 fax encoding
+#define TIFF_CCITTFAX4		0x2000  // save using CCITT Group 4 fax encoding
+#define TIFF_LZW			0x4000	// save using LZW compression
 #define WBMP_DEFAULT        0
 #define XBM_DEFAULT			0
 #define XPM_DEFAULT			0
@@ -548,9 +563,12 @@ DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFileTypeFromHandle(FreeImage
 
 DLL_API FREE_IMAGE_TYPE DLL_CALLCONV FreeImage_GetImageType(FIBITMAP *dib);
 
-// FreeImage info routines --------------------------------------------------
+// FreeImage helper routines ------------------------------------------------
 
 DLL_API BOOL DLL_CALLCONV FreeImage_IsLittleEndian();
+DLL_API BOOL DLL_CALLCONV FreeImage_LookupX11Color(const char *szColor, BYTE *nRed, BYTE *nGreen, BYTE *nBlue);
+DLL_API BOOL DLL_CALLCONV FreeImage_LookupSVGColor(const char *szColor, BYTE *nRed, BYTE *nGreen, BYTE *nBlue);
+
 
 // Pixel access routines ----------------------------------------------------
 

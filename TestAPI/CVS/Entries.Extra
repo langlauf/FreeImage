@@ -1,8 +1,8 @@
+/MainTestSuite.cpp///
+/Makefile///
 /Test.dsp///
 /Test.dsw///
+/TestSuite.h///
 /testImageType.cpp///
 /testPlugins.cpp///
 /testTools.cpp///
-/MainTestSuite.cpp///
-/Makefile///
-/TestSuite.h///

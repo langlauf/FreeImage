@@ -1,5 +1,3 @@
-/CacheFile.h///
-/FreeImage.h///
 D/DeprecationManager///
 D/FreeImage///
 D/FreeImageLib///
@@ -9,6 +7,9 @@ D/LibMNG///
 D/LibPNG///
 D/LibTIFF///
 D/ZLib///
+D/LibGIF///
+/CacheFile.h///
+/FreeImage.h///
 /FreeImageIO.h///
 /Plugin.h///
 /Quantizers.h///

@@ -1,5 +1,3 @@
-/CacheFile.h/1.2/Sat May  1 19:05:12 2004//
-/FreeImage.h/1.9/Sat May  1 19:05:12 2004//
 D/DeprecationManager////
 D/FreeImage////
 D/FreeImageLib////
@@ -9,7 +7,10 @@ D/LibMNG////
 D/LibPNG////
 D/LibTIFF////
 D/ZLib////
-/FreeImageIO.h/1.2/Sat May  1 19:05:14 2004//
-/Plugin.h/1.2/Sat May  1 19:05:14 2004//
-/Quantizers.h/1.4/Sat May  1 19:05:14 2004//
-/Utilities.h/1.5/Sat May  1 19:05:14 2004//
+D/LibGIF////
+/CacheFile.h/1.3/Thu Jul  8 19:41:04 2004//
+/FreeImage.h/1.17/Thu Jul  8 19:41:08 2004//
+/FreeImageIO.h/1.3/Thu Jul  8 19:41:08 2004//
+/Plugin.h/1.4/Thu Jul  8 19:41:30 2004//
+/Quantizers.h/1.5/Thu Jul  8 19:41:30 2004//
+/Utilities.h/1.7/Thu Jul  8 19:41:30 2004//

@@ -7,23 +7,18 @@ using System.Runtime.CompilerServices;
 // change them to the information which is associated with the assembly
 // you compile.
 
-[assembly: AssemblyTitle("")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyTitle("FreeImage.NET")]
+[assembly: AssemblyDescription(".NET wrapper for the FreeImage 3.4 DLL")]
+[assembly: AssemblyConfiguration("All")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCopyright("Copyright 2003-2004, FreeImage")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-// The assembly version has following format :
-//
-// Major.Minor.Build.Revision
-//
-// You can specify all values by your own or you can build default build and revision
-// numbers with the '*' character (the default):
-
-[assembly: AssemblyVersion("1.0.*")]
+// this version number should be fixed and match the FreeImage DLL
+// so that any external references will load the correct library
+[assembly: AssemblyVersion("3.4.0.0")]
 
 // The following attributes specify the key for the sign of your assembly. See the
 // .NET Framework documentation for more information about signing.
