@@ -22,19 +22,15 @@
 // =====================================================================
 
 #ifdef WIN32
-#pragma warning (disable : 4786)
+#pragma warning (disable : 4786) // identifier was truncated to 'number' characters
 #include <windows.h>
 #include <io.h>
 #else
 #include <ctype.h>
 #endif // WIN32
 
-#include <malloc.h>
-#include <stdio.h>
-#include <string.h>
-#include <map>
-
 #include "FreeImage.h"
+#include "Utilities.h"
 #include "FreeImageIO.h"
 #include "Plugin.h"
 

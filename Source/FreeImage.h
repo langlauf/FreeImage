@@ -21,6 +21,7 @@
 // - Martin Weber (martweb@gmx.net)
 // - Matthias Wandel (mwandel@rim.net)
 // - Michal Novotny (michal@etc.cz)
+// - Ryan Rubley (ryan@lostreality.org)
 //
 // This file is part of FreeImage 3
 //
@@ -261,7 +262,7 @@ FI_STRUCT(FreeImageIO) {
 #ifdef WIN32
 #pragma pack(pop)
 #else
-#pragma pack(4)
+#pragma pack()
 #endif // WIN32
 
 #endif // FREEIMAGE_IO

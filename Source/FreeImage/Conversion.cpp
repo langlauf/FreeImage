@@ -21,9 +21,8 @@
 // Use at your own risk!
 // ==========================================================
 
-#include <memory.h> 
-
 #include "FreeImage.h"
+#include "Utilities.h"
 #include "Quantizers.h"
 
 // ----------------------------------------------------------

@@ -20,9 +20,6 @@
 // Use at your own risk!
 // ==========================================================
 
-#include <stdlib.h>
-#include <vector>
-
 #include "FreeImage.h"
 #include "Utilities.h"
 
@@ -59,7 +56,7 @@ typedef struct tagICONDIRECTORYENTRY {
 #ifdef WIN32
 #pragma pack(pop)
 #else
-#pragma pack(4)
+#pragma pack()
 #endif
 
 // ==========================================================
@@ -107,7 +104,7 @@ CalculateImageOffset(std::vector<FIBITMAP*>& vPages, int nIndex ) {
     dwSize += vPages.size() * sizeof(ICONDIRENTRY);
     // add the sizes of the previous images
     for(int k = 0; k < nIndex; k++) {
-		FIBITMAP *icon_dib = (FIBITMAP*)vPages.at(k);
+		FIBITMAP *icon_dib = (FIBITMAP*)vPages[k];
 		dwSize += CalculateImageSize(icon_dib);
 	}
 
@@ -338,7 +335,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		memset(icon_list, 0, icon_header->idCount * sizeof(ICONDIRENTRY));
 		BITMAPINFOHEADER *bmih;
 		for(k = 0; k < icon_header->idCount; k++) {
-			icon_dib = (FIBITMAP*)vPages.at(k);
+			icon_dib = (FIBITMAP*)vPages[k];
 
 			// convert internal format to ICONDIRENTRY
 			bmih = FreeImage_GetInfoHeader(icon_dib);
@@ -360,7 +357,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		// write the image bits for each image
 		for(k = 0; k < icon_header->idCount; k++) {
-			icon_dib = (FIBITMAP*)vPages.at(k);
+			icon_dib = (FIBITMAP*)vPages[k];
 
 			// write the BITMAPINFOHEADER
 			bmih = FreeImage_GetInfoHeader(icon_dib);
@@ -395,7 +392,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		// free the vector class
 		for(k = 0; k < icon_header->idCount; k++) {
-			icon_dib = (FIBITMAP*)vPages.at(k);
+			icon_dib = (FIBITMAP*)vPages[k];
 			FreeImage_Unload(icon_dib);
 		}
 

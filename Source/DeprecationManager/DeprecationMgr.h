@@ -24,17 +24,7 @@
 
 #pragma warning(disable : 4786 )  
 
-#ifndef _STRING_
-#include <string>
-#endif
-
-#ifndef _MAP_
-#include <map>
-#endif
-
-#ifndef _SET_
-#include <set>
-#endif
+#include "Utilities.h"
 
 // ==========================================================
 

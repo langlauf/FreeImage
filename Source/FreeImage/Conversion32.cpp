@@ -37,7 +37,7 @@ FreeImage_ConvertLine1To32(BYTE *target, BYTE *source, int width_in_pixels, RGBQ
 		target[0] = palette[index].rgbBlue;
 		target[1] = palette[index].rgbGreen;
 		target[2] = palette[index].rgbRed;
-
+		target[3] = 0xff;
 		target += 4;
 	}	
 }
@@ -62,6 +62,7 @@ FreeImage_ConvertLine4To32(BYTE *target, BYTE *source, int width_in_pixels, RGBQ
 
 		low_nibble = !low_nibble;
 
+		target[3] = 0xff;
 		target += 4;
 	}
 }
@@ -72,7 +73,7 @@ FreeImage_ConvertLine8To32(BYTE *target, BYTE *source, int width_in_pixels, RGBQ
 		target[0] = palette[source[cols]].rgbBlue;
 		target[1] = palette[source[cols]].rgbGreen;
 		target[2] = palette[source[cols]].rgbRed;
-
+		target[3] = 0xff;
 		target += 4;
 	}
 }
@@ -85,7 +86,7 @@ FreeImage_ConvertLine16To32_555(BYTE *target, BYTE *source, int width_in_pixels)
 		target[2] = (((bits[cols] & 0x7C00) >> 10) * 0xFF) / 0x1F;
 		target[1] = (((bits[cols] & 0x3E0) >> 5) * 0xFF) / 0x1F;
 		target[0] = ((bits[cols] & 0x1F) * 0xFF) / 0x1F;
-
+		target[3] = 0xff;
 		target += 4;
 	}
 }
@@ -98,7 +99,7 @@ FreeImage_ConvertLine16To32_565(BYTE *target, BYTE *source, int width_in_pixels)
 		target[2] = ((bits[cols] & 0xF800) >> 11) << 3;
 		target[1] = ((bits[cols] & 0x7E0) >> 5) << 2;
 		target[0] = (bits[cols] & 0x1F) << 3;
-
+		target[3] = 0xff;
 		target += 4;
 	}
 }

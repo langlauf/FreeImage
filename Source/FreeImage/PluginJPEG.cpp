@@ -23,9 +23,6 @@
 // Use at your own risk!
 // ==========================================================
 
-#include <ctype.h>
-#include <string.h>
-
 #include "FreeImage.h"
 #include "Utilities.h"
 

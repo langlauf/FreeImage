@@ -23,25 +23,22 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
-#ifndef _INC_MATH
+// ==========================================================
+//   Standard includes used by the library
+// ==========================================================
+
 #include <math.h>
-#endif
-
-#ifndef _INC_STDLIB
 #include <stdlib.h> 
-#endif
-
-#ifndef _INC_MEMORY
 #include <memory.h>
-#endif
-
-#ifndef _INC_STDIO
 #include <stdio.h>
-#endif
-
-#ifndef _INC_STRING
 #include <string.h>
-#endif
+#include <stdarg.h>
+#include <ctype.h>
+
+#include <list>
+#include <map>
+#include <set>
+#include <vector>
 
 // ==========================================================
 //   Utility functions
@@ -73,6 +70,7 @@ _itoa(int i, char *a, int r) {
 	else *i2a(i, a, r) = 0;
 	return a;
 }
+
 #endif // !WIN32
 
 inline unsigned char
@@ -168,5 +166,4 @@ template <class T> void INPLACESWAP(T& a, T& b) {
 	a ^= b; b ^= a; a ^= b;
 }
 
-
-#endif
+#endif // UTILITIES_H

@@ -22,9 +22,6 @@
 #include "FreeImage.h"
 #include "Utilities.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "../LibMNG/libmng.h"
 
 // ----------------------------------------------------------
@@ -42,12 +39,12 @@ typedef struct {
 // ----------------------------------------------------------
 
 mng_ptr
-mymngalloc(mng_uint32 size) {
+mymngalloc(mng_size_t size) {
 	return (mng_ptr)calloc(1, size);
 }
 
 void
-mymngfree(mng_ptr p, mng_uint32 size) {
+mymngfree(mng_ptr p, mng_size_t size) {
 	free(p);
 }
 

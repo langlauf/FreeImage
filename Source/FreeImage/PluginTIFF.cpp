@@ -334,7 +334,7 @@ PageCount(FreeImageIO *io, fi_handle handle, void *data) {
 static FIBITMAP * DLL_CALLCONV
 Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	if ((handle != NULL) && (data != NULL)) {
-		TIFF   *tif;
+		TIFF   *tif = NULL;
 		uint32 height = 0; 
 		uint32 width = 0; 
 		uint16 bitspersample = 1;
@@ -346,10 +346,10 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		uint32 y = 0;
 
 		int32 nrow;
-		BYTE *buf;          
-		FIBITMAP *dib;
-		BYTE *bits;		// pointer to dib data
-		RGBQUAD *pal;	// pointer to dib palette
+		BYTE *buf = NULL;          
+		FIBITMAP *dib = NULL;
+		BYTE *bits = NULL;		// pointer to dib data
+		RGBQUAD *pal = NULL;	// pointer to dib palette
 		void *iccBuf = NULL;
 		uint32 iccSize = 0;
     
@@ -560,20 +560,21 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 									pal[1].rgbRed = pal[1].rgbGreen = pal[1].rgbBlue = value;
 								}
 
-							} else if ((bitspersample == 8) || (bitspersample == 16)) {
+							} else if ((bitspersample == 4) ||(bitspersample == 8) || (bitspersample == 16)) {
 								// need to build the scale for greyscale images
+								int ncolors = FreeImage_GetColorsUsed(dib);
 
 								if (photometric == PHOTOMETRIC_MINISBLACK) {
-									for (int i = 0; i < 256; i++) {
+									for (int i = 0; i < ncolors; i++) {
 										pal[i].rgbRed	=
 										pal[i].rgbGreen =
-										pal[i].rgbBlue	= i;
+										pal[i].rgbBlue	= (BYTE)(i*(255/(ncolors-1)));
 									}
 								} else {
-									for (int i = 0; i < 256; i++) {
+									for (int i = 0; i < ncolors; i++) {
 										pal[i].rgbRed	=
 										pal[i].rgbGreen =
-										pal[i].rgbBlue	= 255 - i;
+										pal[i].rgbBlue	= (BYTE)(255-i*(255/(ncolors-1)));
 									}
 								}
 							}
@@ -668,6 +669,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			} catch (const char *message) {
 				FreeImage_OutputMessageProc(s_format_id, message);
+
+				if(dib)
+					FreeImage_Unload(dib);
 
 				return NULL;
 			}

@@ -24,15 +24,8 @@
 
 // ----------------------------------------------------------
 
-#ifndef _LIST_
-#include <list>
-#endif
-
-#ifndef _MAP_
-#include <map>
-#endif
-
 #include "FreeImage.h"
+#include "Utilities.h"
 
 // ----------------------------------------------------------
 
@@ -41,7 +34,12 @@ static const int BLOCK_SIZE = 64 * 1024;
 
 // ----------------------------------------------------------
 
+#ifdef WIN32
 #pragma pack(push, 1)
+#else
+#pragma pack(1)
+#endif // WIN32
+
 struct Block {
      long next;
      BYTE data[BLOCK_SIZE - 4];
@@ -51,7 +49,12 @@ struct Cache {
      int nr;
      Block *data;
 };
+
+#ifdef WIN32
 #pragma pack(pop)
+#else
+#pragma pack()
+#endif // WIN32
 
 // ----------------------------------------------------------
 

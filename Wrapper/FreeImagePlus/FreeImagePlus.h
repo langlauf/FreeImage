@@ -28,6 +28,11 @@
 #include "FreeImage.h"
 
 
+// Compiler options ---------------------------------------------------------
+
+#if defined(FREEIMAGE_LIB) || !defined(WIN32)
+#define FIP_API 
+#else
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the FIP_EXPORTS
 // symbol defined on the command line. this symbol should not be defined on any project
@@ -38,7 +43,8 @@
 #define FIP_API __declspec(dllexport)
 #else
 #define FIP_API __declspec(dllimport)
-#endif
+#endif // FIP_EXPORTS
+#endif // FREEIMAGE_LIB || !WIN32
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -264,8 +270,19 @@ public:
 	/**@name Pixel access */
 	//@{	
 
-	/// Returns a pointer to the bitmap bits.
+	/** @brief Returns a pointer to the bitmap bits.
+
+	It is up to you to interpret these bytes correctly, 
+	according to the results of FreeImage_GetBPP and 
+	GetRedMask, FreeImage_GetGreenMask and FreeImage_GetBlueMask.
+	@see FreeImage_GetBits
+	*/
 	BYTE* accessPixels();
+
+	/** Returns a pointer to the start of the given scanline in the bitmap’s data-bits.
+	@see FreeImage_GetScanLine
+	*/
+	BYTE *getScanLine(int scanline);
 
 	//@}
 

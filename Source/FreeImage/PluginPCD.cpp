@@ -21,11 +21,6 @@
 // Use at your own risk!
 // ==========================================================
 
-#pragma warning (disable : 4244)
-
-#include <stdlib.h>
-#include <memory.h> 
-
 #include "FreeImage.h"
 #include "Utilities.h"
 

@@ -64,7 +64,7 @@ typedef struct tagWBMPHEADER {
 #ifdef WIN32
 #pragma pack(pop)
 #else
-#pragma pack(4)
+#pragma pack()
 #endif
 
 // The extension headers may be of type binary 00 through binary 11, defined as follows.

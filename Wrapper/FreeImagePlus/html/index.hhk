@@ -127,6 +127,7 @@
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z15_0"><param name="Name" value="getPalette"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z15_1"><param name="Name" value="getPaletteSize"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z21_2"><param name="Name" value="getRedChannel"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z17_1"><param name="Name" value="getScanLine"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z13_8"><param name="Name" value="getVerticalResolution"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z25_0"><param name="Name" value="invert"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z15_4"><param name="Name" value="isGrayscale"></OBJECT>
@@ -238,6 +239,10 @@
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="getRedChannel"><param name="Name" value="getRedChannel"></OBJECT>
   <UL>
     <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z21_2"><param name="Name" value="fipImage"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="See Also" value="getScanLine"><param name="Name" value="getScanLine"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classfipImage.html#z17_1"><param name="Name" value="fipImage"></OBJECT>
   </UL>
   <LI><OBJECT type="text/sitemap"><param name="See Also" value="getScanWidth"><param name="Name" value="getScanWidth"></OBJECT>
   <UL>

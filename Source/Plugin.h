@@ -25,13 +25,8 @@
 #ifndef PLUGIN_H
 #define PLUGIN_H
 
-#ifndef _MAP_
-#include <map>
-#endif
-
-#ifndef FREEIMAGE_H
 #include "FreeImage.h"
-#endif
+#include "Utilities.h"
 
 // ==========================================================
 

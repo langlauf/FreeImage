@@ -223,6 +223,13 @@ BYTE* fipImage::accessPixels() {
 	return FreeImage_GetBits(m_dib); 
 }
 
+BYTE*fipImage::getScanLine(int scanline) {
+	if((scanline >= 0) && (scanline < m_Height)) {
+		return FreeImage_GetScanLine(m_dib, scanline);
+	}
+	return NULL;
+}
+
 ///////////////////////////////////////////////////////////////////
 // Loading & Saving
 

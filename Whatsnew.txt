@@ -5,6 +5,12 @@ What's New for FreeImage
 ! : changed
 + : added
 
+November 2, 2003 - 3.0.3
+* [Ryan Rubley] improved makefile for Linux
+* [Ryan Rubley] fixed FreeImage not compiling under MacOSX
+* [Detlev Vendt] fixed still present inconsistancy with 32bpp transparency handling
+* [Herve Drolon] fixed incorrect loading of 4-bit greyscale images in TIFF plugin
+
 October 27, 2003 - 3.0.2
 ! FreeImage now uses libMNG 1.0.6
 * [Herve Drolon] fixed a boolean test in PluginCUT returning always false

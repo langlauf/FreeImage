@@ -48,7 +48,7 @@ typedef struct {
 #ifdef WIN32
 #pragma pack(pop)
 #else
-#pragma pack(4)
+#pragma pack()
 #endif
 
 // ----------------------------------------------------------

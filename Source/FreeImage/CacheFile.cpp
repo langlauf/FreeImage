@@ -19,9 +19,7 @@
 // Use at your own risk!
 // ==========================================================
 
-#pragma warning (disable : 4786)
-
-#include <math.h>
+#pragma warning (disable : 4786) // identifier was truncated to 'number' characters
 
 #include "CacheFile.h"
 

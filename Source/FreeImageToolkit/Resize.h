@@ -22,10 +22,8 @@
 #ifndef _RESIZE_H_
 #define _RESIZE_H_
 
-#include <math.h> 
-#include <string.h>
-#include "Utilities.h"
 #include "FreeImage.h"
+#include "Utilities.h"
 #include "Filters.h" 
 
 /**

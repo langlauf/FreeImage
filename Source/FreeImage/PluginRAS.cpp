@@ -19,9 +19,6 @@
 // Use at your own risk!
 // ==========================================================
 
-#include <stdlib.h>
-#include <memory.h> 
-
 #include "FreeImage.h"
 #include "Utilities.h"
 
@@ -49,7 +46,7 @@ typedef struct tagSUNHEADER {
 #ifdef WIN32
 #pragma pack(pop)
 #else
-#pragma pack(4)
+#pragma pack()
 #endif
 
 // ----------------------------------------------------------

@@ -19,11 +19,9 @@
 // Use at your own risk!
 // ==========================================================
 
-#include <stdio.h>
-#include <string.h>
-
 #include "../DeprecationManager/DeprecationMgr.h"
 #include "FreeImage.h"
+#include "Utilities.h"
 #include "FreeImageIO.h"
 #include "Plugin.h"
 

@@ -21,9 +21,7 @@
 // Use at your own risk!
 // ==========================================================
 
-#pragma warning (disable : 4786)
-
-#include <stdlib.h>
+#pragma warning (disable : 4786) // identifier was truncated to 'number' characters
 
 #include "FreeImage.h"
 #include "FreeImageIO.h"

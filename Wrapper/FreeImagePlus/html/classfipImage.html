@@ -118,6 +118,9 @@ fipImage encapsulates the FIBITMAP format. It relies on the FreeImage library, e
 <tr><td class="memItemLeft" nowrap align=right valign=top>BYTE *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_0">accessPixels</a> ()</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the bitmap bits. </em> <a href="#z17_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BYTE *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipImage.html#z17_1">getScanLine</a> (int scanline)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a pointer to the start of the given scanline in the bitmap’s data-bits. </em> <a href="#z17_1"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Conversion routines</div></td></tr>
 <tr><td colspan="2"><div class="groupText">Bitmaps are always loaded in their default bit depth.<p>
 If you want the bitmap to be stored in another bit depth, the class provides several conversion functions. <br><br></div></td></tr>
@@ -395,6 +398,7 @@ Copy constructor.
 <p>
 Returns a pointer to the bitmap bits. 
 <p>
+It is up to you to interpret these bytes correctly, according to the results of FreeImage_GetBPP and GetRedMask, FreeImage_GetGreenMask and FreeImage_GetBlueMask. <dl compact><dt><b>See also:</b></dt><dd>FreeImage_GetBits</dd></dl>
     </td>
   </tr>
 </table>
@@ -1581,6 +1585,38 @@ Retrieves the red channel of a 24-bit RGB image.
   </table>
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>Returns TRUE if successful, FALSE otherwise.</dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z17_1" doxytag="fipImage::getScanLine" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> BYTE* fipImage::getScanLine </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">int&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>scanline</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Returns a pointer to the start of the given scanline in the bitmap’s data-bits. 
+<p>
+<dl compact><dt><b>See also:</b></dt><dd>FreeImage_GetScanLine</dd></dl>
     </td>
   </tr>
 </table>

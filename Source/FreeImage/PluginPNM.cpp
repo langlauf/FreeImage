@@ -20,9 +20,6 @@
 // Use at your own risk!
 // ==========================================================
 
-#include <stdio.h>		// for sprintf()
-#include <string.h>
-
 #include "FreeImage.h"
 #include "Utilities.h"
 

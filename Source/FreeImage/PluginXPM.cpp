@@ -50,10 +50,6 @@
 //
 // ==========================================================
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-
 #include "FreeImage.h"
 #include "Utilities.h"
 

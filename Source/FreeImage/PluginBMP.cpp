@@ -23,7 +23,6 @@
 // Use at your own risk!
 // ==========================================================
 
-#include <assert.h>
 #include "FreeImage.h"
 #include "Utilities.h"
 
@@ -81,7 +80,7 @@ typedef struct tagRGBTRIPLE {
 #ifdef WIN32
 #pragma pack(pop)
 #else
-#pragma pack(4)
+#pragma pack()
 #endif
 
 // ==========================================================
