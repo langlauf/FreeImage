@@ -36,9 +36,11 @@
 FI_STRUCT (FREEIMAGEHEADER) {
     FREE_IMAGE_TYPE type;		// data type - bitmap, array of long, double, complex, etc
 
-	unsigned red_mask;
-	unsigned green_mask;
-	unsigned blue_mask;
+	unsigned red_mask;			// bit layout of the red components
+	unsigned green_mask;		// bit layout of the green components
+	unsigned blue_mask;			// bit layout of the blue components
+
+	RGBQUAD bkgnd_color;		// background color used for RGB transparency
 
 	BOOL transparent;			 // why another table? for easy transparency table retrieval!
 	int  transparency_count;	 // transparency could be stored in the palette, which is better
@@ -130,11 +132,16 @@ FreeImage_AllocateT(FREE_IMAGE_TYPE type, int width, int height, int bpp, unsign
 
 			FREEIMAGEHEADER *fih    = (FREEIMAGEHEADER *)bitmap->data;
 			fih->type				= type;
+
 			fih->red_mask           = red_mask;
 			fih->green_mask         = green_mask;
 			fih->blue_mask          = blue_mask;
+
+			memset(&fih->bkgnd_color, 0, sizeof(RGBQUAD));
+
 			fih->transparent        = FALSE;
 			fih->transparency_count = 0;
+			memset(fih->transparent_table, 0xff, 256);
 
 			// initialize FIICCPROFILE link
 
@@ -295,6 +302,8 @@ FreeImage_GetImageType(FIBITMAP *dib) {
 	return (dib != NULL) ? ((FREEIMAGEHEADER *)dib->data)->type : FIT_UNKNOWN;
 }
 
+// ----------------------------------------------------------
+
 unsigned DLL_CALLCONV
 FreeImage_GetRedMask(FIBITMAP *dib) {
 	return dib ? ((FREEIMAGEHEADER *)dib->data)->red_mask : 0;
@@ -310,9 +319,81 @@ FreeImage_GetBlueMask(FIBITMAP *dib) {
 	return dib ? ((FREEIMAGEHEADER *)dib->data)->blue_mask : 0;
 }
 
+// ----------------------------------------------------------
+
+BOOL DLL_CALLCONV
+FreeImage_HasBackgroundColor(FIBITMAP *dib) {
+	if(dib) {
+		RGBQUAD *bkgnd_color = &((FREEIMAGEHEADER *)dib->data)->bkgnd_color;
+		return (bkgnd_color->rgbReserved != 0) ? TRUE : FALSE;
+	}
+	return FALSE;
+}
+
+BOOL DLL_CALLCONV
+FreeImage_GetBackgroundColor(FIBITMAP *dib, RGBQUAD *bkcolor) {
+	if(dib && bkcolor) {
+		if(FreeImage_HasBackgroundColor(dib)) {
+			// get the background color
+			RGBQUAD *bkgnd_color = &((FREEIMAGEHEADER *)dib->data)->bkgnd_color;
+			memcpy(bkcolor, bkgnd_color, sizeof(RGBQUAD));
+			// get the background index
+			if(FreeImage_GetBPP(dib) == 8) {
+				RGBQUAD *pal = FreeImage_GetPalette(dib);
+				for(int i = 0; i < FreeImage_GetColorsUsed(dib); i++) {
+					if(bkgnd_color->rgbRed == pal[i].rgbRed) {
+						if(bkgnd_color->rgbGreen == pal[i].rgbGreen) {
+							if(bkgnd_color->rgbBlue == pal[i].rgbBlue) {
+								bkcolor->rgbReserved = i;
+								return TRUE;
+							}
+						}
+					}
+				}
+			}
+
+			bkcolor->rgbReserved = 0;
+
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+BOOL DLL_CALLCONV 
+FreeImage_SetBackgroundColor(FIBITMAP *dib, RGBQUAD *bkcolor) {
+	if(dib) {
+		RGBQUAD *bkgnd_color = &((FREEIMAGEHEADER *)dib->data)->bkgnd_color;
+		if(bkcolor) {
+			// set the background color
+			memcpy(bkgnd_color, bkcolor, sizeof(RGBQUAD));
+			// enable the file background color
+			bkgnd_color->rgbReserved = 1;
+		} else {
+			// clear and disable the file background color
+			memcpy(bkgnd_color, 0, sizeof(RGBQUAD));
+		}
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+// ----------------------------------------------------------
+
 BOOL DLL_CALLCONV
 FreeImage_IsTransparent(FIBITMAP *dib) {
-	return (dib != NULL) ? ((FreeImage_GetBPP(dib) == 32) ? TRUE : ((FREEIMAGEHEADER *)dib->data)->transparent) : FALSE;
+	if(dib) {
+		if(FreeImage_GetBPP(dib) == 32) {
+			if(FreeImage_GetColorType(dib) == FIC_RGBALPHA) {
+				return TRUE;
+			}
+		} else {
+			return ((FREEIMAGEHEADER *)dib->data)->transparent ? TRUE : FALSE;
+		}
+	}
+	return FALSE;
 }
 
 BYTE * DLL_CALLCONV

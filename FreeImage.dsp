@@ -118,6 +118,10 @@ SOURCE=.\Source\FreeImage\PluginCUT.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Source\FreeImage\PluginDDS.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Source\FreeImage\PluginICO.cpp
 # End Source File
 # Begin Source File
@@ -328,6 +332,10 @@ SOURCE=.\Source\FreeImageToolkit\Colors.cpp
 # Begin Source File
 
 SOURCE=.\Source\FreeImageToolkit\CopyPaste.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\Display.cpp
 # End Source File
 # Begin Source File
 

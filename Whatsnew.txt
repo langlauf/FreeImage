@@ -5,6 +5,20 @@ What's New for FreeImage
 ! : changed
 + : added
 
+February 18, 2004 - 3.2.0
+! FreeImage now uses libTIFF 3.6.1
++ [Herve Drolon] added FreeImage_HasBackgroundColor
++ [Herve Drolon] added FreeImage_GetBackgroundColor
++ [Herve Drolon] added FreeImage_SetBackgroundColor
++ [Herve Drolon] added FreeImage_Composite
++ [Herve Drolon] added ICC profile support to PNG plugin
++ [Herve Drolon] added background color support to PNG plugin
++ [Volker Gärtner] added support for DDS format (loader)
+* [Steve Johnson] improved FreeImage_OpenMultiBitmap/FreeImage_CloseMultiBitmap
+* [Steve Johnson] fixed a bug in FreeImage_InsertPage
+* [Herve Drolon] fixed a bug with JPEG compressed TIFF (red/blue swapping)
+* [Herve Drolon] fixed a bug in PluginTarga where 8-bit images were saved incorrectly
+
 January 26, 2004 - 3.1.0
 ! FreeImage now uses ZLib 1.2.1
 + [Herve Drolon] added support for integer, real and complex image types (see below)

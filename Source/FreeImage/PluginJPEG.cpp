@@ -469,12 +469,25 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			jpeg_start_decompress(&cinfo);
 
-			// step 6: while (scan lines remain to be read) jpeg_read_scanlines(...);
+			// step 6a: while (scan lines remain to be read) jpeg_read_scanlines(...);
 
 			while (cinfo.output_scanline < cinfo.output_height) {
 				JSAMPROW b = FreeImage_GetScanLine(dib, cinfo.output_height - cinfo.output_scanline - 1);
 
 				jpeg_read_scanlines(&cinfo, &b, 1);
+			}
+
+			// step 6b: swap red and blue components
+
+			if(cinfo.num_components == 3) {
+				for(int y = 0; y < FreeImage_GetHeight(dib); y++) {
+					BYTE *target = FreeImage_GetScanLine(dib, y);
+					BYTE *target_p = target;
+					for(int x = 0; x < FreeImage_GetWidth(dib); x++) {
+						INPLACESWAP(target_p[0], target_p[2]);
+						target_p += 3;
+					}
+				}
 			}
 
 			// step 7: finish decompression
@@ -594,8 +607,27 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			/* Step 6: while (scan lines remain to be written) */
 
-			if((color_type == FIC_RGB) || (color_type == FIC_MINISBLACK)) {
-				// 24-bit or 8-bit standard greyscale images
+			if(color_type == FIC_RGB) {
+				// 24-bit RGB image : need to swap red and blue channels
+				unsigned pitch = FreeImage_GetPitch(dib);
+				BYTE *target = (BYTE*)malloc(pitch * sizeof(BYTE));
+
+				while (cinfo.next_scanline < cinfo.image_height) {
+					// get a copy of the scanline
+					memcpy(target, FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1), pitch);
+					// swap R and B channels
+					BYTE *target_p = target;
+					for(int x = 0; x < cinfo.image_width; x++) {
+						INPLACESWAP(target_p[0], target_p[2]);
+						target_p += 3;
+					}
+					// write the scanline
+					jpeg_write_scanlines(&cinfo, &target, 1);
+				}
+				free(target);
+			}
+			else if(color_type == FIC_MINISBLACK) {
+				// 8-bit standard greyscale images
 				while (cinfo.next_scanline < cinfo.image_height) {
 					JSAMPROW b = FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1);
 
@@ -622,7 +654,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				// reverse 8-bit greyscale image, so reverse grey value on the fly
 				int i;
 				BYTE reverse[256];
-				BYTE *target = (BYTE *)malloc(cinfo.image_width * 3);
+				BYTE *target = (BYTE *)malloc(cinfo.image_width);
 				if (target == NULL)
 					throw "no memory to allocate intermediate scanline buffer";
 

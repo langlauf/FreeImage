@@ -75,7 +75,7 @@ _TellProc(fi_handle handle) {
 
 // ----------------------------------------------------------
 
-int __cdecl
+int 
 main(int argc, char *argv[]) {
 	FreeImageIO io;
 

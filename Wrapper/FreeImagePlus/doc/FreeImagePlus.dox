@@ -4,7 +4,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 PROJECT_NAME           = FreeImagePlus
-PROJECT_NUMBER         = "FreeImage 3.1.0"
+PROJECT_NUMBER         = "FreeImage 3.2.0"
 OUTPUT_DIRECTORY       = C:/Projects/FreeImage/Wrapper/FreeImagePlus/
 OUTPUT_LANGUAGE        = English
 USE_WINDOWS_ENCODING   = YES
@@ -57,7 +57,7 @@ WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = YES
 WARN_IF_DOC_ERROR      = YES
 WARN_FORMAT            = "$file:$line: $text"
-WARN_LOGFILE           = 
+WARN_LOGFILE           = C:\Projects\FreeImage\Wrapper\FreeImagePlus\doc\doxygen.log
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------

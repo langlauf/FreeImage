@@ -134,7 +134,7 @@
 #define JPEG_INTERNALS /* Include "jpegint.h" for "DSTATE_*" symbols */
 #define JPEG_CJPEG_DJPEG /* Include all Version 6B+ "jconfig.h" options */
 #undef INLINE
-#include "../LibJPEG/jpeglib.h"
+#include "jpeglib.h"
 #undef JPEG_CJPEG_DJPEG
 #undef JPEG_INTERNALS
 
@@ -214,8 +214,24 @@ typedef struct             /* This module's private, per-image state variable */
     u_char h_sampling,                          /* Luminance sampling factors */
            v_sampling,
            jpegcolormode;           /* Who performs RGB <-> YCbCr conversion? */
-        /* JPEGCOLORMODE_RAW <=> TIFF Library or its client */
-        /* JPEGCOLORMODE_RGB <=> JPEG Library               */
+			/* JPEGCOLORMODE_RAW <=> TIFF Library or its client */
+			/* JPEGCOLORMODE_RGB <=> JPEG Library               */
+    /* These fields are added to support TIFFGetField */
+    uint16 jpegproc;
+    uint32 jpegifoffset;
+    uint32 jpegifbytecount;
+    uint32 jpegrestartinterval;
+    void* jpeglosslesspredictors;
+    uint16 jpeglosslesspredictors_length;
+    void* jpegpointtransform;
+    uint32 jpegpointtransform_length;
+    void* jpegqtables;
+    uint32 jpegqtables_length;
+    void* jpegdctables;
+    uint32 jpegdctables_length;
+    void* jpegactables;
+    uint32 jpegactables_length;
+
   } OJPEGState;
 #define OJState(tif)((OJPEGState*)(tif)->tif_data)
 
@@ -489,11 +505,12 @@ std_fill_input_buffer(register j_decompress_ptr cinfo)
   }
 
 static void
-std_skip_input_data(register j_decompress_ptr cinfo,long num_bytes)
+std_skip_input_data(register j_decompress_ptr cinfo, long num_bytes)
   {
 #   define sp ((OJPEGState *)cinfo)
 
     if (num_bytes > 0)
+    {
       if (num_bytes > (long)sp->src.bytes_in_buffer) /* oops: buffer overrun */
         (void)std_fill_input_buffer(cinfo);
       else
@@ -501,6 +518,7 @@ std_skip_input_data(register j_decompress_ptr cinfo,long num_bytes)
           sp->src.next_input_byte += (size_t)num_bytes;
           sp->src.bytes_in_buffer -= (size_t)num_bytes;
         }
+    }
 #   undef sp
   }
 
@@ -682,7 +700,6 @@ OJPEGSetupEncode(register TIFF *tif)
     switch (td->td_photometric)
       {
         case PHOTOMETRIC_YCBCR     :
-#         ifdef YCBCR_SUPPORT
 
        /* ISO IS 10918-1 requires that JPEG subsampling factors be 1-4, but
           TIFF Version 6.0 is more restrictive: only 1, 2, and 4 are allowed.
@@ -705,8 +722,6 @@ OJPEGSetupEncode(register TIFF *tif)
               TIFFError(module,bad_subsampling);
               status = 0;
             };
-#         endif /* YCBCR_SUPPORT */
-#         ifdef COLORIMETRY_SUPPORT
 
        /* A ReferenceBlackWhite field MUST be present, since the default value
           is inapproriate for YCbCr.  Fill in the proper value if the
@@ -724,7 +739,6 @@ OJPEGSetupEncode(register TIFF *tif)
               refbw[5] = refbw[1];
               TIFFSetField(tif,TIFFTAG_REFERENCEBLACKWHITE,refbw);
             };
-#         endif /* COLORIMETRY_SUPPORT */
           sp->cinfo.c.jpeg_color_space = JCS_YCbCr;
           if (sp->jpegcolormode == JPEGCOLORMODE_RGB)
             {
@@ -1288,7 +1302,6 @@ OJPEGSetupDecode(register TIFF *tif)
     switch (td->td_photometric)
       {
         case PHOTOMETRIC_YCBCR     :
-#         ifdef YCBCR_SUPPORT
 
        /* ISO IS 10918-1 requires that JPEG subsampling factors be 1-4, but
           TIFF Version 6.0 is more restrictive: only 1, 2, and 4 are allowed.
@@ -1312,7 +1325,6 @@ OJPEGSetupDecode(register TIFF *tif)
               TIFFError(module,bad_subsampling);
               status = 0;
             };
-#         endif /* YCBCR_SUPPORT */
           jpeg_color_space = JCS_YCbCr;
           if (sp->jpegcolormode == JPEGCOLORMODE_RGB)
             {
@@ -1655,8 +1667,8 @@ OJPEGSetupDecode(register TIFF *tif)
               break;
             case JCS_CMYK     :
               sp->cinfo.d.comp_info[0].component_id = 'C';
-              sp->cinfo.d.comp_info[1].component_id = 'Y';
-              sp->cinfo.d.comp_info[2].component_id = 'M';
+              sp->cinfo.d.comp_info[1].component_id = 'M';
+              sp->cinfo.d.comp_info[2].component_id = 'Y';
               sp->cinfo.d.comp_info[3].component_id = 'K';
               i = 0;
               do sp->cinfo.d.comp_info[i].h_samp_factor =
@@ -1844,13 +1856,18 @@ OJPEGPostDecode(register TIFF *tif,tidata_t buf,tsize_t cc)
 
 static int
 OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
-  { uint32 v32;
+{
+    uint32 v32;
     register OJPEGState *sp = OJState(tif);
 #   define td (&tif->tif_dir)
+    toff_t tiffoff=0;
+    uint32 bufoff=0;
+    uint32 code_count=0;
+    int i2=0;
+    int k2=0;
 
     switch (tag)
       {
-#       ifdef COLORIMETRY_SUPPORT
 
      /* If a "ReferenceBlackWhite" TIFF tag appears in the file explicitly, undo
         any modified default definition that we might have installed below, then
@@ -1861,10 +1878,8 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
                                                  _TIFFfree(td->td_refblackwhite);
                                                  td->td_refblackwhite = 0;
                                                };
-#       endif /* COLORIMETRY_SUPPORT */
         default                            : return
                                                (*sp->vsetparent)(tif,tag,ap);
-#       ifdef COLORIMETRY_SUPPORT
 
      /* BEWARE OF KLUDGE:  Some old-format JPEG-in-TIFF files, including those
                            produced by the Wang Imaging application for Micro-
@@ -1885,7 +1900,8 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
           if (   (v32 = (*sp->vsetparent)(tif,tag,ap))
               && td->td_photometric == PHOTOMETRIC_YCBCR
              )
-            if (td->td_refblackwhite = _TIFFmalloc(6*sizeof(float)))
+	  {
+            if ( (td->td_refblackwhite = _TIFFmalloc(6*sizeof(float))) )
               { register long top = 1 << td->td_bitspersample;
 
                 td->td_refblackwhite[0] = 0;
@@ -1899,8 +1915,8 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
                   "Cannot set default reference black and white levels");
                 v32 = 0;
               };
+	  }
           return v32;
-#       endif /* COLORIMETRY_SUPPORT */
 
      /* BEWARE OF KLUDGE:  According to Charles Auer <Bumble731@msn.com>, if our
                            input is a multi-image (multi-directory) JPEG-in-TIFF
@@ -1936,6 +1952,41 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
         case TIFFTAG_JPEGCOLORMODE         : ;
       };
     v32 = va_arg(ap,uint32); /* No. of values in this TIFF record */
+
+    /* This switch statement is added for OJPEGVSetField */
+    if(v32 !=0){
+        switch(tag){
+            case TIFFTAG_JPEGPROC:
+                sp->jpegproc=v32;
+                break;
+            case TIFFTAG_JPEGIFOFFSET:
+                sp->jpegifoffset=v32;
+		break;
+            case TIFFTAG_JPEGIFBYTECOUNT:
+		sp->jpegifbytecount=v32;
+		break;
+            case TIFFTAG_JPEGRESTARTINTERVAL:
+		sp->jpegrestartinterval=v32;
+		break;
+            case TIFFTAG_JPEGLOSSLESSPREDICTORS:
+		sp->jpeglosslesspredictors_length=v32;
+		break;
+            case TIFFTAG_JPEGPOINTTRANSFORM:
+		sp->jpegpointtransform_length=v32;
+		break;
+            case TIFFTAG_JPEGQTABLES:
+		sp->jpegqtables_length=v32;
+		break;
+            case TIFFTAG_JPEGACTABLES:
+		sp->jpegactables_length=v32;
+		break;
+            case TIFFTAG_JPEGDCTABLES:
+		sp->jpegdctables_length=v32;
+		break;
+            default:
+		break;
+        }
+    }
 
  /* BEWARE:  The following actions apply only if we are reading a "source" TIFF
              image to be decompressed for a client application program.  If we
@@ -2001,14 +2052,14 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
         must behave as if this TIFF record were absent.  So, don't even set the
         boolean "I've been here" flag below.
      */
+     /*
+      * Instead, set the field bit so TIFFGetField can get whether or not
+      * it was set.
+      */
         case TIFFTAG_JPEGRESTARTINTERVAL   :
           if (v32)
-            {
               sp->cinfo.d.restart_interval = v32;
               break;
-            };
-          return 1;
-
      /* The TIFF Version 6.0 specification says that this tag is supposed to be
         a vector containing a value for each image component, but for lossless
         Huffman coding (the only JPEG process defined by the specification for
@@ -2021,9 +2072,18 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
            if (v32)
              {
                sp->cinfo.d.Ss = *va_arg(ap,uint16 *);
+               sp->jpeglosslesspredictors = 
+		    _TIFFmalloc(sp->jpeglosslesspredictors_length
+				* sizeof(uint16));
+               if(sp->jpeglosslesspredictors==NULL){return(0);}
+               for(i2=0;i2<sp->jpeglosslesspredictors_length;i2++){
+                ((uint16*)sp->jpeglosslesspredictors)[i2] =
+			((uint16*)sp->cinfo.d.Ss)[i2];
+               }
+               sp->jpeglosslesspredictors_length*=sizeof(uint16);
                break;
              };
-           return 1;
+           return v32;
 
      /* The TIFF Version 6.0 specification says that this tag is supposed to be
         a vector containing a value for each image component, but for lossless
@@ -2037,9 +2097,17 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
            if (v32)
              {
                sp->cinfo.d.Al = *va_arg(ap,uint16 *);
+               sp->jpegpointtransform =
+		    _TIFFmalloc(sp->jpegpointtransform_length*sizeof(uint16));
+               if(sp->jpegpointtransform==NULL){return(0);}
+               for(i2=0;i2<sp->jpegpointtransform_length;i2++) {
+                ((uint16*)sp->jpegpointtransform)[i2] =
+			((uint16*)sp->cinfo.d.Al)[i2];
+               }
+               sp->jpegpointtransform_length*=sizeof(uint16);
                break;
-             };
-           return 1;
+             }
+           return v32;
 
      /* We have a vector of offsets to quantization tables, so load 'em! */
 
@@ -2047,7 +2115,6 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
           if (v32)
             { uint32 *v;
               int i;
-
               if (v32 > NUM_QUANT_TBLS)
                 {
                   TIFFError(tif->tif_name,"Too many quantization tables");
@@ -2055,6 +2122,19 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
                 };
               i = 0;
               v = va_arg(ap,uint32 *);
+                sp->jpegqtables=_TIFFmalloc(64*sp->jpegqtables_length);
+                if(sp->jpegqtables==NULL){return(0);}
+                tiffoff = TIFFSeekFile(tif, 0, SEEK_CUR);
+                bufoff=0;
+                for(i2=0;i2<sp->jpegqtables_length;i2++){
+                    TIFFSeekFile(tif, v[i2], SEEK_SET);
+                    TIFFReadFile(tif, &(((u_char*)(sp->jpegqtables))[bufoff]),
+				 64);
+                    bufoff+=64;
+                }
+                sp->jpegqtables_length=bufoff;
+                TIFFSeekFile(tif, tiffoff, SEEK_SET);
+
               do /* read quantization table */
                 { register UINT8 *from = tif->tif_base + *v++;
                   register UINT16 *to;
@@ -2089,13 +2169,56 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
        L: if (v32)
             { uint32 *v;
               int i;
-
               if (v32 > NUM_HUFF_TBLS)
                 {
                   TIFFError(tif->tif_name,"Too many Huffman tables");
                   return 0;
                 };
               v = va_arg(ap,uint32 *);
+                if(tag == TIFFTAG_JPEGDCTABLES) {
+                    sp->jpegdctables=_TIFFmalloc(272*sp->jpegdctables_length);
+                    if(sp->jpegdctables==NULL){return(0);}
+                    tiffoff = TIFFSeekFile(tif, 0, SEEK_CUR);
+                    bufoff=0;
+                    code_count=0;                
+                    for(i2=0;i2<sp->jpegdctables_length;i2++){
+                        TIFFSeekFile(tif, v[i2], SEEK_SET);
+                        TIFFReadFile(tif,
+				     &(((u_char*)(sp->jpegdctables))[bufoff]),
+				     16);
+                        code_count=0;
+                        for(k2=0;k2<16;k2++){
+                            code_count+=((u_char*)(sp->jpegdctables))[k2+bufoff];
+                        }
+                        TIFFReadFile(tif,
+				     &(((u_char*)(sp->jpegdctables))[bufoff+16]),
+				     code_count);
+                        bufoff+=16;
+                        bufoff+=code_count;
+                    }
+                    sp->jpegdctables_length=bufoff;
+                    TIFFSeekFile(tif, tiffoff, SEEK_SET);
+                }
+                if(tag==TIFFTAG_JPEGACTABLES){
+                    sp->jpegactables=_TIFFmalloc(272*sp->jpegactables_length);
+                    if(sp->jpegactables==NULL){return(0);}
+                    tiffoff = TIFFSeekFile(tif, 0, SEEK_CUR);
+                    bufoff=0;
+                    code_count=0;                
+                    for(i2=0;i2<sp->jpegactables_length;i2++){
+                        TIFFSeekFile(tif, v[i2], SEEK_SET);
+                        TIFFReadFile(tif, &(((unsigned char*)(sp->jpegactables))[bufoff]), 16);
+                        code_count=0;
+                        for(k2=0;k2<16;k2++){
+                            code_count+=((unsigned char*)(sp->jpegactables))[k2+bufoff];
+                        }
+                        TIFFReadFile(tif, &(((unsigned char*)(sp->jpegactables))[bufoff+16]), code_count);
+                        bufoff+=16;
+                        bufoff+=code_count;
+                    }
+                    sp->jpegactables_length=bufoff;
+                    TIFFSeekFile(tif, tiffoff, SEEK_SET);
+                }
               i = 0;
               do /* copy each Huffman table */
                 { int size = 0;
@@ -2153,7 +2276,6 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
      */
         case TIFFTAG_JPEGCOLORMODE         :
           sp->jpegcolormode = v32;
-#         ifdef YCBCR_SUPPORT
 
        /* Mark the image to indicate whether returned data is up-sampled, so
           that "TIFF{Strip,Tile}Size()" reflect the true amount of data present.
@@ -2173,7 +2295,6 @@ OJPEGVSetField(register TIFF *tif,ttag_t tag,va_list ap)
               tif->tif_tilesize = TIFFTileSize(tif);
               tif->tif_flags |= TIFF_DIRTYDIRECT;
             };
-#         endif /* YCBCR_SUPPORT */
           return 1;
       };
     TIFFSetFieldBit(tif,tag-TIFFTAG_JPEGPROC+FIELD_JPEGPROC);
@@ -2214,14 +2335,46 @@ OJPEGVGetField(register TIFF *tif,ttag_t tag,va_list ap)
         return anything, even if we parsed them in an old-format "source" image.
      */
         case TIFFTAG_JPEGPROC              :
+		*va_arg(ap, uint16*)=sp->jpegproc;
+		return(1);
+		break;
         case TIFFTAG_JPEGIFOFFSET          :
+		*va_arg(ap, uint32*)=sp->jpegifoffset;
+		return(1);
+		break;
         case TIFFTAG_JPEGIFBYTECOUNT       :
+		*va_arg(ap, uint32*)=sp->jpegifbytecount;
+		return(1);
+		break;
         case TIFFTAG_JPEGRESTARTINTERVAL   :
+		*va_arg(ap, uint32*)=sp->jpegrestartinterval;
+		return(1);
+		break;
         case TIFFTAG_JPEGLOSSLESSPREDICTORS:
+                *va_arg(ap, uint32*)=sp->jpeglosslesspredictors_length;
+                *va_arg(ap, void**)=sp->jpeglosslesspredictors;
+                return(1);
+                break;
         case TIFFTAG_JPEGPOINTTRANSFORM    :
+                *va_arg(ap, uint32*)=sp->jpegpointtransform_length;
+                *va_arg(ap, void**)=sp->jpegpointtransform;
+                return(1);
+                break;
         case TIFFTAG_JPEGQTABLES           :
+                *va_arg(ap, uint32*)=sp->jpegqtables_length;
+                *va_arg(ap, void**)=sp->jpegqtables;
+                return(1);
+                break;
         case TIFFTAG_JPEGDCTABLES          :
-        case TIFFTAG_JPEGACTABLES          : return 0;
+                *va_arg(ap, uint32*)=sp->jpegdctables_length;
+                *va_arg(ap, void**)=sp->jpegdctables;
+                return(1);
+                break;
+        case TIFFTAG_JPEGACTABLES          : 
+                *va_arg(ap, uint32*)=sp->jpegactables_length;
+                *va_arg(ap, void**)=sp->jpegactables;
+                return(1);
+                break;
       };
     return (*sp->vgetparent)(tif,tag,ap);
   }
@@ -2292,11 +2445,21 @@ static void
 OJPEGCleanUp(register TIFF *tif)
   { register OJPEGState *sp;
 
-    if (sp = OJState(tif))
+    if ( (sp = OJState(tif)) )
       {
         CALLVJPEG(sp,jpeg_destroy(&sp->cinfo.comm)); /* Free JPEG Lib. vars. */
-        if (sp->jpegtables) _TIFFfree(sp->jpegtables);
-
+        if (sp->jpegtables) {_TIFFfree(sp->jpegtables);sp->jpegtables=0;}
+        if (sp->jpeglosslesspredictors) {
+		_TIFFfree(sp->jpeglosslesspredictors);
+		sp->jpeglosslesspredictors = 0;
+	}
+        if (sp->jpegpointtransform) {
+		_TIFFfree(sp->jpegpointtransform);
+		sp->jpegpointtransform=0;
+	}
+        if (sp->jpegqtables) {_TIFFfree(sp->jpegqtables);sp->jpegqtables=0;}
+        if (sp->jpegactables) {_TIFFfree(sp->jpegactables);sp->jpegactables=0;}
+        if (sp->jpegdctables) {_TIFFfree(sp->jpegdctables);sp->jpegdctables=0;}
      /* If the image file isn't "memory mapped" and we read it all into a
         single, large memory buffer, free the buffer now.
      */
@@ -2451,6 +2614,16 @@ TIFFInitOJPEG(register TIFF *tif,int scheme)
     sp->jpegquality = 75; /* Default IJG quality */
     sp->jpegcolormode = JPEGCOLORMODE_RAW;
     sp->jpegtablesmode = 0; /* No tables found yet */
+    sp->jpeglosslesspredictors=0;
+    sp->jpeglosslesspredictors_length=0;
+    sp->jpegpointtransform=0;
+    sp->jpegpointtransform_length=0;
+    sp->jpegqtables=0;
+    sp->jpegqtables_length=0;
+    sp->jpegdctables=0;
+    sp->jpegdctables_length=0;
+    sp->jpegactables=0;
+    sp->jpegactables_length=0;
     return 1;
 #   undef td
   }

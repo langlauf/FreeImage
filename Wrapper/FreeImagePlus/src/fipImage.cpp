@@ -117,6 +117,7 @@ BOOL fipImage::copySubImage(fipImage& dst, int left, int top, int right, int bot
 BOOL fipImage::pasteSubImage(fipImage& src, int left, int top, int alpha) {
 	if(_dib) {
 		BOOL bResult = FreeImage_Paste(_dib, src._dib, left, top, alpha);
+		_bHasChanged = TRUE;
 		return bResult;
 	}
 	return FALSE;
@@ -235,10 +236,12 @@ BOOL fipImage::getPixelColor(unsigned x, unsigned y, RGBQUAD *value) {
 }
 
 BOOL fipImage::setPixelIndex(unsigned x, unsigned y, BYTE *value) {
+	_bHasChanged = TRUE;
 	return FreeImage_SetPixelIndex(_dib, x, y, value);
 }
 
 BOOL fipImage::setPixelColor(unsigned x, unsigned y, RGBQUAD *value) {
+	_bHasChanged = TRUE;
 	return FreeImage_SetPixelColor(_dib, x, y, value);
 }
 
@@ -437,7 +440,56 @@ BOOL fipImage::dither(FREE_IMAGE_DITHER algorithm) {
 }
 
 ///////////////////////////////////////////////////////////////////   
+// Transparency support: background colour and alpha channel
+
+BOOL fipImage::isTransparent() {
+	return FreeImage_IsTransparent(_dib);
+}
+
+unsigned fipImage::getTransparencyCount() {
+	return FreeImage_GetTransparencyCount(_dib);
+}
+
+BYTE* fipImage::getTransparencyTable() {
+	return FreeImage_GetTransparencyTable(_dib);
+}
+
+void fipImage::setTransparencyTable(BYTE *table, int count) {
+	FreeImage_SetTransparencyTable(_dib, table, count);
+	_bHasChanged = TRUE;
+}
+
+BOOL fipImage::hasFileBkColor() {
+	return FreeImage_HasBackgroundColor(_dib);
+}
+
+BOOL fipImage::getFileBkColor(RGBQUAD *bkcolor) {
+	return FreeImage_GetBackgroundColor(_dib, bkcolor);
+}
+
+BOOL fipImage::setFileBkColor(RGBQUAD *bkcolor) {
+	_bHasChanged = TRUE;
+	return FreeImage_SetBackgroundColor(_dib, bkcolor);
+}
+
+///////////////////////////////////////////////////////////////////   
 // Channel processing support
+
+BOOL fipImage::getChannel(fipImage& image, FREE_IMAGE_COLOR_CHANNEL channel) {
+	if(_dib) {
+		image = FreeImage_GetChannel(_dib, channel);
+		return image.isValid();
+	}
+	return FALSE;
+}
+
+BOOL fipImage::setChannel(fipImage& image, FREE_IMAGE_COLOR_CHANNEL channel) {
+	if(_dib) {
+		_bHasChanged = TRUE;
+		return FreeImage_SetChannel(_dib, image._dib, channel);
+	}
+	return FALSE;
+}
 
 BOOL fipImage::splitChannels(fipImage& RedChannel, fipImage& GreenChannel, fipImage& BlueChannel) {
 	if(_dib) {
@@ -449,62 +501,6 @@ BOOL fipImage::splitChannels(fipImage& RedChannel, fipImage& GreenChannel, fipIm
 	}
 	return FALSE;
 }
-
-BOOL fipImage::getChannel(fipImage& image, FREE_IMAGE_COLOR_CHANNEL channel) {
-	if(_dib) {
-		image = FreeImage_GetChannel(_dib, channel);
-		return image.isValid();
-	}
-	return FALSE;
-}
-
-BOOL fipImage::getRedChannel(fipImage& red) {
-	if(_dib) {
-		red = FreeImage_GetChannel(_dib, FICC_RED);
-		return red.isValid();
-	}
-	return FALSE;
-}
-
-BOOL fipImage::getGreenChannel(fipImage& green) {
-	if(_dib) {
-		green = FreeImage_GetChannel(_dib, FICC_GREEN);
-		return green.isValid();
-	}
-	return FALSE;
-}
-
-BOOL fipImage::getBlueChannel(fipImage& blue) {
-	if(_dib) {
-		blue = FreeImage_GetChannel(_dib, FICC_BLUE);
-		return blue.isValid();
-	}
-	return FALSE;
-}
-
-BOOL fipImage::getAlphaChannel(fipImage& alpha) {
-	if(_dib) {
-		alpha = FreeImage_GetChannel(_dib, FICC_ALPHA);
-		return alpha.isValid();
-	}
-	return FALSE;
-}
-
-BOOL fipImage::setAlphaChannel(fipImage& alpha) {
-	if(!_dib) {
-		int width = alpha.getWidth();
-		int height = alpha.getHeight();
-		_dib = FreeImage_Allocate(width, height, 32, 0xFF, 0xFF00, 0xFF0000);
-	}
-
-	if(_dib) {
-		_bHasChanged = TRUE;
-
-		return FreeImage_SetChannel(_dib, alpha._dib, FICC_ALPHA);
-	}
-	return FALSE;
-}
-
 BOOL fipImage::combineChannels(fipImage& red, fipImage& green, fipImage& blue) {
 	if(!_dib) {
 		int width = red.getWidth();

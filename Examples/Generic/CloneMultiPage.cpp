@@ -84,7 +84,7 @@ bool CloneMultiPage(FREE_IMAGE_FORMAT fif, char *input, char *output, int output
 }
 
 
-int __cdecl
+int 
 main(int argc, char *argv[]) {
 
 	char *input_filename = "images\\input.tif";

@@ -132,6 +132,11 @@ SupportsExportType(FREE_IMAGE_TYPE type) {
 	return (type == FIT_BITMAP) ? TRUE : FALSE;
 }
 
+static BOOL DLL_CALLCONV
+SupportsICCProfiles() {
+	return TRUE;
+}
+
 // ----------------------------------------------------------
 
 static FIBITMAP * DLL_CALLCONV
@@ -238,22 +243,22 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					throw "PNG format not supported";
 			}
 
-			// Set the background color to draw transparent and alpha images over.
-			// It is possible to set the red, green, and blue components directly
-			// for paletted images instead of supplying a palette index.  Note that
-			// even if the PNG file supplies a background, you are not required to
+			// Get the background color to draw transparent and alpha images over.
+			// Note that even if the PNG file supplies a background, you are not required to
 			// use it - you should use the (solid) application background if it has one.
 
-			if (color_type != PNG_COLOR_TYPE_RGB_ALPHA) {
-				png_color_16 my_background= { 0, 255, 255, 255, 0 };
-				png_color_16 *image_background;
+			png_color_16p image_background = NULL;
+			RGBQUAD rgbBkColor;
 
-				if (png_get_bKGD(png_ptr, info_ptr, &image_background))
-					png_set_background(png_ptr, image_background, PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
-				else
-					png_set_background(png_ptr, &my_background, PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
+			if (color_type != PNG_COLOR_TYPE_RGB_ALPHA) {
+				if (png_get_bKGD(png_ptr, info_ptr, &image_background)) {
+					rgbBkColor.rgbRed      = image_background->red;
+					rgbBkColor.rgbGreen    = image_background->green;
+					rgbBkColor.rgbBlue     = image_background->blue;
+					rgbBkColor.rgbReserved = 0;
+				}
 			}
-			
+
 			// if this image has transparency, store the trns values
 
 			png_bytep trans               = NULL;
@@ -332,9 +337,14 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					break;
 			}
 
-			// DIBs *do* support physical resolution
+			// store the background color 
+			if(image_background) {
+				FreeImage_SetBackgroundColor(dib, &rgbBkColor);
+			}
 
-			if (png_get_valid(png_ptr,info_ptr,PNG_INFO_pHYs)) {
+			// get physical resolution
+
+			if (png_get_valid(png_ptr, info_ptr, PNG_INFO_pHYs)) {
 				png_uint_32 res_x, res_y;
 				
 				// We'll overload this var and use 0 to mean no phys data,
@@ -351,6 +361,22 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					bih->biYPelsPerMeter = res_y;
 				}
 			}
+
+			// get possible ICC profile
+
+			if (png_get_valid(png_ptr, info_ptr, PNG_INFO_iCCP)) {
+				png_charp profile_name = NULL;
+				png_charp profile_data = NULL;
+				png_uint_32 profile_length = 0;
+				int  compression_type;
+
+				png_get_iCCP(png_ptr, info_ptr, &profile_name, &compression_type, &profile_data, &profile_length);
+
+				// copy ICC profile data (must be done after FreeImage_Allocate)
+
+				FreeImage_CreateICCProfile(dib, profile_data, profile_length);
+			}
+
 
 			// set the individual row_pointers to point at the correct offsets
 
@@ -417,7 +443,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 	png_structp png_ptr;
 	png_infop info_ptr;
 	png_colorp palette = NULL;
-	png_uint_32 width, height, bpp;
+	png_uint_32 width, height;
 	BOOL has_alpha_channel = FALSE;
 
 	RGBQUAD *pal;	// pointer to dib palette
@@ -462,7 +488,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			png_set_write_fn(png_ptr, info_ptr, _WriteProc, _FlushProc);
 
-			// DIBs *do* support physical resolution
+			// set physical resolution
 
 			BITMAPINFOHEADER *bih = FreeImage_GetInfoHeader(dib);
 			png_uint_32 res_x = bih->biXPelsPerMeter;
@@ -483,12 +509,12 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			interlace_type = PNG_INTERLACE_NONE;	// Default value
 			width = FreeImage_GetWidth(dib);
 			height = FreeImage_GetHeight(dib);
-			bpp = bit_depth = FreeImage_GetBPP(dib);			
+			bit_depth = FreeImage_GetBPP(dib);			
 
 			if (bit_depth == 16) {
 				png_destroy_write_struct(&png_ptr, &info_ptr);
 
-				throw "Format not supported";	// Note: this could be enhanced here...
+				throw "Unsupported format";	// Note: this could be enhanced here...
 			}
 
 			bit_depth = (bit_depth > 8) ? 8 : bit_depth;
@@ -553,12 +579,37 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 					break;
 			}
 
+			// write possible ICC profile
+
+			FIICCPROFILE *iccProfile = FreeImage_GetICCProfile(dib);
+			if (iccProfile->size && iccProfile->data) {
+				png_set_iCCP(png_ptr, info_ptr, "Embedded Profile", 0, (png_charp)iccProfile->data, iccProfile->size);
+			}
+
 			// Optional gamma chunk is strongly suggested if you have any guess
 			// as to the correct gamma of the image.
 			// png_set_gAMA(png_ptr, info_ptr, gamma);
 
-			if ((FreeImage_GetBPP(dib) == 8) && (FreeImage_IsTransparent(dib)) && (FreeImage_GetTransparencyCount(dib) > 0))
+			// set the transparency table
+
+			if ((bit_depth == 8) && (FreeImage_IsTransparent(dib)) && (FreeImage_GetTransparencyCount(dib) > 0))
 				png_set_tRNS(png_ptr, info_ptr, FreeImage_GetTransparencyTable(dib), FreeImage_GetTransparencyCount(dib), NULL);
+
+			// set the background color
+
+			if(FreeImage_HasBackgroundColor(dib)) {
+				png_color_16 image_background;
+				RGBQUAD rgbBkColor;
+
+				FreeImage_GetBackgroundColor(dib, &rgbBkColor);
+				memset(&image_background, 0, sizeof(png_color_16));
+				image_background.blue  = rgbBkColor.rgbBlue;
+				image_background.green = rgbBkColor.rgbGreen;
+				image_background.red   = rgbBkColor.rgbRed;
+				image_background.index = rgbBkColor.rgbReserved;
+
+				png_set_bKGD(png_ptr, info_ptr, &image_background);
+			}
 			
 			// Write the file header information.
 
@@ -566,7 +617,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			// write out the image data
 
-			if ((bpp == 32) && (!has_alpha_channel)) {
+			if ((bit_depth == 32) && (!has_alpha_channel)) {
 				BYTE *buffer = (BYTE *)malloc(width * 3);
 
 				for (png_uint_32 k = 0; k < height; k++) {
@@ -624,5 +675,5 @@ InitPNG(Plugin *plugin, int format_id) {
 	plugin->mime_proc = MimeType;
 	plugin->supports_export_bpp_proc = SupportsExportDepth;
 	plugin->supports_export_type_proc = SupportsExportType;
-	plugin->supports_icc_profiles_proc = NULL;	// not implemented yet;
+	plugin->supports_icc_profiles_proc = SupportsICCProfiles;
 }

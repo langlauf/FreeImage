@@ -305,6 +305,10 @@ SOURCE=..\FreeImageToolkit\CopyPaste.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\FreeImageToolkit\Display.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\FreeImageToolkit\Flip.cpp
 # End Source File
 # Begin Source File

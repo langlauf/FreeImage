@@ -22,6 +22,7 @@
 // - Matthias Wandel (mwandel@rim.net)
 // - Michal Novotny (michal@etc.cz)
 // - Ryan Rubley (ryan@lostreality.org)
+// - Volker Gärtner (volkerg@gmx.at)
 //
 // This file is part of FreeImage 3
 //
@@ -177,7 +178,8 @@ FI_ENUM(FREE_IMAGE_FORMAT) {
 	FIF_PSD		= 20,
 	FIF_CUT		= 21,
 	FIF_XBM		= 22,
-	FIF_XPM		= 23
+	FIF_XPM		= 23,
+	FIF_DDS		= 24
 };
 
 /** Image type used in FreeImage.
@@ -343,6 +345,7 @@ typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
 #define BMP_DEFAULT         0
 #define BMP_SAVE_RLE        1
 #define CUT_DEFAULT         0
+#define DDS_DEFAULT			0
 #define ICO_DEFAULT         0
 #define IFF_DEFAULT         0
 #define JPEG_DEFAULT        0
@@ -460,14 +463,6 @@ DLL_API FREE_IMAGE_TYPE DLL_CALLCONV FreeImage_GetImageType(FIBITMAP *dib);
 
 // FreeImage info routines --------------------------------------------------
 
-DLL_API unsigned DLL_CALLCONV FreeImage_GetRedMask(FIBITMAP *dib);
-DLL_API unsigned DLL_CALLCONV FreeImage_GetGreenMask(FIBITMAP *dib);
-DLL_API unsigned DLL_CALLCONV FreeImage_GetBlueMask(FIBITMAP *dib);
-DLL_API unsigned DLL_CALLCONV FreeImage_GetTransparencyCount(FIBITMAP *dib);
-DLL_API BYTE * DLL_CALLCONV FreeImage_GetTransparencyTable(FIBITMAP *dib);
-DLL_API void DLL_CALLCONV FreeImage_SetTransparent(FIBITMAP *dib, BOOL enabled);
-DLL_API void DLL_CALLCONV FreeImage_SetTransparencyTable(FIBITMAP *dib, BYTE *table, int count);
-DLL_API BOOL DLL_CALLCONV FreeImage_IsTransparent(FIBITMAP *dib);
 DLL_API BOOL DLL_CALLCONV FreeImage_IsLittleEndian();
 
 // Pixel access routines ----------------------------------------------------
@@ -495,6 +490,21 @@ DLL_API unsigned DLL_CALLCONV FreeImage_GetDotsPerMeterY(FIBITMAP *dib);
 DLL_API BITMAPINFOHEADER *DLL_CALLCONV FreeImage_GetInfoHeader(FIBITMAP *dib);
 DLL_API BITMAPINFO *DLL_CALLCONV FreeImage_GetInfo(FIBITMAP *dib);
 DLL_API FREE_IMAGE_COLOR_TYPE DLL_CALLCONV FreeImage_GetColorType(FIBITMAP *dib);
+
+DLL_API unsigned DLL_CALLCONV FreeImage_GetRedMask(FIBITMAP *dib);
+DLL_API unsigned DLL_CALLCONV FreeImage_GetGreenMask(FIBITMAP *dib);
+DLL_API unsigned DLL_CALLCONV FreeImage_GetBlueMask(FIBITMAP *dib);
+
+DLL_API unsigned DLL_CALLCONV FreeImage_GetTransparencyCount(FIBITMAP *dib);
+DLL_API BYTE * DLL_CALLCONV FreeImage_GetTransparencyTable(FIBITMAP *dib);
+DLL_API void DLL_CALLCONV FreeImage_SetTransparent(FIBITMAP *dib, BOOL enabled);
+DLL_API void DLL_CALLCONV FreeImage_SetTransparencyTable(FIBITMAP *dib, BYTE *table, int count);
+DLL_API BOOL DLL_CALLCONV FreeImage_IsTransparent(FIBITMAP *dib);
+
+DLL_API BOOL DLL_CALLCONV FreeImage_HasBackgroundColor(FIBITMAP *dib);
+DLL_API BOOL DLL_CALLCONV FreeImage_GetBackgroundColor(FIBITMAP *dib, RGBQUAD *bkcolor);
+DLL_API BOOL DLL_CALLCONV FreeImage_SetBackgroundColor(FIBITMAP *dib, RGBQUAD *bkcolor);
+
 
 // ICC profile routines -----------------------------------------------------
 
@@ -582,12 +592,13 @@ DLL_API BOOL DLL_CALLCONV FreeImage_GetHistogram(FIBITMAP *dib, DWORD *histo, FR
 // channel processing routines
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_GetChannel(FIBITMAP *dib, FREE_IMAGE_COLOR_CHANNEL channel);
 DLL_API BOOL DLL_CALLCONV FreeImage_SetChannel(FIBITMAP *dib, FIBITMAP *dib8, FREE_IMAGE_COLOR_CHANNEL channel);
-DLL_API FIBITMAP * DLL_CALLCONV FreeImage_GetComplexChannel(FIBITMAP *src, FREE_IMAGE_COLOR_CHANNEL channel);
+DLL_API FIBITMAP *DLL_CALLCONV FreeImage_GetComplexChannel(FIBITMAP *src, FREE_IMAGE_COLOR_CHANNEL channel);
 DLL_API BOOL DLL_CALLCONV FreeImage_SetComplexChannel(FIBITMAP *dst, FIBITMAP *src, FREE_IMAGE_COLOR_CHANNEL channel);
 
-// copy / paste routines
+// copy / paste / composite routines
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Copy(FIBITMAP *dib, int left, int top, int right, int bottom);
 DLL_API BOOL DLL_CALLCONV FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, int left, int top, int alpha);
+DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Composite(FIBITMAP *fg, BOOL useFileBkg FI_DEFAULT(FALSE), RGBQUAD *appBkColor FI_DEFAULT(NULL), FIBITMAP *bg FI_DEFAULT(NULL));
 
 
 #ifdef __cplusplus

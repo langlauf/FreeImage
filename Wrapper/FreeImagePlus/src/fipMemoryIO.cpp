@@ -39,7 +39,14 @@ BOOL fipMemoryIO::loadFile(const char *lpszPathName) {
 	struct stat buf;
 	int result;
 
-	// Get data associated with lpszPathName
+	// release previous buffer
+	if(_delete_me) {
+		free(_start);
+		_start = NULL;
+		_delete_me = FALSE;
+	}
+
+	// get data associated with lpszPathName
 	result = stat(lpszPathName, &buf);
 	if(result == 0) {
 		// allocate a memory buffer and load temporary data

@@ -132,13 +132,13 @@ BOOL fipWinImage::copyFromHandle(HANDLE hMem) {
 BOOL fipWinImage::copyFromBitmap(HBITMAP hbmp) {
 	if(hbmp) { 
         BITMAP bm;
-		// get informations about the bitmap
+		// Get informations about the bitmap
         GetObject(hbmp, sizeof(BITMAP), (LPSTR) &bm);
-		// create the image
+		// Create the image
         setSize(FIT_BITMAP, (WORD)bm.bmWidth, (WORD)bm.bmHeight, (WORD)bm.bmBitsPixel);
-		// create a device context for the bitmap
+		// Create a device context for the bitmap
         HDC dc = GetDC(NULL);
-		// copy the pixels
+		// Copy the pixels
 		int Success = GetDIBits(dc,							// handle to DC
 								hbmp,						// handle to bitmap
 								0,							// first scan line to set
@@ -234,13 +234,13 @@ BOOL fipWinImage::captureWindow(HWND hWndApplicationWindow, HWND hWndSelectedWin
 	Sleep(500);
 
 	// Prepare the DCs
-	HDC dstDC = ::GetDC(NULL);
-    HDC srcDC = ::GetWindowDC(hWndSelectedWindow); // full window (GetDC(hWndSelectedWindow) = clientarea)
-	HDC memDC = ::CreateCompatibleDC(dstDC);
+	HDC dstDC = GetDC(NULL);
+    HDC srcDC = GetWindowDC(hWndSelectedWindow); // full window (GetDC(hWndSelectedWindow) = clientarea)
+	HDC memDC = CreateCompatibleDC(dstDC);
 	
 	// Copy the screen to the bitmap
-	HBITMAP bm =::CreateCompatibleBitmap(dstDC, width, height);
-	HBITMAP oldbm = (HBITMAP)::SelectObject(memDC, bm);
+	HBITMAP bm = CreateCompatibleBitmap(dstDC, width, height);
+	HBITMAP oldbm = (HBITMAP)SelectObject(memDC, bm);
 	BitBlt(memDC, 0, 0, width, height, srcDC, xshift, yshift, SRCCOPY);
 
 	// Redraw the application window. 
@@ -264,7 +264,7 @@ BOOL fipWinImage::captureWindow(HWND hWndApplicationWindow, HWND hWndSelectedWin
 ///////////////////////////////////////////////////////////////////
 // Painting operations
 
-void fipWinImage::draw(HDC hDC, RECT& rcDest) {
+void fipWinImage::drawEx(HDC hDC, RECT& rcDest, BOOL useFileBkg, RGBQUAD *appBkColor, FIBITMAP *bg) {
 	// Convert to a standard bitmap if needed
 	if(_bHasChanged) {
 		if(_bDeleteMe) {
@@ -275,18 +275,29 @@ void fipWinImage::draw(HDC hDC, RECT& rcDest) {
 
 		FREE_IMAGE_TYPE image_type = getImageType();
 		if(image_type == FIT_BITMAP) {
-			// copy pointer
-			_display_dib = _dib;
+			BOOL bHasBackground = FreeImage_HasBackgroundColor(_dib);
+			BOOL bIsTransparent = FreeImage_IsTransparent(_dib);
+
+			if(!bIsTransparent && !bHasBackground) {
+				// Copy pointer
+				_display_dib = _dib;
+			}
+			else {
+				// Create the transparent / alpha blended image
+				_display_dib = FreeImage_Composite(_dib, useFileBkg, appBkColor, bg);
+				// Remember to delete _display_dib
+				_bDeleteMe = TRUE;
+			}
 		} else {
-			// convert to standard dib
+			// Convert to standard dib for display
 			if(image_type != FIT_COMPLEX) {
 				_display_dib = FreeImage_ConvertToStandardType(_dib, TRUE);
 			} else {
-				// convert to type FIT_DOUBLE
+				// Convert to type FIT_DOUBLE
 				FIBITMAP *dib_double = FreeImage_GetComplexChannel(_dib, FICC_MAG);
-				// convert to standard bitmap (linear scaling)
+				// Convert to standard bitmap (linear scaling)
 				_display_dib = FreeImage_ConvertToStandardType(dib_double, TRUE);
-				// free image of type FIT_DOUBLE
+				// Free image of type FIT_DOUBLE
 				FreeImage_Unload(dib_double);
 			}
 			// Remember to delete _display_dib
@@ -302,6 +313,7 @@ void fipWinImage::draw(HDC hDC, RECT& rcDest) {
 		rcDest.right-rcDest.left, rcDest.bottom-rcDest.top, 
 		0, 0, FreeImage_GetWidth(_display_dib), FreeImage_GetHeight(_display_dib),
 		FreeImage_GetBits(_display_dib), FreeImage_GetInfo(_display_dib), DIB_RGB_COLORS, SRCCOPY);
+
 }
 
 

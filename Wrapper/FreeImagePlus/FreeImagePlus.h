@@ -91,7 +91,7 @@ class FIP_API fipImage : public fipGenericImage
 protected:
 	/// DIB data
 	FIBITMAP *_dib;
-	/// Internal use
+	/// TRUE whenever the display need to be refreshed
 	BOOL _bHasChanged;
 
 public:
@@ -392,15 +392,83 @@ public:
 	BOOL dither(FREE_IMAGE_DITHER algorithm);
 	//@}
 
+	/**	@name Transparency support: background colour and alpha channel */
+	//@{
+
+	/**
+	Returns TRUE if the image is transparent, returns FALSE otherwise
+	@see FreeImage_IsTransparent
+	*/
+	BOOL isTransparent();
+
+	/**
+	@brief 8-bit transparency : get the number of transparent colors.
+
+	@return Returns the number of transparent colors in a palletised bitmap.
+	@see FreeImage_GetTransparencyCount
+	*/
+	unsigned getTransparencyCount();
+
+	/**
+	@brief 8-bit transparency : get the bitmap’s transparency table.
+
+	@return Returns a pointer to the bitmap’s transparency table.
+	@see FreeImage_GetTransparencyTable
+	*/
+	BYTE* getTransparencyTable();
+
+	/** 
+	@brief 8-bit transparency : set the bitmap’s transparency table.
+
+	@see FreeImage_SetTransparencyTable
+	*/
+	void setTransparencyTable(BYTE *table, int count);
+
+	/**
+	Returns TRUE when the image has a file background color, FALSE otherwise.
+	@see FreeImage_HasBackgroundColor
+	*/
+	BOOL hasFileBkColor();
+
+	/**
+	@brief Retrieves the file background color of an image. 
+	
+	For 8-bit images, the color index 
+	in the palette is returned in the rgbReserved member of the bkcolor parameter.
+	@return Returns TRUE if successful, FALSE otherwise. 
+	@see FreeImage_GetBackgroundColor
+	*/
+	BOOL getFileBkColor(RGBQUAD *bkcolor);
+
+	/**
+	@brief Set the file background color of an image. 
+	
+	When saving an image to PNG, this background color is transparently saved to the PNG file. 
+	When the bkcolor parameter is NULL, the background color is removed from the image.
+	@return Returns TRUE if successful, FALSE otherwise. 
+	@see FreeImage_SetBackgroundColor
+	*/
+	BOOL setFileBkColor(RGBQUAD *bkcolor);
+	//@}
+
 	/**@name Channel processing support */
 	//@{	
 	/** @brief Retrieves the red, green, blue or alpha channel of a 24- or 32-bit BGR[A] image. 
 	@param image Output image to be extracted
 	@param channel Color channel to extract
 	@return Returns TRUE if successful, FALSE otherwise.
-	@see FREE_IMAGE_COLOR_CHANNEL
+	@see FreeImage_GetChannel, FREE_IMAGE_COLOR_CHANNEL
 	*/
 	BOOL getChannel(fipImage& image, FREE_IMAGE_COLOR_CHANNEL channel);
+
+	/**
+	@brief Insert a 8-bit dib into a 24- or 32-bit image. 
+	@param image Input 8-bit image to insert
+	@param channel Color channel to replace
+	@return Returns TRUE if successful, FALSE otherwise.
+	@see FreeImage_SetChannel, FREE_IMAGE_COLOR_CHANNEL
+	*/
+	BOOL setChannel(fipImage& image, FREE_IMAGE_COLOR_CHANNEL channel);
 
 	/** @brief Split a 24-bit RGB image into 3 greyscale images corresponding to the red, green and blue channels.
 	@param RedChannel Output red channel.
@@ -411,40 +479,10 @@ public:
 	*/
 	BOOL splitChannels(fipImage& RedChannel, fipImage& GreenChannel, fipImage& BlueChannel);
 
-	/** @brief Retrieves the red channel of a 24-bit RGB image.
-	@param red Output red channel.
-	@return Returns TRUE if successful, FALSE otherwise.
-	*/
-	BOOL getRedChannel(fipImage& red);
-	
-	/** @brief Retrieves the green channel of a 24-bit RGB image.
-	@param green Output green channel.
-	@return Returns TRUE if successful, FALSE otherwise.
-	*/
-	BOOL getGreenChannel(fipImage& green);
-	
-	/** @brief Retrieves the blue channel of a 24-bit RGB image.
-	@param blue Output blue channel.
-	@return Returns TRUE if successful, FALSE otherwise.
-	*/
-	BOOL getBlueChannel(fipImage& blue);
-
-	/** @brief Retrieves the alpha channel of a 32-bit RGB image.
-	@param alpha Output alpha channel.
-	@return Returns TRUE if successful, FALSE otherwise.
-	*/
-	BOOL getAlphaChannel(fipImage& alpha);
-
-	/** @brief Set the alpha channel of a 32-bit RGB image.
-	@param alpha Input alpha channel.
-	@return Returns TRUE if successful, FALSE otherwise.
-	*/
-	BOOL setAlphaChannel(fipImage& alpha);
-
 	/** @brief Builds a 24-bit RGB image given its red, green and blue channel.
-	@param RedChannel Input red channel.
-	@param GreenChannel Input green channel.
-	@param BlueChannel Input blue channel.
+	@param red Input red channel.
+	@param green Input green channel.
+	@param blue Input blue channel.
 	@return Returns FALSE if the dib can't be allocated, if the input channels are not 8-bit images. Returns TRUE otherwise.
 	*/
 	BOOL combineChannels(fipImage& red, fipImage& green, fipImage& blue);
@@ -459,7 +497,6 @@ public:
 	@param y_shift Image vertical shift
 	@param x_origin Origin of the x-axis
 	@param y_origin Origin of the y-axis
-	@param spline_degree Degree of the B-spline model
 	@param use_mask Whether or not to mask the image. Image mirroring is applied when use_mask is set to FALSE
 	@return Returns the translated & rotated dib if successful, returns NULL otherwise
 	*/
@@ -651,10 +688,29 @@ public:
 
 	/** @brief Draw (stretch) the image on a HDC, using StretchDIBits.
 
+    When the image is transparent or has a file background, this function composite 
+	the foreground image against a checkerboard background image.
 	@param hDC Handle to the device context
 	@param rcDest Destination rectangle
+	@see FreeImage_Composite
 	*/
-	void draw(HDC hDC, RECT& rcDest);
+	void draw(HDC hDC, RECT& rcDest) {
+		drawEx(hDC, rcDest, FALSE, NULL, NULL);
+	}
+
+	/** @brief Draw (stretch) the image on a HDC, using StretchDIBits.
+
+    When the image is transparent or has a file background, this function can composite 
+	the foreground image against a checkerboard background image, against a single background color or 
+	against a user background image.
+	@param hDC Handle to the device context
+	@param rcDest Destination rectangle
+	@param useFileBkg When set to TRUE, the function uses the file color background if there is one
+	@param appBkColor When a color is given, the function uses it as the background color
+	@param bg When a FIBITMAP is given, the function uses it as the background image
+	@see FreeImage_Composite
+	*/
+	void drawEx(HDC hDC, RECT& rcDest, BOOL useFileBkg = FALSE, RGBQUAD *appBkColor = NULL, FIBITMAP *bg = NULL);
 
 	//@}
 

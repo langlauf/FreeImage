@@ -536,8 +536,8 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		FIBITMAP *dib = NULL;
 		BYTE *bits = NULL;		// pointer to dib data
 		RGBQUAD *pal = NULL;	// pointer to dib palette
-		void *iccBuf = NULL;
-		uint32 iccSize = 0;
+		uint32 iccSize = 0;		// ICC profile length
+		void *iccBuf = NULL;	// ICC profile data
     
 		try {			
 			tif = (TIFF *)data;
@@ -814,14 +814,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			// copy ICC profile data (must be done after FreeImage_Allocate)
 
-			FIICCPROFILE *iccProfile = FreeImage_GetICCProfile(dib);
-			if ((iccProfile->size = iccSize) && iccBuf) {
-				if (iccProfile->data = malloc(iccProfile->size)) {
-					memcpy (iccProfile->data, iccBuf, iccProfile->size);
-				} else {
-					iccProfile->size = 0;
-				}
-			} 
+			FreeImage_CreateICCProfile(dib, iccBuf, iccSize);
 
 			return (FIBITMAP *)dib;
 

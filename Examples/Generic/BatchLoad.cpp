@@ -31,7 +31,7 @@
 //
 //  Functions used in this sample : 
 //  FreeImage_GetFileType, FreeImage_GetFIFFromFilename, FreeImage_FIFSupportsReading, 
-//  FreeImage_Load, FreeImage_GetBPP, FreeImage_FIFSupportsWriting, 
+//  FreeImage_Load, FreeImage_GetBPP, FreeImage_FIFSupportsWriting, FreeImage_GetFormatFromFIF
 //  FreeImage_FIFSupportsExportBPP, FreeImage_Save, FreeImage_Unload,
 //  FreeImage_SetOutputMessage, FreeImage_GetVersion, FreeImage_GetCopyrightMessage
 //
@@ -106,8 +106,9 @@ bool GenericWriter(FIBITMAP* dib, const char* lpszPathName, int flag) {
 	@param fif Format / Plugin responsible for the error 
 	@param message Error message
 */
-void MyMessageFunc(FREE_IMAGE_FORMAT fif, const char *message) {
+void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
 	printf("\n*** "); 
+	printf("%s Format\n", FreeImage_GetFormatFromFIF(fif));
 	printf(message);
 	printf(" ***\n");
 }
@@ -118,7 +119,7 @@ void MyMessageFunc(FREE_IMAGE_FORMAT fif, const char *message) {
 #define MAX_PATH	260
 #endif
 
-int __cdecl
+int 
 main(int argc, char *argv[]) {
 
 	const char *input_dir = "d:\\images\\";
@@ -130,7 +131,7 @@ main(int argc, char *argv[]) {
 
 	// initialize your own FreeImage error handler
 
-	FreeImage_SetOutputMessage(MyMessageFunc);
+	FreeImage_SetOutputMessage(FreeImageErrorHandler);
 
 	// print version & copyright infos
 

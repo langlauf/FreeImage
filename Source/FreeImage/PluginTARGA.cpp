@@ -1,5 +1,5 @@
 // ==========================================================
-// TARGA Loader
+// TARGA Loader and Writer
 //
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
@@ -7,6 +7,7 @@
 // - Martin Weber (martweb@gmx.net)
 // - Machiel ten Brinke (brinkem@uni-one.nl)
 // - Peter Lemmens (peter.lemmens@planetinternet.be)
+// - Hervé Drolon (drolon@infonie.fr)
 //
 // This file is part of FreeImage 3
 //
@@ -217,8 +218,6 @@ Validate(FreeImageIO *io, fi_handle handle) {
 static BOOL DLL_CALLCONV
 SupportsExportDepth(int depth) {
 	return (
-			(depth == 1) ||
-			(depth == 4) ||
 			(depth == 8) ||
 			(depth == 16) ||
 			(depth == 24) ||
@@ -937,7 +936,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			header.color_map_type = 1;
 			header.image_type = TGA_CMAP;
 			header.cm_length = 1 << bpp;
-			header.cm_size = sizeof(RGBQUAD);
+			header.cm_size = sizeof(RGBTRIPLE);
 		} else {
 			header.color_map_type = 0;
 			header.image_type = TGA_RGB;
@@ -945,23 +944,34 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			header.cm_size = 0;
 		}
 
-		if (io->write_proc(&header, sizeof(header), 1, handle) != 1)
-			return FALSE;
+		// write the header
 
-		// write palette	
+		io->write_proc(&header, sizeof(header), 1, handle);
 
-		if (palette)
-			if (io->write_proc(palette, header.cm_length * sizeof(RGBQUAD), 1, handle) != 1)
-				return FALSE;			
+		// write the palette	
+
+		if (palette) {
+			RGBTRIPLE *rgb_pal = (RGBTRIPLE*)malloc(header.cm_length * sizeof(RGBTRIPLE));
+
+			for(int i = 0; i < header.cm_length; i++) {
+				rgb_pal[i].rgbtBlue  = palette[i].rgbBlue;
+				rgb_pal[i].rgbtGreen = palette[i].rgbGreen;
+				rgb_pal[i].rgbtRed   = palette[i].rgbRed;
+			}
+
+			io->write_proc(rgb_pal, header.cm_length * sizeof(RGBTRIPLE), 1, handle);
+
+			free(rgb_pal);
+		}
 
 		// write the data bits
 
-		int pitch = FreeImage_GetPitch(dib);
 		int line = FreeImage_GetLine(dib);
 
-		for (int i = 0; i < header.is_height; ++i)
-			if (io->write_proc(FreeImage_GetBits(dib) + i * pitch, line, 1, handle) != 1)
-				return FALSE;
+		for (int i = 0; i < header.is_height; ++i) {
+			BYTE *bits = FreeImage_GetScanLine(dib, i);
+			io->write_proc(bits, line, 1, handle);
+		}
 
 		// write the TARGA signature
 
@@ -970,8 +980,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		footer.extension_offset = 0;
 		strcpy(footer.signature, "TRUEVISION-XFILE.");
 
-		if (io->write_proc(&footer, sizeof(footer), 1, handle) != 1)
-			return FALSE;
+		io->write_proc(&footer, sizeof(footer), 1, handle);
 
 		return TRUE;
 	}

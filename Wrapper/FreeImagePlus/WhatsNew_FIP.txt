@@ -5,18 +5,37 @@ What's New for FreeImagePlus
 ! : changed
 + : added
 
-January 26th, 2004
-+ [Herve Drolon] added fipMemoryIO
-+ [Herve Drolon] added fipInternetIO (WIN32 only)
-+ [Herve Drolon] added fipImage::getImageType
-+ [Herve Drolon] added fipImage::convertToType
-+ [Herve Drolon] added fipWinImage::copyToClipboard
-+ [Herve Drolon] added fipWinImage::pasteFromClipboard
-+ [Herve Drolon] added fipWinImage::captureWindow
+February 11th, 2004
+[Herve Drolon]
+- removed fipImage::getRedChannel
+- removed fipImage::getGreenChannel
+- removed fipImage::getBlueChannel
+- removed fipImage::getAlphaChannel
+- removed fipImage::setAlphaChannel
++ added fipImage::setChannel
++ added fipImage::isTransparent
++ added fipImage::getTransparencyCount
++ added fipImage::getTransparencyTable
++ added fipImage::setTransparencyTable
++ added fipImage::hasFileBkColor
++ added fipImage::getFileBkColor
++ added fipImage::setFileBkColor
++ added fipWinImage::drawEx
+! fipWinImage::draw now works with transparent images
 
-! [Herve Drolon] changed fipImage constructor
-! [Herve Drolon] fipWinImage::copyFromHandle now returns a BOOL
-! [Herve Drolon] fipWinImage::copyFromBitmap now returns a BOOL
+January 26th, 2004
+[Herve Drolon]
++ added fipMemoryIO
++ added fipInternetIO (WIN32 only)
++ added fipImage::getImageType
++ added fipImage::convertToType
++ added fipWinImage::copyToClipboard
++ added fipWinImage::pasteFromClipboard
++ added fipWinImage::captureWindow
+
+! changed fipImage constructor
+! fipWinImage::copyFromHandle now returns a BOOL
+! fipWinImage::copyFromBitmap now returns a BOOL
 
 November 2, 2003
 + [Herve Drolon] added fipImage::getScanLine

@@ -31,46 +31,49 @@ Copy / Paste a DIB to/from Windows devices (HANDLE, HBITMAP, Clipboard) </li>
 <tr><td></td></tr>
 <tr><td colspan=2><br><h2>Public Member Functions</h2></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Creation &amp; Destruction</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z29_0">fipWinImage</a> (FREE_IMAGE_TYPE image_type=FIT_BITMAP, WORD width=0, WORD height=0, WORD bpp=0)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z31_0">fipWinImage</a> (FREE_IMAGE_TYPE image_type=FIT_BITMAP, WORD width=0, WORD height=0, WORD bpp=0)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Constructor. </em> <a href="#z29_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z29_1">~fipWinImage</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Constructor. </em> <a href="#z31_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z31_1">~fipWinImage</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor. </em> <a href="#z29_1"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor. </em> <a href="#z31_1"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Copying</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z31_0">fipWinImage</a> (const  <a class="el" href="classfipImage.html">fipImage</a> &amp;Img)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z33_0">fipWinImage</a> (const  <a class="el" href="classfipImage.html">fipImage</a> &amp;Img)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z31_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z31_1">fipWinImage</a> (const  FIBITMAP *dib)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z33_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z33_1">fipWinImage</a> (const  FIBITMAP *dib)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z31_1"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>HANDLE&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z31_2">copyToHandle</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor. </em> <a href="#z33_1"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>HANDLE&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z33_2">copyToHandle</a> ()</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Clone function used for clipboard copy.<br>
- Convert the FIBITMAP image to a DIB, and transfer the DIB in a global bitmap handle. </em> <a href="#z31_2"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z31_3">copyFromHandle</a> (HANDLE hMem)</td></tr>
+ Convert the FIBITMAP image to a DIB, and transfer the DIB in a global bitmap handle. </em> <a href="#z33_2"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z33_3">copyFromHandle</a> (HANDLE hMem)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor used for clipboard paste.<br>
- Converts a global object to a FIBITMAP. </em> <a href="#z31_3"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z31_4">copyFromBitmap</a> (HBITMAP hbmp)</td></tr>
+ Converts a global object to a FIBITMAP. </em> <a href="#z33_3"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z33_4">copyFromBitmap</a> (HBITMAP hbmp)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copy constructor.<br>
- Converts a HBITMAP object to a FIBITMAP. </em> <a href="#z31_4"></a><em><br><br></td></tr>
+ Converts a HBITMAP object to a FIBITMAP. </em> <a href="#z33_4"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Clipboard operations</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z33_0">copyToClipboard</a> (HWND hWndNewOwner)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z35_0">copyToClipboard</a> (HWND hWndNewOwner)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Clipboard copy. </em> <a href="#z33_0"></a><em><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z33_1">pasteFromClipboard</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Clipboard copy. </em> <a href="#z35_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z35_1">pasteFromClipboard</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves data from the clipboard. </em> <a href="#z33_1"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieves data from the clipboard. </em> <a href="#z35_1"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Screen capture</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z35_0">captureWindow</a> (HWND hWndApplicationWindow, HWND hWndSelectedWindow)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>BOOL&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z37_0">captureWindow</a> (HWND hWndApplicationWindow, HWND hWndSelectedWindow)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capture a window and convert it to an image. </em> <a href="#z35_0"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capture a window and convert it to an image. </em> <a href="#z37_0"></a><em><br><br></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Painting operations</div></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z37_0">draw</a> (HDC hDC, RECT &amp;rcDest)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z39_0">draw</a> (HDC hDC, RECT &amp;rcDest)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Draw (stretch) the image on a HDC, using StretchDIBits. </em> <a href="#z37_0"></a><em><br><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Draw (stretch) the image on a HDC, using StretchDIBits. </em> <a href="#z39_0"></a><em><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#z39_1">drawEx</a> (HDC hDC, RECT &amp;rcDest, BOOL useFileBkg=FALSE, RGBQUAD *appBkColor=NULL, FIBITMAP *bg=NULL)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Draw (stretch) the image on a HDC, using StretchDIBits. </em> <a href="#z39_1"></a><em><br><br></td></tr>
 <tr><td colspan=2><br><h2>Protected Attributes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>FIBITMAP *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classfipWinImage.html#p0">_display_dib</a></td></tr>
 
@@ -80,7 +83,7 @@ Copy / Paste a DIB to/from Windows devices (HANDLE, HBITMAP, Clipboard) </li>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">remember to delete _display_dib </em> <a href="#p1"></a><em><br><br></td></tr>
 </table>
 <hr><h2>Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" name="z29_0" doxytag="fipWinImage::fipWinImage" ></a><p>
+<a class="anchor" name="z31_0" doxytag="fipWinImage::fipWinImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -132,7 +135,7 @@ Constructor.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z29_1" doxytag="fipWinImage::~fipWinImage" ></a><p>
+<a class="anchor" name="z31_1" doxytag="fipWinImage::~fipWinImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -162,7 +165,7 @@ Destructor.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z31_0" doxytag="fipWinImage::fipWinImage" ></a><p>
+<a class="anchor" name="z33_0" doxytag="fipWinImage::fipWinImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -193,7 +196,7 @@ Copy constructor.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z31_1" doxytag="fipWinImage::fipWinImage" ></a><p>
+<a class="anchor" name="z33_1" doxytag="fipWinImage::fipWinImage" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -225,7 +228,7 @@ Copy constructor.
   </tr>
 </table>
 <hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="z35_0" doxytag="fipWinImage::captureWindow" ></a><p>
+<a class="anchor" name="z37_0" doxytag="fipWinImage::captureWindow" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -272,7 +275,7 @@ Capture a window and convert it to an image.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z31_4" doxytag="fipWinImage::copyFromBitmap" ></a><p>
+<a class="anchor" name="z33_4" doxytag="fipWinImage::copyFromBitmap" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -305,7 +308,7 @@ Copy constructor.<br>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z31_3" doxytag="fipWinImage::copyFromHandle" ></a><p>
+<a class="anchor" name="z33_3" doxytag="fipWinImage::copyFromHandle" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -338,7 +341,7 @@ The clipboard format must be CF_DIB. <dl compact><dt><b>Returns:</b></dt><dd>Ret
     </td>
   </tr>
 </table>
-<a class="anchor" name="z33_0" doxytag="fipWinImage::copyToClipboard" ></a><p>
+<a class="anchor" name="z35_0" doxytag="fipWinImage::copyToClipboard" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -375,7 +378,7 @@ Clipboard copy.
     </td>
   </tr>
 </table>
-<a class="anchor" name="z31_2" doxytag="fipWinImage::copyToHandle" ></a><p>
+<a class="anchor" name="z33_2" doxytag="fipWinImage::copyToHandle" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -406,7 +409,7 @@ Clone function used for clipboard copy.<br>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z37_0" doxytag="fipWinImage::draw" ></a><p>
+<a class="anchor" name="z39_0" doxytag="fipWinImage::draw" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -422,6 +425,71 @@ Clone function used for clipboard copy.<br>
           <td></td>
           <td class="md" nowrap>RECT &amp;&nbsp;</td>
           <td class="mdname" nowrap> <em>rcDest</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"><code> [inline]</code></td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Draw (stretch) the image on a HDC, using StretchDIBits. 
+<p>
+When the image is transparent or has a file background, this function composite the foreground image against a checkerboard background image. <dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign=top><em>hDC</em>&nbsp;</td><td>Handle to the device context </td></tr>
+    <tr><td valign=top><em>rcDest</em>&nbsp;</td><td>Destination rectangle </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>See also:</b></dt><dd>FreeImage_Composite</dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="z39_1" doxytag="fipWinImage::drawEx" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> void fipWinImage::drawEx </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">HDC&nbsp;</td>
+          <td class="mdname" nowrap> <em>hDC</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>RECT &amp;&nbsp;</td>
+          <td class="mdname" nowrap> <em>rcDest</em>, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>BOOL&nbsp;</td>
+          <td class="mdname" nowrap> <em>useFileBkg</em> = FALSE, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>RGBQUAD *&nbsp;</td>
+          <td class="mdname" nowrap> <em>appBkColor</em> = NULL, </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td class="md" nowrap>FIBITMAP *&nbsp;</td>
+          <td class="mdname" nowrap> <em>bg</em> = NULL</td>
         </tr>
         <tr>
           <td></td>
@@ -443,16 +511,20 @@ Clone function used for clipboard copy.<br>
 <p>
 Draw (stretch) the image on a HDC, using StretchDIBits. 
 <p>
-<dl compact><dt><b>Parameters:</b></dt><dd>
+When the image is transparent or has a file background, this function can composite the foreground image against a checkerboard background image, against a single background color or against a user background image. <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign=top><em>hDC</em>&nbsp;</td><td>Handle to the device context </td></tr>
-    <tr><td valign=top><em>rcDest</em>&nbsp;</td><td>Destination rectangle</td></tr>
+    <tr><td valign=top><em>rcDest</em>&nbsp;</td><td>Destination rectangle </td></tr>
+    <tr><td valign=top><em>useFileBkg</em>&nbsp;</td><td>When set to TRUE, the function uses the file color background if there is one </td></tr>
+    <tr><td valign=top><em>appBkColor</em>&nbsp;</td><td>When a color is given, the function uses it as the background color </td></tr>
+    <tr><td valign=top><em>bg</em>&nbsp;</td><td>When a FIBITMAP is given, the function uses it as the background image </td></tr>
   </table>
 </dl>
+<dl compact><dt><b>See also:</b></dt><dd>FreeImage_Composite</dd></dl>
     </td>
   </tr>
 </table>
-<a class="anchor" name="z33_1" doxytag="fipWinImage::pasteFromClipboard" ></a><p>
+<a class="anchor" name="z35_1" doxytag="fipWinImage::pasteFromClipboard" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">

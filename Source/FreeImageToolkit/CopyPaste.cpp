@@ -81,7 +81,7 @@ Combine8(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 	}
 
 	// check the size of src image
-	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) ||	(y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
+	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) || (y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
 		return FALSE;
 	}
 
@@ -123,7 +123,7 @@ Combine16_555(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) 
 	}
 
 	// check the size of src image
-	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) ||	(y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
+	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) || (y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
 		return FALSE;
 	}
 
@@ -183,7 +183,7 @@ Combine16_565(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) 
 	}
 
 	// check the size of src image
-	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) ||	(y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
+	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) || (y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
 		return FALSE;
 	}
 
@@ -247,7 +247,7 @@ Combine24(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 	}
 
 	// check the size of src image
-	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) ||	(y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
+	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) || (y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
 		return FALSE;
 	}
 
@@ -289,7 +289,7 @@ Combine32(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 	}
 
 	// check the size of src image
-	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) ||	(y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
+	if((x + FreeImage_GetWidth(src_dib) > FreeImage_GetWidth(dst_dib)) || (y + FreeImage_GetHeight(src_dib) > FreeImage_GetHeight(dst_dib))) {
 		return FALSE;
 	}
 
@@ -454,7 +454,7 @@ FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, int left, int top, int alpha) {
 	if(!src || !dst) return FALSE;
 
 	// check the size of src image
-	if((left + FreeImage_GetWidth(src) > FreeImage_GetWidth(dst)) ||	(top + FreeImage_GetHeight(src) > FreeImage_GetHeight(dst))) {
+	if((left + FreeImage_GetWidth(src) > FreeImage_GetWidth(dst)) || (top + FreeImage_GetHeight(src) > FreeImage_GetHeight(dst))) {
 		return FALSE;
 	}
 

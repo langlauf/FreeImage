@@ -1,8 +1,8 @@
 /*
  * Warning, this file was automatically created by the TIFF configure script
- * VERSION:	 v3.6.0
+ * VERSION:	 v3.6.1
  * RELEASE:   
- * DATE:	 dim oct 26 19:14:14 CET 2003
+ * DATE:	 mer fév 18 20:38:40 CET 2004
  * TARGET:	 i686-pc-linux-gnu
  * CCOMPILER:	 /usr/bin/gcc-3.2.2-5)
  */

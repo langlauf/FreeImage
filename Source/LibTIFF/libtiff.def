@@ -14,6 +14,7 @@ EXPORTS TIFFOpen
 	TIFFScanlineSize
 	TIFFStripSize
 	TIFFVStripSize
+	TIFFRawStripSize
 	TIFFTileRowSize
 	TIFFTileSize
 	TIFFVTileSize
@@ -21,6 +22,11 @@ EXPORTS TIFFOpen
 	TIFFGetMode
 	TIFFIsTiled
 	TIFFIsByteSwapped
+	TIFFCIELabToRGBInit
+	TIFFCIELabToXYZ
+	TIFFXYZToRGB
+	TIFFYCbCrToRGBInit
+	TIFFYCbCrtoRGB
 	TIFFCurrentRow
 	TIFFCurrentDirectory
 	TIFFCurrentStrip
@@ -40,6 +46,7 @@ EXPORTS TIFFOpen
 	TIFFReadScanline
 	TIFFWriteScanline
 	TIFFReadRGBAImage
+	TIFFReadRGBAImageOriented
 	TIFFPrintDirectory
 	TIFFReadScanline
 	TIFFWriteScanline

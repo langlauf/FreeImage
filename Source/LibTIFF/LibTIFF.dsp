@@ -101,6 +101,10 @@ SOURCE=.\tif_codec.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\tif_color.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\tif_compress.c
 # End Source File
 # Begin Source File

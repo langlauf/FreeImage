@@ -35,6 +35,7 @@ dist: FreeImage
 	cp *.a Dist
 	cp *.so Dist
 	cp Source/FreeImage.h Dist
+	cp Wrapper/FreeImagePlus/FreeImagePlus.h Dist
 
 dos2unix:
 	@$(DOS2UNIX) $(SRCS)

@@ -112,7 +112,7 @@ void PrintExportFormats(iostream& ios) {
 	}
 }
 
-int __cdecl
+int 
 main(int argc, char *argv[]) {
 	// call this ONLY when linking with FreeImage as a static library
 	//FreeImage_Initialise();

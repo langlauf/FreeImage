@@ -4,6 +4,7 @@
 // Design and implementation by
 // - Floris van den Berg (flvdberg@wxs.nl)
 // - Laurent Rocher (rocherl@club-internet.fr)
+// - Steve Johnson (steve@parisgroup.net)
 //
 // This file is part of FreeImage 3
 //
@@ -81,7 +82,7 @@ FI_STRUCT (MULTIBITMAPHEADER) {
 	BOOL changed;
 	int page_count;
 	BlockList m_blocks;
-	const char *m_filename;
+	char *m_filename;
 	BOOL read_only;
 };
 
@@ -243,7 +244,8 @@ FreeImage_OpenMultiBitmap(FREE_IMAGE_FORMAT fif, const char *filename, BOOL crea
 					if (bitmap) {
 						MULTIBITMAPHEADER *header = new MULTIBITMAPHEADER;
 
-						header->m_filename = filename;
+						header->m_filename = new char[strlen(filename) + 1];
+						strcpy(header->m_filename, filename);
 						header->node = node;
 						header->fif = fif;
 						header->io = io;
@@ -434,6 +436,10 @@ FreeImage_CloseMultiBitmap(FIMULTIBITMAP *bitmap, int flags) {
 
 			delete header->io;
 
+			// delete the filename
+
+			delete[] header->m_filename;
+
 			// delete the FIMULTIBITMAPHEADER
 
 			delete (BYTE*)bitmap->data;
@@ -529,7 +535,7 @@ FreeImage_InsertPage(FIMULTIBITMAP *bitmap, int page, FIBITMAP *data) {
 				// add a block
 
 				if (page > 0) {
-					BlockListIterator block_source = FreeImage_FindBlock(bitmap, page - 1);
+					BlockListIterator block_source = FreeImage_FindBlock(bitmap, page + 1);
 
 					BlockReference *block = new BlockReference(ref, compressed_size, size);
 
