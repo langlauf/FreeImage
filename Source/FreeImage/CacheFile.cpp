@@ -249,6 +249,7 @@ CacheFile::writeFile(BYTE *data, int size) {
 			Block *block = lockBlock(copy_alloc);
 
 			block->next = 0;
+
 			memcpy(block->data, data + s, (s + block_size > size) ? size - s : block_size);
 
 			if (count + 1 < nr_blocks_required)

@@ -3,14 +3,448 @@
 <pre>
 <h1>Build Log</h1>
 <h3>
---------------------Configuration: FreeImage - Win32 Release--------------------
+--------------------Configuration: LibPNG - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19A.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\zlib" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"Debug/LibPNG.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\FreeImage\Source\LibPNG\pngrutil.c"
+"E:\FreeImage\Source\LibPNG\pngset.c"
+"E:\FreeImage\Source\LibPNG\pngtrans.c"
+"E:\FreeImage\Source\LibPNG\pngvcrd.c"
+"E:\FreeImage\Source\LibPNG\pngwio.c"
+"E:\FreeImage\Source\LibPNG\pngwrite.c"
+"E:\FreeImage\Source\LibPNG\pngwtran.c"
+"E:\FreeImage\Source\LibPNG\pngwutil.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19A.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19B.tmp" with contents
+[
+/nologo /out:"Debug\LibPNG.lib" 
+.\Debug\png.obj
+.\Debug\pngerror.obj
+.\Debug\pnggccrd.obj
+.\Debug\pngget.obj
+.\Debug\pngmem.obj
+.\Debug\pngpread.obj
+.\Debug\pngread.obj
+.\Debug\pngrio.obj
+.\Debug\pngrtran.obj
+.\Debug\pngrutil.obj
+.\Debug\pngset.obj
+.\Debug\pngtrans.obj
+.\Debug\pngvcrd.obj
+.\Debug\pngwio.obj
+.\Debug\pngwrite.obj
+.\Debug\pngwtran.obj
+.\Debug\pngwutil.obj
+]
+Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19B.tmp"
+<h3>Output Window</h3>
+Compiling...
+pngrutil.c
+pngset.c
+pngtrans.c
+pngvcrd.c
+pngwio.c
+pngwrite.c
+pngwtran.c
+pngwutil.c
+Creating library...
+<h3>
+--------------------Configuration: LibTIFF - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19C.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\libtiff\libtiff" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"Debug/LibTIFF.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\FreeImage\Source\LibTIFF\fax3sm_winnt.c"
+"E:\FreeImage\Source\LibTIFF\tif_aux.c"
+"E:\FreeImage\Source\LibTIFF\tif_close.c"
+"E:\FreeImage\Source\LibTIFF\tif_codec.c"
+"E:\FreeImage\Source\LibTIFF\tif_compress.c"
+"E:\FreeImage\Source\LibTIFF\tif_dir.c"
+"E:\FreeImage\Source\LibTIFF\tif_dirinfo.c"
+"E:\FreeImage\Source\LibTIFF\tif_dirread.c"
+"E:\FreeImage\Source\LibTIFF\tif_dirwrite.c"
+"E:\FreeImage\Source\LibTIFF\tif_dumpmode.c"
+"E:\FreeImage\Source\LibTIFF\tif_error.c"
+"E:\FreeImage\Source\LibTIFF\tif_fax3.c"
+"E:\FreeImage\Source\LibTIFF\tif_flush.c"
+"E:\FreeImage\Source\LibTIFF\tif_getimage.c"
+"E:\FreeImage\Source\LibTIFF\tif_jpeg.c"
+"E:\FreeImage\Source\LibTIFF\tif_luv.c"
+"E:\FreeImage\Source\LibTIFF\tif_lzw.c"
+"E:\FreeImage\Source\LibTIFF\tif_next.c"
+"E:\FreeImage\Source\LibTIFF\tif_open.c"
+"E:\FreeImage\Source\LibTIFF\tif_packbits.c"
+"E:\FreeImage\Source\LibTIFF\tif_pixarlog.c"
+"E:\FreeImage\Source\LibTIFF\tif_predict.c"
+"E:\FreeImage\Source\LibTIFF\tif_print.c"
+"E:\FreeImage\Source\LibTIFF\tif_read.c"
+"E:\FreeImage\Source\LibTIFF\tif_strip.c"
+"E:\FreeImage\Source\LibTIFF\tif_swab.c"
+"E:\FreeImage\Source\LibTIFF\tif_thunder.c"
+"E:\FreeImage\Source\LibTIFF\tif_tile.c"
+"E:\FreeImage\Source\LibTIFF\tif_version.c"
+"E:\FreeImage\Source\LibTIFF\tif_warning.c"
+"E:\FreeImage\Source\LibTIFF\tif_write.c"
+"E:\FreeImage\Source\LibTIFF\tif_zip.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19C.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19D.tmp" with contents
+[
+/nologo /out:"Debug\LibTIFF.lib" 
+.\Debug\fax3sm_winnt.obj
+.\Debug\tif_aux.obj
+.\Debug\tif_close.obj
+.\Debug\tif_codec.obj
+.\Debug\tif_compress.obj
+.\Debug\tif_dir.obj
+.\Debug\tif_dirinfo.obj
+.\Debug\tif_dirread.obj
+.\Debug\tif_dirwrite.obj
+.\Debug\tif_dumpmode.obj
+.\Debug\tif_error.obj
+.\Debug\tif_fax3.obj
+.\Debug\tif_flush.obj
+.\Debug\tif_getimage.obj
+.\Debug\tif_jpeg.obj
+.\Debug\tif_luv.obj
+.\Debug\tif_lzw.obj
+.\Debug\tif_next.obj
+.\Debug\tif_open.obj
+.\Debug\tif_packbits.obj
+.\Debug\tif_pixarlog.obj
+.\Debug\tif_predict.obj
+.\Debug\tif_print.obj
+.\Debug\tif_read.obj
+.\Debug\tif_strip.obj
+.\Debug\tif_swab.obj
+.\Debug\tif_thunder.obj
+.\Debug\tif_tile.obj
+.\Debug\tif_version.obj
+.\Debug\tif_warning.obj
+.\Debug\tif_write.obj
+.\Debug\tif_zip.obj
+]
+Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19D.tmp"
+<h3>Output Window</h3>
+Compiling...
+fax3sm_winnt.c
+tif_aux.c
+tif_close.c
+tif_codec.c
+tif_compress.c
+tif_dir.c
+tif_dirinfo.c
+tif_dirread.c
+tif_dirwrite.c
+tif_dumpmode.c
+tif_error.c
+tif_fax3.c
+tif_flush.c
+tif_getimage.c
+tif_jpeg.c
+tif_luv.c
+tif_lzw.c
+tif_next.c
+tif_open.c
+tif_packbits.c
+tif_pixarlog.c
+tif_predict.c
+tif_print.c
+tif_read.c
+tif_strip.c
+tif_swab.c
+tif_thunder.c
+tif_tile.c
+tif_version.c
+tif_warning.c
+tif_write.c
+tif_zip.c
+Creating library...
+<h3>
+--------------------Configuration: ZLib - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19E.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"Debug/ZLib.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\FreeImage\Source\ZLib\adler32.c"
+"E:\FreeImage\Source\ZLib\compress.c"
+"E:\FreeImage\Source\ZLib\crc32.c"
+"E:\FreeImage\Source\ZLib\deflate.c"
+"E:\FreeImage\Source\ZLib\gzio.c"
+"E:\FreeImage\Source\ZLib\infblock.c"
+"E:\FreeImage\Source\ZLib\infcodes.c"
+"E:\FreeImage\Source\ZLib\inffast.c"
+"E:\FreeImage\Source\ZLib\inflate.c"
+"E:\FreeImage\Source\ZLib\inftrees.c"
+"E:\FreeImage\Source\ZLib\infutil.c"
+"E:\FreeImage\Source\ZLib\trees.c"
+"E:\FreeImage\Source\ZLib\uncompr.c"
+"E:\FreeImage\Source\ZLib\zutil.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19E.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19F.tmp" with contents
+[
+/nologo /out:"Debug\ZLib.lib" 
+.\Debug\adler32.obj
+.\Debug\compress.obj
+.\Debug\crc32.obj
+.\Debug\deflate.obj
+.\Debug\gzio.obj
+.\Debug\infblock.obj
+.\Debug\infcodes.obj
+.\Debug\inffast.obj
+.\Debug\inflate.obj
+.\Debug\inftrees.obj
+.\Debug\infutil.obj
+.\Debug\trees.obj
+.\Debug\uncompr.obj
+.\Debug\zutil.obj
+]
+Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP19F.tmp"
+<h3>Output Window</h3>
+Compiling...
+adler32.c
+compress.c
+crc32.c
+deflate.c
+gzio.c
+infblock.c
+infcodes.c
+inffast.c
+inflate.c
+inftrees.c
+infutil.c
+trees.c
+uncompr.c
+zutil.c
+Creating library...
+<h3>
+--------------------Configuration: LibMNG - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A0.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\Zlib" /I "..\libjpeg" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"Debug/LibMNG.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\FreeImage\Source\LibMNG\libmng_callback_xs.c"
+"E:\FreeImage\Source\LibMNG\libmng_chunk_io.c"
+"E:\FreeImage\Source\LibMNG\libmng_chunk_prc.c"
+"E:\FreeImage\Source\LibMNG\libmng_chunk_xs.c"
+"E:\FreeImage\Source\LibMNG\libmng_cms.c"
+"E:\FreeImage\Source\LibMNG\libmng_display.c"
+"E:\FreeImage\Source\LibMNG\libmng_dither.c"
+"E:\FreeImage\Source\LibMNG\libmng_error.c"
+"E:\FreeImage\Source\LibMNG\libmng_filter.c"
+"E:\FreeImage\Source\LibMNG\libmng_hlapi.c"
+"E:\FreeImage\Source\LibMNG\libmng_jpeg.c"
+"E:\FreeImage\Source\LibMNG\libmng_object_prc.c"
+"E:\FreeImage\Source\LibMNG\libmng_pixels.c"
+"E:\FreeImage\Source\LibMNG\libmng_prop_xs.c"
+"E:\FreeImage\Source\LibMNG\libmng_read.c"
+"E:\FreeImage\Source\LibMNG\libmng_trace.c"
+"E:\FreeImage\Source\LibMNG\libmng_write.c"
+"E:\FreeImage\Source\LibMNG\libmng_zlib.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A0.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A1.tmp" with contents
+[
+/nologo /out:"Debug\LibMNG.lib" 
+.\Debug\libmng_callback_xs.obj
+.\Debug\libmng_chunk_io.obj
+.\Debug\libmng_chunk_prc.obj
+.\Debug\libmng_chunk_xs.obj
+.\Debug\libmng_cms.obj
+.\Debug\libmng_display.obj
+.\Debug\libmng_dither.obj
+.\Debug\libmng_error.obj
+.\Debug\libmng_filter.obj
+.\Debug\libmng_hlapi.obj
+.\Debug\libmng_jpeg.obj
+.\Debug\libmng_object_prc.obj
+.\Debug\libmng_pixels.obj
+.\Debug\libmng_prop_xs.obj
+.\Debug\libmng_read.obj
+.\Debug\libmng_trace.obj
+.\Debug\libmng_write.obj
+.\Debug\libmng_zlib.obj
+\FreeImage\Source\ZLib\Debug\ZLib.lib
+]
+Creating command line "link.exe -lib @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A1.tmp"
+<h3>Output Window</h3>
+Compiling...
+libmng_callback_xs.c
+libmng_chunk_io.c
+libmng_chunk_prc.c
+libmng_chunk_xs.c
+libmng_cms.c
+libmng_display.c
+libmng_dither.c
+libmng_error.c
+libmng_filter.c
+libmng_hlapi.c
+libmng_jpeg.c
+libmng_object_prc.c
+libmng_pixels.c
+libmng_prop_xs.c
+libmng_read.c
+libmng_trace.c
+libmng_write.c
+libmng_zlib.c
+Creating library...
+<h3>
+--------------------Configuration: FreeImage - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A2.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /I "Source" /I "Source\ZLib" /I "Source\DeprecationManager" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREEIMAGE_EXPORTS" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\FreeImage\SOURCE\FreeImage\Plugin.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginBMP.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginCUT.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginICO.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginIFF.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginJPEG.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginKOALA.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginMNG.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginPCD.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginPCX.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginPNG.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginPNM.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginPSD.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginRAS.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginTARGA.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginTIFF.cpp"
+"E:\FreeImage\SOURCE\FreeImage\PluginWBMP.cpp"
+"E:\FreeImage\SOURCE\FreeImage\Conversion.cpp"
+"E:\FreeImage\SOURCE\FreeImage\Conversion16_555.cpp"
+"E:\FreeImage\SOURCE\FreeImage\Conversion16_565.cpp"
+"E:\FreeImage\SOURCE\FreeImage\Conversion24.cpp"
+"E:\FreeImage\SOURCE\FreeImage\Conversion32.cpp"
+"E:\FreeImage\SOURCE\FreeImage\Conversion8.cpp"
+"E:\FreeImage\SOURCE\FreeImage\NNQuantizer.cpp"
+"E:\FreeImage\SOURCE\FreeImage\WuQuantizer.cpp"
+"E:\FreeImage\SOURCE\DeprecationManager\DeprecationMgr.cpp"
+"E:\FreeImage\SOURCE\FreeImage\CacheFile.cpp"
+"E:\FreeImage\SOURCE\FreeImage\MultiPage.cpp"
+"E:\FreeImage\SOURCE\FreeImage\BitmapAccess.cpp"
+"E:\FreeImage\SOURCE\FreeImage\FreeImage.cpp"
+"E:\FreeImage\Source\FreeImage\FreeImageC.c"
+"E:\FreeImage\SOURCE\FreeImage\FreeImageIO.cpp"
+"E:\FreeImage\SOURCE\FreeImage\GetType.cpp"
+"E:\FreeImage\SOURCE\FreeImage\LoadFunctions.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A2.tmp" 
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A3.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"Debug/FreeImaged.pdb" /debug /machine:I386 /out:"Debug/FreeImaged.dll" /implib:"Debug/FreeImaged.lib" /pdbtype:sept 
+.\Debug\Plugin.obj
+.\Debug\PluginBMP.obj
+.\Debug\PluginCUT.obj
+.\Debug\PluginICO.obj
+.\Debug\PluginIFF.obj
+.\Debug\PluginJPEG.obj
+.\Debug\PluginKOALA.obj
+.\Debug\PluginMNG.obj
+.\Debug\PluginPCD.obj
+.\Debug\PluginPCX.obj
+.\Debug\PluginPNG.obj
+.\Debug\PluginPNM.obj
+.\Debug\PluginPSD.obj
+.\Debug\PluginRAS.obj
+.\Debug\PluginTARGA.obj
+.\Debug\PluginTIFF.obj
+.\Debug\PluginWBMP.obj
+.\Debug\Conversion.obj
+.\Debug\Conversion16_555.obj
+.\Debug\Conversion16_565.obj
+.\Debug\Conversion24.obj
+.\Debug\Conversion32.obj
+.\Debug\Conversion8.obj
+.\Debug\NNQuantizer.obj
+.\Debug\WuQuantizer.obj
+.\Debug\DeprecationMgr.obj
+.\Debug\CacheFile.obj
+.\Debug\MultiPage.obj
+.\Debug\BitmapAccess.obj
+.\Debug\FreeImage.obj
+.\Debug\FreeImageC.obj
+.\Debug\FreeImageIO.obj
+.\Debug\GetType.obj
+.\Debug\LoadFunctions.obj
+.\Source\LibJPEG\Debug\LibJPEG.lib
+.\Source\LibPNG\Debug\LibPNG.lib
+.\Source\LibTIFF\Debug\LibTIFF.lib
+.\Source\ZLib\Debug\ZLib.lib
+.\Source\LibMNG\Debug\LibMNG.lib
+]
+Creating command line "link.exe @C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A3.tmp"
+<h3>Output Window</h3>
+Compiling...
+Plugin.cpp
+PluginBMP.cpp
+PluginCUT.cpp
+PluginICO.cpp
+PluginIFF.cpp
+PluginJPEG.cpp
+PluginKOALA.cpp
+PluginMNG.cpp
+PluginPCD.cpp
+PluginPCX.cpp
+PluginPNG.cpp
+PluginPNM.cpp
+PluginPSD.cpp
+PluginRAS.cpp
+PluginTARGA.cpp
+PluginTIFF.cpp
+PluginWBMP.cpp
+Conversion.cpp
+Conversion16_555.cpp
+Conversion16_565.cpp
+Generating Code...
+Compiling...
+Conversion24.cpp
+Conversion32.cpp
+Conversion8.cpp
+NNQuantizer.cpp
+WuQuantizer.cpp
+DeprecationMgr.cpp
+CacheFile.cpp
+MultiPage.cpp
+BitmapAccess.cpp
+FreeImage.cpp
+Generating Code...
+Compiling...
+FreeImageC.c
+Generating Code...
+Compiling...
+FreeImageIO.cpp
+GetType.cpp
+LoadFunctions.cpp
+Generating Code...
+Linking...
+   Creating library Debug/FreeImaged.lib and object Debug/FreeImaged.exp
+Creating temporary file "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A7.bat" with contents
+[
+@echo off
+copy Debug\FreeImaged.dll Dist
+copy Debug\FreeImaged.lib Dist
+copy Source\FreeImage.h Dist
+]
+Creating command line "C:\DOCUME~1\Floris\LOCALS~1\Temp\RSP1A7.bat"
+
+        1 bestand(en) gekopieerd.
+        1 bestand(en) gekopieerd.
+        1 bestand(en) gekopieerd.
 
 
 
 <h3>Results</h3>
-FreeImage.dll - 0 error(s), 0 warning(s)
+FreeImaged.dll - 0 error(s), 0 warning(s)
 </pre>
 </body>
 </html>

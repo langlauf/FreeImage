@@ -137,9 +137,7 @@ FreeImage_FindBlock(FIMULTIBITMAP *bitmap, int position) {
 		if ((current_block) && (count >= position)) {
 			switch(current_block->m_type) {
 				case BLOCK_REFERENCE :
-				{
 					return i;
-				}
 
 				case BLOCK_CONTINUEUS :
 				{
@@ -267,6 +265,21 @@ FreeImage_OpenMultiBitmap(FREE_IMAGE_FORMAT fif, const char *filename, BOOL crea
 						header->m_cachefile = NULL;
 
 						if (header) {
+							// store the MULTIBITMAPHEADER in the surrounding FIMULTIBITMAP structure
+
+							bitmap->data = header;
+
+							// cache the page count
+
+							header->page_count = FreeImage_InternalGetPageCount(bitmap);
+
+							// allocate a continueus block to describe the bitmap
+
+							if (!create_new)
+								header->m_blocks.push_back((Block *)new BlockContinueus(0, header->page_count - 1));
+
+							// set up the cache
+
 							if (!read_only) {
 								char cache_name[256];
 								ReplaceExtension(cache_name, filename, "ficache");
@@ -275,19 +288,6 @@ FreeImage_OpenMultiBitmap(FREE_IMAGE_FORMAT fif, const char *filename, BOOL crea
 
 								if (cache_file->open()) {
 									header->m_cachefile = cache_file;
-
-									// store the MULTIBITMAPHEADER in the surrounding FIMULTIBITMAP structure
-
-									bitmap->data = header;
-
-									// cache the page count
-
-									header->page_count = FreeImage_InternalGetPageCount(bitmap);
-
-									// allocate a continueus block to describe the bitmap
-									
-									if (!create_new)
-										header->m_blocks.push_back((Block *)new BlockContinueus(0, header->page_count - 1));									
 
 									// return the multibitmap
 
@@ -424,13 +424,15 @@ FreeImage_CloseMultiBitmap(FIMULTIBITMAP *bitmap) {
 			for (BlockListIterator i = header->m_blocks.begin(); i != header->m_blocks.end(); ++i)
 				delete *i;			
 
-			// flush and dispose the cache (there is always a cache, even when there is no cache file)
+			// flush and dispose the cache
 
-			header->m_cachefile->close();
+			if (header->m_cachefile) {
+				header->m_cachefile->close();
 
-			delete header->m_cachefile;
+				delete header->m_cachefile;
+			}
 
-			// delete the last open bitmap
+			// delete the last open bitmaps
 
 			while (!header->locked_pages.empty()) {
 				FreeImage_Unload(header->locked_pages.begin()->first);
@@ -438,7 +440,7 @@ FreeImage_CloseMultiBitmap(FIMULTIBITMAP *bitmap) {
 				header->locked_pages.erase(header->locked_pages.begin()->first);
 			}
 
-			// get rid of the IO structure			
+			// get rid of the IO structure
 
 			delete header->io;
 
@@ -520,7 +522,7 @@ FreeImage_InsertPage(FIMULTIBITMAP *bitmap, int page, FIBITMAP *data) {
 		if (page < FreeImage_GetPageCount(bitmap)) {
 			MULTIBITMAPHEADER *header = FreeImage_GetMultiBitmapHeader(bitmap);
 
-			if (header->locked_pages.empty()) {
+			if ((!header->read_only) && (header->locked_pages.empty())) {
 				int size = FreeImage_GetFreeImageHeaderSize() + FreeImage_GetDIBSize(data);
 
 				// compress the bitmap data
@@ -717,6 +719,32 @@ FreeImage_MovePage(FIMULTIBITMAP *bitmap, int target, int source) {
 				return TRUE;
 			}
 		}
+	}
+
+	return FALSE;
+}
+
+BOOL DLL_CALLCONV
+FreeImage_GetLockedPageNumbers(FIMULTIBITMAP *bitmap, int *pages, int *count) {
+	if ((bitmap) && (pages) && (count)) {
+		MULTIBITMAPHEADER *header = FreeImage_GetMultiBitmapHeader(bitmap);
+
+		if (*count == 0) {
+			*count = header->locked_pages.size();
+		} else {
+			int c = 0;
+
+			for (std::map<FIBITMAP *, int>::iterator i = header->locked_pages.begin(); i != header->locked_pages.end(); ++i) {
+				pages[c] = i->second;
+
+				c++;
+
+				if (c == *count)
+					break;
+			}
+		}
+
+		return TRUE;
 	}
 
 	return FALSE;

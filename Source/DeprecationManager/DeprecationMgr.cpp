@@ -31,7 +31,7 @@ DeprecationMgr::DeprecationMgr() {
 DeprecationMgr::~DeprecationMgr() {
 	if (!m_functions.empty()) {
 		OutputDebugString( "*************************************************************************************\n" );
-		OutputDebugString( "This is a warning, because you use functions that are deprecated.\nContinuing to use these functions might eventually break your code.\nThe following functions are deprecated:\n\n" );
+		OutputDebugString( "This is a warning, because you use one or more deprecated functions.\nContinuing to use these functions might eventually render your program uncompilable.\nThe following functions are deprecated:\n\n" );
 
 		for (std::map<const char *, DeprecatedFunction>::iterator i = m_functions.begin(); i != m_functions.end(); ++i) {
 			DeprecatedFunction *function = &((*i).second);

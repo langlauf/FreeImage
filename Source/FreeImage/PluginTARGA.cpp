@@ -681,7 +681,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 									}
 
 							} else {
-								if (fliphoriz)
+								if (flipvert)
 									for (unsigned count = header.is_height; count > 0; count--) {
 										BYTE *bits;
 
@@ -709,7 +709,7 @@ Load(FreeImage *freeimage, FreeImageIO *io, fi_handle handle, int page, int flag
 									for (unsigned count = 0; count < header.is_height; count++) {
 										BYTE *bits;
 
-										if(fliphoriz)
+										if(flipvert)
 											bits = Internal_GetScanLine(freeimage, dib, header.is_height-count-1, flipvert);
 										else
 											bits = Internal_GetScanLine(freeimage, dib, count, flipvert);

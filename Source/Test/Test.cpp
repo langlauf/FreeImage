@@ -104,7 +104,7 @@ int __cdecl
 TestMulti(int argc, char *argv[]) {
 	FreeImage_Initialise();
 
-	FIMULTIBITMAP *bitmap = FreeImage_OpenMultiBitmap(FIF_TIFF, "Kopie van money-256.tif", FALSE, FALSE, TRUE);
+	FIMULTIBITMAP *bitmap = FreeImage_OpenMultiBitmap(FIF_TIFF, "Kopie van money-256.tif", FALSE, FALSE);
 
 	int count = FreeImage_GetPageCount(bitmap);
 
@@ -147,6 +147,8 @@ TestAPI(int argc, char *argv[]) {
 	FIBITMAP *dib = NULL;
 	int id = 1;
 
+	// print version strings
+
 	printf(FreeImage_GetVersion());
 	printf(FreeImage_GetCopyrightMessage());
 
@@ -160,7 +162,7 @@ TestAPI(int argc, char *argv[]) {
 
 	long handle;
 
-	if ((handle = _findfirst("e:\\test images\\test.psd", &finddata)) != -1) {
+	if ((handle = _findfirst("e:\\test images\\*.cut", &finddata)) != -1) {
 		do {
 			dib = NULL;
 
@@ -182,7 +184,9 @@ TestAPI(int argc, char *argv[]) {
 
 			printf("loading %s... ", finddata.name);
 
-			FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(directory);
+
+			//FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(directory);
+			FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(directory, 16);
 
 			switch(fif) {
 				case FIF_BMP :

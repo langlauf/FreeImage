@@ -32,10 +32,6 @@
 
 // ----------------------------------------------------------
 
-const int EXTRA_DATA_SIZE = 0;
-
-// ----------------------------------------------------------
-
 FI_STRUCT (FREEIMAGEHEADER) {
 	unsigned red_mask;
 	unsigned green_mask;
@@ -57,11 +53,6 @@ FreeImage_GetFreeImageHeaderSize() {
 	return sizeof(FREEIMAGEHEADER);
 }
 
-int * DLL_CALLCONV
-FreeImage_GetExtraDataPointer(FIBITMAP *bitmap, int entry) {
-	return (bitmap) ? (int *)(*(int *)(((BYTE *)bitmap->data) + sizeof(FREEIMAGEHEADER) + (entry * sizeof(int)))) : NULL;
-}
-
 // ----------------------------------------------------------
 //  DIB information functions
 // ----------------------------------------------------------
@@ -74,7 +65,6 @@ FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned g
 		height = abs(height);
 
 		int dib_size = sizeof(FREEIMAGEHEADER);
-		dib_size += EXTRA_DATA_SIZE; // reserved for future use
 		dib_size += sizeof(BITMAPINFOHEADER);
 		dib_size += sizeof(RGBQUAD) * CalculateUsedPaletteEntries(bpp);
 		dib_size += CalculatePitch(CalculateLine(width, bpp)) * height;
@@ -139,7 +129,7 @@ FreeImage_Clone(FIBITMAP *dib) {
 	FIBITMAP *new_dib = FreeImage_Allocate(FreeImage_GetWidth(dib), FreeImage_GetHeight(dib), FreeImage_GetBPP(dib), FreeImage_GetRedMask(dib), FreeImage_GetGreenMask(dib), FreeImage_GetBlueMask(dib));
 
 	if (new_dib) {
-		memcpy(new_dib->data, dib->data, sizeof(FREEIMAGEHEADER) + EXTRA_DATA_SIZE + FreeImage_GetDIBSize(dib));
+		memcpy(new_dib->data, dib->data, sizeof(FREEIMAGEHEADER) + FreeImage_GetDIBSize(dib));
 
 		return new_dib;
 	}
@@ -348,7 +338,7 @@ FreeImage_GetDotsPerMeterY(FIBITMAP *dib) {
 
 BITMAPINFOHEADER * DLL_CALLCONV
 FreeImage_GetInfoHeader(FIBITMAP *dib) {
-	return (dib) ? (BITMAPINFOHEADER *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER) + EXTRA_DATA_SIZE) : NULL;
+	return (dib) ? (BITMAPINFOHEADER *)((BYTE *)dib->data + sizeof(FREEIMAGEHEADER)) : NULL;
 }
 
 BITMAPINFO * DLL_CALLCONV
