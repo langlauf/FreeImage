@@ -30,6 +30,12 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 
+#if (defined(WIN32) || defined(__WIN32__))
+#if (defined(_DEBUG))
+#include <crtdbg.h>
+#endif
+#endif // WIN32
+
 
 // Some useful tools
 // ==========================================================
@@ -51,6 +57,10 @@ void testImageTypeTIFF(unsigned width, unsigned height);
 
 void testMemIO(const char *lpszPathName);
 
+// Multipage test suite
+// ==========================================================
+
+void testBuildMPage(char *src_filename, char *dst_filename, FREE_IMAGE_FORMAT dst_fif, unsigned bpp);
 
 #endif // TEST_FREEIMAGE_API_H
 

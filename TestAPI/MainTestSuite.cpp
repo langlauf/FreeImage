@@ -42,30 +42,40 @@ int main(int argc, char *argv[]) {
 	unsigned width  = 512;
 	unsigned height = 512;
 
+#if defined(_DEBUG) && defined(WIN32)
+	// check for memory leaks at program exit (after the 'return 0')
+	// through a call to _CrtDumpMemoryLeaks 
+	// note that in debug mode, objects allocated with the new operator 
+	// may be destroyed *after* the end of the main function. 
+	_CrtSetDbgFlag(_CRTDBG_LEAK_CHECK_DF|_CRTDBG_ALLOC_MEM_DF);
+#endif
+
 #if defined(FREEIMAGE_LIB) || !defined(WIN32)
 	FreeImage_Initialise();
 #endif
 
 	// initialize our own FreeImage error handler
-
 	FreeImage_SetOutputMessage(FreeImageErrorHandler);
 
-	// test memory IO
-	testMemIO("sample.png");
-
 	// test plugins capabilities
-
 	showPlugins();
 
 	// test the clone function
 	testAllocateCloneUnload("exif.jpg");
 
 	// test internal image types
-
 	testImageType(width, height);
 
 	// test loading / saving / converting image types using the TIFF plugin
 	testImageTypeTIFF(width, height);
+
+	// test multipage creation
+	testBuildMPage("sample.png", "sample.ico", FIF_ICO, 24);
+	testBuildMPage("sample.png", "sample.tif", FIF_TIFF, 24);
+	testBuildMPage("sample.png", "sample.gif", FIF_GIF, 8);
+
+	// test memory IO
+	testMemIO("sample.png");
 	
 #if defined(FREEIMAGE_LIB) || !defined(WIN32)
 	FreeImage_DeInitialise();

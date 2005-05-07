@@ -5,7 +5,7 @@ include Makefile.srcs
 
 # General configuration variables:
 CC = gcc
-CPP = g++
+CXX = g++
 AR = ar
 
 INSTALLDIR = /usr/lib
@@ -19,7 +19,7 @@ LIBRARIES = -lstdc++
 MODULES = $(SRCS:.c=.o)
 MODULES := $(MODULES:.cpp=.o)
 CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
-CPPFLAGS = $(COMPILERFLAGS)  -Wno-ctor-dtor-privacy $(INCLUDE)
+CXXFLAGS = $(COMPILERFLAGS)  -Wno-ctor-dtor-privacy $(INCLUDE)
 
 TARGET  = freeimage
 STATICLIB = lib$(TARGET).a
@@ -46,7 +46,7 @@ FreeImage: $(STATICLIB) $(SHAREDLIB)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 .cpp.o:
-	$(CPP) $(CPPFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(STATICLIB): $(MODULES)
 	$(AR) r $@ $(MODULES)
@@ -61,7 +61,7 @@ install:
 	ldconfig
 
 clean:
-	rm -f core Dist/* u2dtmp* $(MODULES) $(STATICLIB) $(SHAREDLIB) $(LIBNAME)
+	rm -f core Dist/*.* u2dtmp* $(MODULES) $(STATICLIB) $(SHAREDLIB) $(LIBNAME)
 
 osx:
 	make -f Makefile.osx

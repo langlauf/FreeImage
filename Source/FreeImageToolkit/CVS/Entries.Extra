@@ -2,10 +2,11 @@
 /Colors.cpp////
 /Display.cpp////
 /Filters.h////
-/Flip.cpp////
 /CopyPaste.cpp////
 /BSplineRotate.cpp////
-/Rescale.cpp////
 /ClassicRotate.cpp////
-/Resize.cpp////
 /Resize.h////
+/Flip.cpp////
+/Rescale.cpp////
+/Resize.cpp////
+/JPEGTransform.cpp////

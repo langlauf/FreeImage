@@ -6,8 +6,6 @@ rd Source\FreeImageLib\Debug /s /q
 rd Source\FreeImageLib\Release /s /q
 rd Source\Source\Release /s /q
 rd Source\Source\Debug /s /q
-rd Source\LibGIF\Debug /s /q
-rd Source\LibGIF\Release /s /q
 rd Source\LibJPEG\Debug /s /q
 rd Source\LibJPEG\Release /s /q
 rd Source\LibPNG\Debug /s /q
@@ -20,6 +18,14 @@ rd Source\Zlib\Debug /s /q
 rd Source\Zlib\Release /s /q
 rd TestAPI\Debug /s /q
 rd TestAPI\Release /s /q
+del TestAPI\blob.png
+del TestAPI\buffer.png
+del TestAPI\dump.png
+del TestAPI\TestImageType.tif
+del TestAPI\zoneplate.png
+del TestAPI\sample.ico
+del TestAPI\sample.tif
+del TestAPI\sample.gif
 del Dist\FreeImage.h
 del *.pch /s /q
 del *.ncb /s /q

@@ -5,6 +5,37 @@ What's New for FreeImage
 ! : changed
 + : added
 
+May 7, 2005 - 3.7.0
+! FreeImage now uses libTIFF 3.7.2
+! [Ryan Rubley] improved FreeImage_OpenMultiBitmap
++ [Detlev Vendt] added FreeImage_ZLibGUnzip
++ [Herve Drolon] added new image data types FIT_RGB16, FIT_RGBA16, FIT_RGBF, FIT_RGBAF
++ [Herve Drolon] FreeImage_FlipHorizontal & FreeImage_FlipVertical now work with any bitmap type
++ [Herve Drolon] added conversions to float and double in FreeImage_ConvertToType
++ [Herve Drolon] added FreeImage_ConvertToRGBF
++ [Herve Drolon] added support for 16-, 48- and 96-bit images to FreeImage_Rescale
++ [Ryan Rubley] added FreeImage_ColorQuantizeEx
++ [Ryan Rubley] added FIMD_ANIMATION and FIDT_PALETTE
++ [Ryan Rubley] added brand new PluginGIF with full animation multipage and metadata support
++ [Herve Drolon] added support for FIC_MINISWHITE 8-bit images to FreeImage_Rescale
++ [Herve Drolon] added HDR (High Dynamic Range) format (loader & writer)
++ [Herve Drolon] added support for 48-bit images in TIFF plugin
++ [Herve Drolon] added support for 48-bit images in PNG plugin
++ [Herve Drolon] added tone mapping operators (see below)
++                added FreeImage_ToneMapping
++                added FreeImage_TmoDrago03
++                added FreeImage_TmoReinhard05                                  
++ [Petr Pytelka] added FreeImage_JPEGTransform
+* [Herve Drolon] allowed loading of corrupted JPEG with a premature end of file
+* [Herve Drolon] fixed a memory leak with loading of exif JPEG images
+* [Detlev Vendt] changed some 'pointer-to-int' casts to 'pointer-to-long' for 64bit machines
+* [Ryan Rubley] fixed a memory leak in the multipage API
+* [Ryan Rubley] updated VB6 wrapper generation for new functions
+* [Herve Drolon] fixed incorrect behavior when reading JPEG comments containing special characters
+* [Herve Drolon] fixed incorrect behavior when reading JPEG ICC profiles with a size greater than 64 KB
+* [Herve Drolon] fixed a bug in TIFF plugin when loading malformed multipage TIFF
+* [Herve Drolon] fixed PluginTIFF not being thread safe
+
 February 20, 2005 - 3.6.1
 * [Ryan Rubley] fixed a memory leak in the metadata API
 * [luedi] improved the robustness of FIBITMAP allocations

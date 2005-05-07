@@ -1,7 +1,5 @@
 /autogen.sh////
 /Changes////
-/LibMNG.dsp////
-/LibMNG.vcproj////
 /README////
 /README.autoconf////
 /README.examples////
@@ -15,7 +13,6 @@
 /libmng_chunk_xs.c////
 /libmng_chunks.h////
 /libmng_cms.c////
-/libmng_conf.h////
 /libmng_data.h////
 /libmng_display.c////
 /libmng_display.h////
@@ -33,11 +30,9 @@
 /libmng_read.c////
 /libmng_trace.c////
 /libmng_trace.h////
-/libmng_types.h////
 /libmng_write.c////
 /libmng_write.h////
 /libmng_zlib.c////
-/libmng_chunk_descr.c////
 /libmng_chunk_descr.h////
 /LICENSE////
 /README.config////
@@ -51,3 +46,8 @@
 /libmng_memory.h////
 /libmng_read.h////
 /libmng_zlib.h////
+/LibMNG.dsp////
+/libmng_chunk_descr.c////
+/libmng_conf.h////
+/libmng_types.h////
+/LibMNG.vcproj////

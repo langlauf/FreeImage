@@ -1,4 +1,3 @@
-/LibJPEG.dsp/1.2/Thu Jul  8 19:41:16 2004/-kb/
 /ansi2knr.c/1.1/Thu Jul  8 19:41:10 2004//
 /cderror.h/1.3/Thu Jul  8 19:41:10 2004//
 /cdjpeg.c/1.1/Thu Jul  8 19:41:10 2004//
@@ -42,7 +41,6 @@
 /jdsample.c/1.3/Thu Jul  8 19:41:14 2004//
 /jdtrans.c/1.3/Thu Jul  8 19:41:14 2004//
 /jerror.c/1.3/Thu Jul  8 19:41:14 2004//
-/jerror.h/1.3/Thu Jul  8 19:41:14 2004//
 /jfdctflt.c/1.3/Thu Jul  8 19:41:14 2004//
 /jfdctfst.c/1.3/Thu Jul  8 19:41:14 2004//
 /jfdctint.c/1.3/Thu Jul  8 19:41:14 2004//
@@ -58,7 +56,6 @@
 /jmemnobs.c/1.3/Thu Jul  8 19:41:14 2004//
 /jmemsys.h/1.3/Thu Jul  8 19:41:14 2004//
 /jpegint.h/1.3/Thu Jul  8 19:41:14 2004//
-/jpegtran.c/1.1/Thu Jul  8 19:41:14 2004//
 /jquant1.c/1.3/Thu Jul  8 19:41:14 2004//
 /jquant2.c/1.3/Thu Jul  8 19:41:16 2004//
 /jutils.c/1.3/Thu Jul  8 19:41:16 2004//
@@ -71,8 +68,6 @@
 /rdrle.c/1.1/Thu Jul  8 19:41:16 2004//
 /rdswitch.c/1.1/Thu Jul  8 19:41:16 2004//
 /rdtarga.c/1.1/Thu Jul  8 19:41:16 2004//
-/transupp.c/1.1/Thu Jul  8 19:41:16 2004//
-/transupp.h/1.3/Thu Jul  8 19:41:16 2004//
 /wrbmp.c/1.1/Thu Jul  8 19:41:16 2004//
 /wrgif.c/1.1/Thu Jul  8 19:41:16 2004//
 /wrjpgcom.c/1.1/Thu Jul  8 19:41:16 2004//
@@ -86,6 +81,11 @@
 /jidctfst.c/1.4/Wed Mar 27 06:02:18 2002//
 /jidctint.c/1.4/Mon Apr  5 15:39:28 2004//
 /jpeglib.h/1.4/Sat Jan 15 23:02:48 2005//
-/LibJPEG.vcproj/1.1/Fri Jan 14 19:54:14 2005//
 /jmorecfg.h/1.6/Thu Jan 20 18:59:06 2005//
+/jerror.h/1.4/Sun Mar  5 22:34:28 2000//
+/jpegtran.c/1.2/Sun Sep 21 19:30:22 2003//
+/transupp.c/1.2/Sun Sep 21 20:50:34 2003//
+/transupp.h/1.4/Sun Sep 21 20:53:08 2003//
+/LibJPEG.dsp/1.3/Thu May  5 21:15:14 2005/-kb/
+/LibJPEG.vcproj/1.4/Thu May  5 21:17:50 2005//
 D

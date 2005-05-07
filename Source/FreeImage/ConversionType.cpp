@@ -24,7 +24,7 @@
 
 // ----------------------------------------------------------
 
-/** Convert an image of type Tsrc to type Tdst.
+/** Convert a greyscale image of type Tsrc to type Tdst.
 	Conversion is done using standard C language casting convention.
 */
 template<class Tdst, class Tsrc>
@@ -64,7 +64,7 @@ CONVERT_TYPE<Tdst, Tsrc>::convert(FIBITMAP *src, FREE_IMAGE_TYPE dst_type) {
 }
 
 
-/** Convert an image of type Tsrc to a 8-bit grayscale dib.
+/** Convert a greyscale image of type Tsrc to a 8-bit grayscale dib.
 	Conversion is done using either a linear scaling from [min, max] to [0, 255]
 	or a rounding from src_pixel to (BYTE) MIN(255, MAX(0, q)) where int q = int(src_pixel + 0.5); 
 */
@@ -141,6 +141,8 @@ CONVERT_TO_BYTE<Tsrc>::convert(FIBITMAP *src, BOOL scale_linear) {
 	return dst;
 }
 
+/** Convert a greyscale image of type Tsrc to a FICOMPLEX dib.
+*/
 template<class Tsrc>
 class CONVERT_TO_COMPLEX
 {
@@ -192,6 +194,19 @@ CONVERT_TO_BYTE<unsigned long>	convertULongToByte;
 CONVERT_TO_BYTE<long>			convertLongToByte;
 CONVERT_TO_BYTE<float>			convertFloatToByte;
 CONVERT_TO_BYTE<double>			convertDoubleToByte;
+
+// Convert from type X to type float
+CONVERT_TYPE<float, unsigned short>	convertUShortToFloat;
+CONVERT_TYPE<float, short>			convertShortToFloat;
+CONVERT_TYPE<float, unsigned long>	convertULongToFloat;
+CONVERT_TYPE<float, long>			convertLongToFloat;
+
+// Convert from type X to type double
+CONVERT_TYPE<double, unsigned short>	convertUShortToDouble;
+CONVERT_TYPE<double, short>				convertShortToDouble;
+CONVERT_TYPE<double, unsigned long>		convertULongToDouble;
+CONVERT_TYPE<double, long>				convertLongToDouble;
+CONVERT_TYPE<double, float>				convertFloatToDouble;
 
 // Convert from type X to type FICOMPLEX
 CONVERT_TO_COMPLEX<BYTE>			convertByteToComplex;
@@ -323,8 +338,10 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_INT32:
 					break;
 				case FIT_FLOAT:
+					dst = convertUShortToFloat.convert(src, dst_type);
 					break;
 				case FIT_DOUBLE:
+					dst = convertUShortToDouble.convert(src, dst_type);
 					break;
 				case FIT_COMPLEX:
 					dst = convertUShortToComplex.convert(src);
@@ -341,8 +358,10 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_INT32:
 					break;
 				case FIT_FLOAT:
+					dst = convertShortToFloat.convert(src, dst_type);
 					break;
 				case FIT_DOUBLE:
+					dst = convertShortToDouble.convert(src, dst_type);
 					break;
 				case FIT_COMPLEX:
 					dst = convertShortToComplex.convert(src);
@@ -361,8 +380,10 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_INT32:
 					break;
 				case FIT_FLOAT:
+					dst = convertULongToFloat.convert(src, dst_type);
 					break;
 				case FIT_DOUBLE:
+					dst = convertULongToDouble.convert(src, dst_type);
 					break;
 				case FIT_COMPLEX:
 					dst = convertULongToComplex.convert(src);
@@ -381,8 +402,10 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_UINT32:
 					break;
 				case FIT_FLOAT:
+					dst = convertLongToFloat.convert(src, dst_type);
 					break;
 				case FIT_DOUBLE:
+					dst = convertLongToDouble.convert(src, dst_type);
 					break;
 				case FIT_COMPLEX:
 					dst = convertLongToComplex.convert(src);
@@ -403,6 +426,7 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_INT32:
 					break;
 				case FIT_DOUBLE:
+					dst = convertFloatToDouble.convert(src, dst_type);
 					break;
 				case FIT_COMPLEX:
 					dst = convertFloatToComplex.convert(src);

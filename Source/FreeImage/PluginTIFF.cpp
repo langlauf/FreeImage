@@ -57,28 +57,35 @@ void tiff_write_geotiff_profile(TIFF *tif, FIBITMAP *dib);
 // Plugin Interface
 // ==========================================================
 
-static FreeImageIO *g_io = NULL;
-
 static int s_format_id;
+
+typedef struct {
+    FreeImageIO *io;
+	fi_handle handle;
+	TIFF *tif;
+} fi_TIFFIO;
 
 // ----------------------------------------------------------
 //   libtiff interface 
 // ----------------------------------------------------------
 
 static tsize_t 
-_tiffReadProc(thandle_t file, tdata_t buf, tsize_t size) {
-	return g_io->read_proc(buf, size, 1, (fi_handle)file) * size;
+_tiffReadProc(thandle_t handle, tdata_t buf, tsize_t size) {
+	fi_TIFFIO *fio = (fi_TIFFIO*)handle;
+	return fio->io->read_proc(buf, size, 1, fio->handle) * size;
 }
 
 static tsize_t
-_tiffWriteProc(thandle_t file, tdata_t buf, tsize_t size) {
-	return g_io->write_proc(buf, size, 1, (fi_handle)file) * size;
+_tiffWriteProc(thandle_t handle, tdata_t buf, tsize_t size) {
+	fi_TIFFIO *fio = (fi_TIFFIO*)handle;
+	return fio->io->write_proc(buf, size, 1, fio->handle) * size;
 }
 
 static toff_t
-_tiffSeekProc(thandle_t file, toff_t off, int whence) {
-	g_io->seek_proc((fi_handle)file, off, whence);
-	return g_io->tell_proc((fi_handle)file);
+_tiffSeekProc(thandle_t handle, toff_t off, int whence) {
+	fi_TIFFIO *fio = (fi_TIFFIO*)handle;
+	fio->io->seek_proc(fio->handle, off, whence);
+	return fio->io->tell_proc(fio->handle);
 }
 
 static int
@@ -89,9 +96,10 @@ _tiffCloseProc(thandle_t fd) {
 #include <sys/stat.h>
 
 static toff_t
-_tiffSizeProc(thandle_t file) {
+_tiffSizeProc(thandle_t handle) {
 	struct stat sb;
-	return (fstat((int) file, &sb) < 0 ? 0 : sb.st_size);
+	fi_TIFFIO *fio = (fi_TIFFIO*)handle;
+	return (fstat((long) fio->handle, &sb) < 0 ? 0 : sb.st_size);
 }
 
 static int
@@ -120,8 +128,12 @@ TIFFFdOpen(thandle_t handle, const char *name, const char *mode) {
 	    _tiffReadProc, _tiffWriteProc, _tiffSeekProc, _tiffCloseProc,
 	    _tiffSizeProc, _tiffMapProc, _tiffUnmapProc);
 
-	if (tif)
-		tif->tif_fd = (int)handle;
+	// Warning: tif_fd is declared as 'int' currently (see libTIFF), 
+    // may result in incorrect file pointers inside libTIFF on 
+    // 64bit machines (sizeof(int) != sizeof(long)). 
+    // Needs to be fixed within libTIFF.
+    if (tif)
+		tif->tif_fd = (long)handle;
 
 	return tif;
 }
@@ -404,19 +416,23 @@ GetImageType(TIFF *tiff, uint16 bitspersample, uint16 samplesperpixel) {
 						fit = FIT_BITMAP;
 						break;
 					case 16:
-						// 8-bit + alpha or 16-bit RGB
-						if((samplesperpixel == 2) || (samplesperpixel == 3)) {
+						// 8-bit + alpha or 16-bit greyscale
+						if(samplesperpixel == 2) {
 							fit = FIT_BITMAP;
 						} else {
 							fit = FIT_UINT16;
 						}
 						break;
-
 					case 32:
 						if(samplesperpixel == 4) {
 							fit = FIT_BITMAP;
 						} else {
 							fit = FIT_UINT32;
+						}
+						break;
+					case 48:
+						if(samplesperpixel == 3) {
+							fit = FIT_RGB16;
 						}
 						break;
 				}
@@ -472,6 +488,13 @@ GetImageType(TIFF *tiff, uint16 bitspersample, uint16 samplesperpixel) {
 					break;
 			}
 		}
+		else if(samplesperpixel == 3) {
+			if(bpp == 48) fit = FIT_RGB16;
+		}
+		else if(samplesperpixel == 4) {
+			if(bpp == 96) fit = FIT_RGBA16;
+		}
+
 	}
 
     return fit;
@@ -488,6 +511,8 @@ SetImageType(TIFF *tiff, FREE_IMAGE_TYPE fit) {
 		case FIT_BITMAP:	// standard image: 1-, 4-, 8-, 16-, 24-, 32-bit
 		case FIT_UINT16:	// array of unsigned short	: unsigned 16-bit
 		case FIT_UINT32:	// array of unsigned long	: unsigned 32-bit
+		case FIT_RGB16:		// 48-bit RGB image			: 3 x 16-bit
+		case FIT_RGBA16:	// 64-bit RGBA image		: 4 x 16-bit
 			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
 			break;
 
@@ -498,6 +523,8 @@ SetImageType(TIFF *tiff, FREE_IMAGE_TYPE fit) {
 
 		case FIT_FLOAT:		// array of float	: 32-bit
 		case FIT_DOUBLE:	// array of double	: 64-bit
+		case FIT_RGBF:		// 96-bit RGB float image	: 3 x 32-bit IEEE floating point
+		case FIT_RGBAF:		// 128-bit RGBA float image	: 4 x 32-bit IEEE floating point
 			TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
 			break;
 
@@ -550,6 +577,7 @@ SetCompression(TIFF *tiff, uint16 bitspersample, uint16 samplesperpixel, uint16 
 			case 16 :
 			case 24 :
 			case 32 :
+			case 48:
 			case 64 :
 			case 128:
 				compression = COMPRESSION_LZW;
@@ -574,7 +602,7 @@ SetCompression(TIFF *tiff, uint16 bitspersample, uint16 samplesperpixel, uint16 
 		// grayscale images do much better with differencing.
 
 		if((bitspersample == 8) || (bitspersample == 16)) {
-			if ((bitsperpixel >= 8) && (photometric != PHOTOMETRIC_PALETTE))
+			if ((bitsperpixel >= 8) && (photometric != PHOTOMETRIC_PALETTE) && (bitsperpixel != 48))
 				TIFFSetField(tiff, TIFFTAG_PREDICTOR, 2);
 			else
 				TIFFSetField(tiff, TIFFTAG_PREDICTOR, 1);
@@ -786,14 +814,15 @@ SupportsExportDepth(int depth) {
 static BOOL DLL_CALLCONV 
 SupportsExportType(FREE_IMAGE_TYPE type) {
 	return (
-		(type == FIT_BITMAP) ||
-		(type == FIT_UINT16) ||
-		(type == FIT_INT16)  ||
-		(type == FIT_UINT32) ||
-		(type == FIT_INT32)  ||
-		(type == FIT_FLOAT)  ||
-		(type == FIT_DOUBLE) ||
-		(type == FIT_COMPLEX)
+		(type == FIT_BITMAP)  ||
+		(type == FIT_UINT16)  ||
+		(type == FIT_INT16)   ||
+		(type == FIT_UINT32)  ||
+		(type == FIT_INT32)   ||
+		(type == FIT_FLOAT)   ||
+		(type == FIT_DOUBLE)  ||
+		(type == FIT_COMPLEX) || 
+		(type == FIT_RGB16)
 	);
 }
 
@@ -806,34 +835,52 @@ SupportsICCProfiles() {
 
 static void * DLL_CALLCONV
 Open(FreeImageIO *io, fi_handle handle, BOOL read) {
-	g_io = io;
+	TIFF *tif = NULL;
+	// wrapper for TIFF I/O
+	fi_TIFFIO *fio = (fi_TIFFIO*)malloc(sizeof(fi_TIFFIO));
+	if(!fio) return NULL;
+	fio->io = io;
+	fio->handle = handle;
 
-	if (read)
-		return TIFFFdOpen((thandle_t)handle, "", "r");
-	else
-		return TIFFFdOpen((thandle_t)handle, "", "w");
+	if (read) {
+		fio->tif = TIFFFdOpen((thandle_t)fio, "", "r");
+	} else {
+		fio->tif = TIFFFdOpen((thandle_t)fio, "", "w");
+	}
+	if(fio->tif == NULL) {
+		free(fio);
+		FreeImage_OutputMessageProc(s_format_id, "data is invalid");
+		return NULL;
+	}
+	return fio;
 }
 
 static void DLL_CALLCONV
 Close(FreeImageIO *io, fi_handle handle, void *data) {
-	if(data)
-		TIFFClose((TIFF *)data);
-	g_io = NULL;
+	if(data) {
+		fi_TIFFIO *fio = (fi_TIFFIO*)data;
+		TIFFClose(fio->tif);
+		free(fio);
+	}
 }
 
 // ----------------------------------------------------------
 
 static int DLL_CALLCONV
 PageCount(FreeImageIO *io, fi_handle handle, void *data) {
-	int nr_ifd = 0;
+	if(data) {
+		fi_TIFFIO *fio = (fi_TIFFIO*)data;
+		TIFF *tif = (TIFF *)fio->tif;
+		int nr_ifd = 0;
 
-	TIFF *tif = (TIFF *)data;
+		do {
+			nr_ifd++;
+		} while (TIFFReadDirectory(tif));
+				
+		return nr_ifd;
+	}
 
-	do {
-		nr_ifd++;
-	} while (TIFFReadDirectory(tif));
-			
-	return nr_ifd;
+	return 0;
 }
 
 // ----------------------------------------------------------
@@ -861,8 +908,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		void *iccBuf = NULL;	// ICC profile data
 		BOOL has_alpha = FALSE;    
 
-		try {			
-			tif = (TIFF *)data;
+		try {	
+			fi_TIFFIO *fio = (fi_TIFFIO*)data;
+			tif = fio->tif;
 
 			if (page != -1)
 				if (!tif || !TIFFSetDirectory(tif, page))
@@ -911,6 +959,12 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				(((flags & TIFF_CMYK) == TIFF_CMYK) || samplesperpixel > 4) && 
 				!TIFFIsTiled(tif))
 				isRGB = FALSE;
+
+			// load 48-bit RGB without conversion 
+			if((photometric == PHOTOMETRIC_RGB) && (image_type == FIT_RGB16))
+				isRGB = FALSE;
+
+			// ---------------------------------------------------------------------------------
 
 			if (isRGB) {
 				// Read the whole image into one big RGBA buffer and then 
@@ -1219,8 +1273,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 static BOOL DLL_CALLCONV
 Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) {
-	if (dib != NULL) {
-		TIFF *out = (TIFF *)data;
+	if ((dib != NULL) && (handle != NULL) && (data != NULL)) {
+		fi_TIFFIO *fio = (fi_TIFFIO*)data;
+		TIFF *out = fio->tif;
 
 		int32 height;
 		int32 width;
@@ -1269,7 +1324,12 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 					TIFFSetField(out, TIFFTAG_EXTRASAMPLES, 1, sampleinfo);
 				}
 			}
+		} else if(image_type == FIT_RGB16) {
+			// 48-bit RGB
 
+			samplesperpixel = 3;
+			bitspersample = bitsperpixel / samplesperpixel;
+			photometric	= PHOTOMETRIC_RGB;
 		} else {
 			// special image type (int, long, double, ...)
 
@@ -1442,6 +1502,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			switch(bitsperpixel) {
 				case 16:
 				case 32:
+				case 48:
 				case 64:
 				case 128:
 				{

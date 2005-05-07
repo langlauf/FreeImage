@@ -2,12 +2,13 @@
 /Test.dsw////
 /testPlugins.cpp////
 /sample.png////
-/MainTestSuite.cpp////
-/TestSuite.h////
 /testTools.cpp////
 /exif.jpg////
 /testMemIO.cpp////
+/Test.sln////
 /Test.dsp////
 /testImageType.cpp////
-/Test.sln////
+/MainTestSuite.cpp////
 /Test.vcproj////
+/TestSuite.h////
+/testMPage.cpp////

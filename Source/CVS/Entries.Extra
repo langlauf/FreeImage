@@ -7,11 +7,11 @@ D/LibMNG////
 D/LibPNG////
 D/LibTIFF////
 D/ZLib////
-D/LibGIF////
 /CacheFile.h////
-/Quantizers.h////
 /FreeImageIO.h////
 D/Metadata////
+/Quantizers.h////
 /Plugin.h////
 /Utilities.h////
+/ToneMapping.h////
 /FreeImage.h////

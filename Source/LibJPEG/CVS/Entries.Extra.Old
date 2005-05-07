@@ -1,4 +1,3 @@
-/LibJPEG.dsp////
 /ansi2knr.c////
 /cderror.h////
 /cdjpeg.c////
@@ -42,7 +41,6 @@
 /jdsample.c////
 /jdtrans.c////
 /jerror.c////
-/jerror.h////
 /jfdctflt.c////
 /jfdctfst.c////
 /jfdctint.c////
@@ -58,7 +56,6 @@
 /jmemnobs.c////
 /jmemsys.h////
 /jpegint.h////
-/jpegtran.c////
 /jquant1.c////
 /jquant2.c////
 /jutils.c////
@@ -71,8 +68,6 @@
 /rdrle.c////
 /rdswitch.c////
 /rdtarga.c////
-/transupp.c////
-/transupp.h////
 /wrbmp.c////
 /wrgif.c////
 /wrjpgcom.c////
@@ -85,6 +80,11 @@
 /jdmerge.c////
 /jidctfst.c////
 /jidctint.c////
-/jmorecfg.h////
 /jpeglib.h////
+/jmorecfg.h////
+/LibJPEG.dsp////
 /LibJPEG.vcproj////
+/jerror.h////
+/jpegtran.c////
+/transupp.c////
+/transupp.h////

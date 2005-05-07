@@ -81,18 +81,37 @@ FI_STRUCT (FREEIMAGEHEADER) {
 void* FreeImage_Aligned_Malloc(size_t amount, size_t alignment) {
 	void* mem_real = malloc(amount + alignment);
 	if(!mem_real) return NULL;
-	char* mem_align = (char*)((unsigned int)(alignment - (unsigned int)mem_real % (unsigned int)alignment) + (unsigned int)mem_real);
-	*((int*)mem_align - 1) = (int)mem_real;
+	char* mem_align = (char*)((unsigned long)(alignment - (unsigned long)mem_real % (unsigned long)alignment) + (unsigned long)mem_real);
+	*((long*)mem_align - 1) = (long)mem_real;
 	return mem_align;
 }
 
 void FreeImage_Aligned_Free(void* mem) {
-	free((void*)*((int*)mem - 1));
+	free((void*)*((long*)mem - 1));
 }
 
 // ----------------------------------------------------------
 //  DIB information functions
 // ----------------------------------------------------------
+
+/**
+Calculate the size of a FreeImage image. 
+Align the palette and the pixels on a FIBITMAP_ALIGNMENT bytes alignment boundary.
+*/
+static unsigned 
+FreeImage_GetImageSize(int width, int height, int bpp) {
+	unsigned dib_size = sizeof(FREEIMAGEHEADER); 
+	dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
+	dib_size += FIBITMAP_ALIGNMENT - sizeof(BITMAPINFOHEADER) % FIBITMAP_ALIGNMENT; 
+	dib_size += sizeof(BITMAPINFOHEADER);  
+	// palette is aligned on a 16 bytes boundary
+	dib_size += sizeof(RGBQUAD) * CalculateUsedPaletteEntries(bpp);  
+	dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
+	// pixels are aligned on a 16 bytes boundary
+	dib_size += CalculatePitch(CalculateLine(width, bpp)) * height; 
+
+	return dib_size;
+}
 
 FIBITMAP * DLL_CALLCONV
 FreeImage_Allocate(int width, int height, int bpp, unsigned red_mask, unsigned green_mask, unsigned blue_mask) {
@@ -143,6 +162,18 @@ FreeImage_AllocateT(FREE_IMAGE_TYPE type, int width, int height, int bpp, unsign
 			case FIT_COMPLEX:
 				bpp = 8 * sizeof(FICOMPLEX);
 				break;
+			case FIT_RGB16:
+				bpp = 8 * sizeof(FIRGB16);
+				break;
+			case FIT_RGBA16:
+				bpp = 8 * sizeof(FIRGBA16);
+				break;
+			case FIT_RGBF:
+				bpp = 8 * sizeof(FIRGBF);
+				break;
+			case FIT_RGBAF:
+				bpp = 8 * sizeof(FIRGBAF);
+				break;
 			default:
 				free(bitmap);
 				return NULL;
@@ -150,15 +181,10 @@ FreeImage_AllocateT(FREE_IMAGE_TYPE type, int width, int height, int bpp, unsign
 
 		// calculate the size of a FreeImage image
 		// align the palette and the pixels on a FIBITMAP_ALIGNMENT bytes alignment boundary
-		unsigned dib_size = sizeof(FREEIMAGEHEADER); 
-		dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
-		dib_size += FIBITMAP_ALIGNMENT - sizeof(BITMAPINFOHEADER) % FIBITMAP_ALIGNMENT; 
-		dib_size += sizeof(BITMAPINFOHEADER);  
 		// palette is aligned on a 16 bytes boundary
-		dib_size += sizeof(RGBQUAD) * CalculateUsedPaletteEntries(bpp);  
-		dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
 		// pixels are aligned on a 16 bytes boundary
-		dib_size += CalculatePitch(CalculateLine(width, bpp)) * height; 
+
+		unsigned dib_size = FreeImage_GetImageSize(width, height, bpp); 
 
 		bitmap->data = (BYTE *)FreeImage_Aligned_Malloc(dib_size * sizeof(BYTE), FIBITMAP_ALIGNMENT);
 
@@ -227,8 +253,8 @@ FreeImage_Unload(FIBITMAP *dib) {
 				TAGMAP *tagmap = (*i).second;
 
 				if(tagmap) {
-					for(TAGMAP::iterator i = tagmap->begin(); i != tagmap->end(); i++) {
-						FITAG *tag = (FITAG*)(*i).second;
+					for(TAGMAP::iterator j = tagmap->begin(); j != tagmap->end(); j++) {
+						FITAG *tag = (*j).second;
 						FreeImage_DeleteTag(tag);
 					}
 
@@ -270,13 +296,10 @@ FreeImage_Clone(FIBITMAP *dib) {
 
 		// calculate the size of a FreeImage image
 		// align the palette and the pixels on a FIBITMAP_ALIGNMENT bytes alignment boundary
-		unsigned dib_size = sizeof(FREEIMAGEHEADER); 
-		dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
-		dib_size += FIBITMAP_ALIGNMENT - sizeof(BITMAPINFOHEADER) % FIBITMAP_ALIGNMENT; 
-		dib_size += sizeof(BITMAPINFOHEADER);  
-		dib_size += sizeof(RGBQUAD) * CalculateUsedPaletteEntries(bpp);  
-		dib_size += (dib_size % FIBITMAP_ALIGNMENT ? FIBITMAP_ALIGNMENT - dib_size % FIBITMAP_ALIGNMENT : 0);  
-		dib_size += CalculatePitch(CalculateLine(width, bpp)) * height; 
+		// palette is aligned on a 16 bytes boundary
+		// pixels are aligned on a 16 bytes boundary
+
+		unsigned dib_size = FreeImage_GetImageSize(width, height, bpp); 
 
 		// copy the bitmap + internal pointers (remember to restore new_dib internal pointers later)
 		memcpy(new_dib->data, dib->data, dib_size);
@@ -326,8 +349,19 @@ FREE_IMAGE_COLOR_TYPE DLL_CALLCONV
 FreeImage_GetColorType(FIBITMAP *dib) {
 	RGBQUAD *rgb;
 
+	FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
+
 	// special bitmap type
-	if(FreeImage_GetImageType(dib) != FIT_BITMAP) {
+	if(image_type != FIT_BITMAP) {
+		switch(image_type) {
+			case FIT_RGB16:
+			case FIT_RGBF:
+				return FIC_RGB;
+			case FIT_RGBA16:
+			case FIT_RGBAF:
+				return FIC_RGBALPHA;
+		}
+
 		return FIC_MINISBLACK;
 	}
 
@@ -785,7 +819,7 @@ FreeImage_SetMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, const char *key, 
 		// destroy the metadata model
 		if(tagmap) {
 			for(TAGMAP::iterator i = tagmap->begin(); i != tagmap->end(); i++) {
-				FITAG *tag = (FITAG*)(*i).second;
+				FITAG *tag = (*i).second;
 				FreeImage_DeleteTag(tag);
 			}
 
@@ -815,7 +849,7 @@ FreeImage_GetMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, const char *key, 
 		}
 
 		// get the requested tag
-		*tag = (FITAG*)(*tagmap)[key];
+		*tag = (*tagmap)[key];
 	}
 	return (*tag != NULL) ? TRUE : FALSE;
 }

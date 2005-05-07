@@ -130,6 +130,7 @@ ReadUint32(BOOL msb_order, void *buffer) {
 
 /**
 Process a IFD offset
+Returns the offset and the metadata model for this tag
 */
 static void 
 processIFDOffset(FIBITMAP *dib, FITAG *tag, char *pval, BOOL msb_order, DWORD *subdirOffset, TagLib::MDMODEL *md_model) {
@@ -153,6 +154,7 @@ processIFDOffset(FIBITMAP *dib, FITAG *tag, char *pval, BOOL msb_order, DWORD *s
 
 /**
 Process a maker note IFD offset
+Returns the offset and the metadata model for this tag
 */
 static void 
 processMakerNote(FIBITMAP *dib, FITAG *tag, char *pval, BOOL msb_order, DWORD *subdirOffset, TagLib::MDMODEL *md_model) {
@@ -478,8 +480,12 @@ jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned int offset, unsign
 			FreeImage_SetTagID(tag, ReadUint16(msb_order, pde));
 			// get the tag format
 			WORD tag_type = (WORD)ReadUint16(msb_order, pde + 2);
-			if((tag_type - 1) >= EXIF_NUM_FORMATS)
+            if((tag_type - 1) >= EXIF_NUM_FORMATS) {
+                // a problem occured : delete the tag (not free'd after)
+			    FreeImage_DeleteTag(tag);
+				// break out of the for loop
 				break;
+            }
 			FreeImage_SetTagType(tag, (FREE_IMAGE_MDTYPE)tag_type);
 
 			// get number of components
@@ -495,8 +501,12 @@ jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned int offset, unsign
 
 				// if its bigger than 4 bytes, the directory entry contains an offset
 				offset_value = ReadUint32(msb_order, pde + 8);
-				if((size_t) (offset_value + FreeImage_GetTagLength(tag)) > length)
+				if((size_t) (offset_value + FreeImage_GetTagLength(tag)) > length) {
+					// a problem occured : delete the tag (not free'd after)
+					FreeImage_DeleteTag(tag);
+					// jump to next entry
 					continue;
+				}
 				pval = (char*)(tiffp + offset_value);
 			}
 
@@ -541,10 +551,13 @@ jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned int offset, unsign
 					// select a new metadata model
 					modelstack.push(next_mdmodel);
 					
+					// delete the tag as it won't be stored nor deleted in the for() loop
+					FreeImage_DeleteTag(tag);
+					
 					break; // break out of the for loop
 				}
 				else {
-					// unsupported camera model or something unknown
+					// unsupported camera model, canon maker tag or or something unknown
 					// process as a standard tag
 					processExifTag(dib, tag, pval, msb_order, md_model);
 				}			

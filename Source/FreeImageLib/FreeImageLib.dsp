@@ -70,7 +70,7 @@ PostBuild_Cmds=copy Release\FreeImage.lib ..\..\Dist	copy ..\FreeImage.h ..\..\D
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\\" /I "..\ZLib" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "FREEIMAGE_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
-# ADD RSC /l 0x413 /d "_DEBUG"
+# ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -136,11 +136,31 @@ SOURCE=..\FreeImage\Conversion8.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\FreeImage\ConversionRGBF.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\FreeImage\ConversionType.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\FreeImage\Halftoning.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\tmoColorConvert.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\tmoDrago03.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\tmoReinhard05.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\ToneMapping.cpp
 # End Source File
 # End Group
 # Begin Group "Plugins"
@@ -165,6 +185,10 @@ SOURCE=..\FreeImage\PluginDDS.cpp
 # Begin Source File
 
 SOURCE=..\FreeImage\PluginGIF.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\PluginHDR.cpp
 # End Source File
 # Begin Source File
 
@@ -353,6 +377,10 @@ SOURCE=..\Quantizers.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\ToneMapping.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\Utilities.h
 # End Source File
 # End Group
@@ -386,6 +414,10 @@ SOURCE=..\FreeImageToolkit\Display.cpp
 # Begin Source File
 
 SOURCE=..\FreeImageToolkit\Flip.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImageToolkit\JPEGTransform.cpp
 # End Source File
 # Begin Source File
 

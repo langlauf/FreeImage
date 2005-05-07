@@ -126,6 +126,10 @@ SOURCE=.\Source\FreeImage\PluginGIF.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Source\FreeImage\PluginHDR.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Source\FreeImage\PluginICO.cpp
 # End Source File
 # Begin Source File
@@ -222,11 +226,31 @@ SOURCE=.\Source\FreeImage\Conversion8.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Source\FreeImage\ConversionRGBF.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Source\FreeImage\ConversionType.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\Source\FreeImage\Halftoning.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\tmoColorConvert.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\tmoDrago03.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\tmoReinhard05.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImage\ToneMapping.cpp
 # End Source File
 # End Group
 # Begin Group "Quantizers"
@@ -371,6 +395,10 @@ SOURCE=.\Source\Quantizers.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Source\ToneMapping.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Source\Utilities.h
 # End Source File
 # End Group
@@ -404,6 +432,10 @@ SOURCE=.\Source\FreeImageToolkit\Display.cpp
 # Begin Source File
 
 SOURCE=.\Source\FreeImageToolkit\Flip.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Source\FreeImageToolkit\JPEGTransform.cpp
 # End Source File
 # Begin Source File
 
