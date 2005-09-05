@@ -105,6 +105,11 @@ FreeImage_ConvertTo8Bits(FIBITMAP *dib) {
 
 	int bpp = FreeImage_GetBPP(dib);
 
+	FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
+	if((image_type != FIT_BITMAP) && (image_type != FIT_UINT16)) {
+		return NULL;
+	}
+
 	if(bpp != 8) {
 		int width  = FreeImage_GetWidth(dib);
 		int height = FreeImage_GetHeight(dib);
@@ -124,95 +129,193 @@ FreeImage_ConvertTo8Bits(FIBITMAP *dib) {
 			new_pal[i].rgbBlue	= i;
 		}
 
+		if(image_type == FIT_BITMAP) {
+
+			switch(bpp) {
+				case 1:
+				{
+					if(FreeImage_GetColorType(dib) == FIC_PALETTE) {
+
+						// Copy the palette
+
+						RGBQUAD *old_pal = FreeImage_GetPalette(dib);
+						memcpy(&new_pal[0], &old_pal[0], sizeof(RGBQUAD));
+						memcpy(&new_pal[255], &old_pal[1], sizeof(RGBQUAD));
+
+					}
+					else if(FreeImage_GetColorType(dib) == FIC_MINISWHITE) {
+						
+						// Reverse the grayscale palette
+
+						for(int i = 0; i < 256; i++) {
+							new_pal[i].rgbRed = new_pal[i].rgbGreen = new_pal[i].rgbBlue = 255 - i;
+						}
+					}
+
+
+					// Expand and copy the bitmap data
+
+					for (int rows = 0; rows < height; rows++)
+						FreeImage_ConvertLine1To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
+						
+					return new_dib;
+				}
+
+				case 4 :
+				{
+					if(FreeImage_GetColorType(dib) == FIC_PALETTE) {
+
+						// Copy the palette
+
+						RGBQUAD *old_pal = FreeImage_GetPalette(dib);
+
+						for (int i = 0; i < 16; i++) {
+							new_pal[i].rgbRed	= old_pal[i].rgbRed;
+							new_pal[i].rgbGreen = old_pal[i].rgbGreen;
+							new_pal[i].rgbBlue	= old_pal[i].rgbBlue;
+						}
+					}
+
+					// Expand and copy the bitmap data
+
+					for (int rows = 0; rows < height; rows++)
+						FreeImage_ConvertLine4To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);					
+
+					return new_dib;
+				}
+
+				case 16 :
+				{
+					// Expand and copy the bitmap data
+
+					for (int rows = 0; rows < height; rows++) {
+						if ((FreeImage_GetRedMask(dib) == FI16_565_RED_MASK) && (FreeImage_GetGreenMask(dib) == FI16_565_GREEN_MASK) && (FreeImage_GetBlueMask(dib) == FI16_565_BLUE_MASK)) {
+							FreeImage_ConvertLine16To8_565(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
+						} else {
+							FreeImage_ConvertLine16To8_555(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
+						}
+					}
+					
+					return new_dib;
+				}
+
+				case 24 :
+				{
+					// Expand and copy the bitmap data
+
+					for (int rows = 0; rows < height; rows++)
+						FreeImage_ConvertLine24To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);					
+
+					return new_dib;
+				}
+
+				case 32 :
+				{
+					// Expand and copy the bitmap data
+
+					for (int rows = 0; rows < height; rows++)
+						FreeImage_ConvertLine32To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
+					
+					return new_dib;
+				}
+			}
+
+		} else if(image_type == FIT_UINT16) {
+
+			unsigned src_pitch = FreeImage_GetPitch(dib);
+			unsigned dst_pitch = FreeImage_GetPitch(new_dib);
+			BYTE *src_bits = FreeImage_GetBits(dib);
+			BYTE *dst_bits = FreeImage_GetBits(new_dib);
+			for (int rows = 0; rows < height; rows++) {
+				WORD *src_pixel = (WORD*)src_bits;
+				BYTE *dst_pixel = (BYTE*)dst_bits;
+				for(int cols = 0; cols < width; cols++) {
+					dst_pixel[cols] = (BYTE)(src_pixel[cols] >> 8);
+				}
+				src_bits += src_pitch;
+				dst_bits += dst_pitch;
+			}
+
+			return new_dib;
+
+		} 
+
+	} // bpp != 8
+
+	return FreeImage_Clone(dib);
+}
+
+FIBITMAP * DLL_CALLCONV
+FreeImage_ConvertToGreyscale(FIBITMAP *dib) {
+	if(!dib) return NULL;
+
+	FREE_IMAGE_COLOR_TYPE color_type = FreeImage_GetColorType(dib);
+	int bpp = FreeImage_GetBPP(dib);
+
+	if((color_type == FIC_PALETTE) || (color_type == FIC_MINISWHITE)) {
+		int width  = FreeImage_GetWidth(dib);
+		int height = FreeImage_GetHeight(dib);
+		FIBITMAP *new_dib = FreeImage_Allocate(width, height, 8);
+
+		if(new_dib == NULL) {
+			return NULL;
+		}
+
+		// Build a greyscale palette
+
+		RGBQUAD *new_pal = FreeImage_GetPalette(new_dib);
+
+		for(int i = 0; i < 256; i++) {
+			new_pal[i].rgbRed	= i;
+			new_pal[i].rgbGreen = i;
+			new_pal[i].rgbBlue	= i;
+		}
+
+		// allocate a 24-bit buffer
+
+		BYTE *buffer = (BYTE*)malloc( CalculatePitch(CalculateLine(width, 24)) );
+		if(NULL == buffer) {
+			FreeImage_Unload(new_dib);
+			return NULL;
+		}
+
+		// Convert the palette to 24-bit, then to 8-bit
+
 		switch(bpp) {
 			case 1:
 			{
-				if(FreeImage_GetColorType(dib) == FIC_PALETTE) {
-
-					// Copy the palette
-
-					RGBQUAD *old_pal = FreeImage_GetPalette(dib);
-					memcpy(&new_pal[0], &old_pal[0], sizeof(RGBQUAD));
-					memcpy(&new_pal[255], &old_pal[1], sizeof(RGBQUAD));
-
-				}
-				else if(FreeImage_GetColorType(dib) == FIC_MINISWHITE) {
-					
-					// Reverse the grayscale palette
-
-					for(int i = 0; i < 256; i++) {
-						new_pal[i].rgbRed = new_pal[i].rgbGreen = new_pal[i].rgbBlue = 255 - i;
-					}
-				}
-
-
-				// Expand and copy the bitmap data
-
-				for (int rows = 0; rows < height; rows++)
-					FreeImage_ConvertLine1To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
-					
-				return new_dib;
-			}
-
-			case 4 :
-			{
-				if(FreeImage_GetColorType(dib) == FIC_PALETTE) {
-
-					// Copy the palette
-
-					RGBQUAD *old_pal = FreeImage_GetPalette(dib);
-
-					for (int i = 0; i < 16; i++) {
-						new_pal[i].rgbRed	= old_pal[i].rgbRed;
-						new_pal[i].rgbGreen = old_pal[i].rgbGreen;
-						new_pal[i].rgbBlue	= old_pal[i].rgbBlue;
-					}
-				}
-
-				// Expand and copy the bitmap data
-
-				for (int rows = 0; rows < height; rows++)
-					FreeImage_ConvertLine4To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);					
-
-				return new_dib;
-			}
-
-			case 16 :
-			{
-				// Expand and copy the bitmap data
-
 				for (int rows = 0; rows < height; rows++) {
-					if ((FreeImage_GetRedMask(dib) == FI16_565_RED_MASK) && (FreeImage_GetGreenMask(dib) == FI16_565_GREEN_MASK) && (FreeImage_GetBlueMask(dib) == FI16_565_BLUE_MASK)) {
-						FreeImage_ConvertLine16To8_565(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
-					} else {
-						FreeImage_ConvertLine16To8_555(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
-					}
+					FreeImage_ConvertLine1To24(buffer, FreeImage_GetScanLine(dib, rows), width, FreeImage_GetPalette(dib));
+					FreeImage_ConvertLine24To8(FreeImage_GetScanLine(new_dib, rows), buffer, width);
 				}
-				
-				return new_dib;
 			}
+			break;
 
-			case 24 :
+			case 4:
 			{
-				// Expand and copy the bitmap data
-
-				for (int rows = 0; rows < height; rows++)
-					FreeImage_ConvertLine24To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);					
-
-				return new_dib;
+				for (int rows = 0; rows < height; rows++) {
+					FreeImage_ConvertLine4To24(buffer, FreeImage_GetScanLine(dib, rows), width, FreeImage_GetPalette(dib));
+					FreeImage_ConvertLine24To8(FreeImage_GetScanLine(new_dib, rows), buffer, width);
+				}
 			}
+			break;
 
-			case 32 :
+			case 8:
 			{
-				// Expand and copy the bitmap data
-
-				for (int rows = 0; rows < height; rows++)
-					FreeImage_ConvertLine32To8(FreeImage_GetScanLine(new_dib, rows), FreeImage_GetScanLine(dib, rows), width);
-				
-				return new_dib;
+				for (int rows = 0; rows < height; rows++) {
+					FreeImage_ConvertLine8To24(buffer, FreeImage_GetScanLine(dib, rows), width, FreeImage_GetPalette(dib));
+					FreeImage_ConvertLine24To8(FreeImage_GetScanLine(new_dib, rows), buffer, width);
+				}
 			}
+			break;
+
 		}
-	}
+		free(buffer);
 
-	return FreeImage_Clone(dib);
+		return new_dib;
+
+	} 
+	
+	// Convert the bitmap to 8-bit greyscale
+	return FreeImage_ConvertTo8Bits(dib);
 }

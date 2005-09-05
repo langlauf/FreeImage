@@ -23,6 +23,20 @@
 
 #ifdef WIN32
 
+// marker used for clipboard copy / paste
+
+static inline void 
+SET_FREEIMAGE_MARKER(BITMAPINFOHEADER *bmih, FIBITMAP *dib) {
+	// Windows constants goes from 0L to 5L
+	// Add 0xFF to avoid conflicts
+	bmih->biCompression = 0xFF + FreeImage_GetImageType(dib);
+}
+
+static inline FREE_IMAGE_TYPE 
+GET_FREEIMAGE_MARKER(BITMAPINFOHEADER *bmih) {
+	return (FREE_IMAGE_TYPE)(bmih->biCompression - 0xFF);
+}
+
 ///////////////////////////////////////////////////////////////////
 // Construction / Destruction
 
@@ -41,13 +55,50 @@ fipWinImage::~fipWinImage() {
 	}
 }
 
-fipWinImage::fipWinImage(const fipImage& Img) : fipImage(Img) { 
+void fipWinImage::clear() {
+	// delete _display_dib
+	if(_bDeleteMe) {
+		FreeImage_Unload(_display_dib);
+	}
 	_display_dib = NULL;
 	_bDeleteMe = FALSE;
+	// delete base class data
+	fipImage::clear();
 }
 
 ///////////////////////////////////////////////////////////////////
 // Copying
+
+fipWinImage& fipWinImage::operator=(const fipImage& Image) {
+	// delete _display_dib
+	if(_bDeleteMe) {
+		FreeImage_Unload(_display_dib);
+	}
+	_display_dib = NULL;
+	_bDeleteMe = FALSE;
+	// clone the base class
+	fipImage::operator=(Image);
+
+	return *this;
+}
+
+fipWinImage& fipWinImage::operator=(const fipWinImage& Image) {
+	if(this != &Image) {
+		// delete _display_dib
+		if(_bDeleteMe) {
+			FreeImage_Unload(_display_dib);
+		}
+		_display_dib = NULL;
+		_bDeleteMe = FALSE;
+		// copy tmo data
+		_tmo = Image._tmo;
+		_tmo_param_1 = Image._tmo_param_1;
+		_tmo_param_2 = Image._tmo_param_2;
+		// clone the base class
+		fipImage::operator=(Image);
+	}
+	return *this;
+}
 
 HANDLE fipWinImage::copyToHandle() {
 	HANDLE hMem = NULL;
@@ -71,6 +122,10 @@ HANDLE fipWinImage::copyToHandle() {
 
 		BITMAPINFOHEADER *bih = FreeImage_GetInfoHeader(_dib);
 		memcpy(p_dib, bih, sizeof(BITMAPINFOHEADER));
+		if(FreeImage_GetImageType(_dib) != FIT_BITMAP) {
+			// this hack is used to store the bitmap type in the biCompression member of the BITMAPINFOHEADER
+			SET_FREEIMAGE_MARKER((BITMAPINFOHEADER*)p_dib, _dib);
+		}
 		p_dib += sizeof(BITMAPINFOHEADER);
 
 		// Copy the palette
@@ -120,7 +175,25 @@ BOOL fipWinImage::copyFromHandle(HANDLE hMem) {
 	if(lpVoid) {
 
 		// Allocate a new FIBITMAP
-		if(!setSize(FIT_BITMAP, (WORD)pHead->biWidth, (WORD)pHead->biHeight, pHead->biBitCount, bitfields[2], bitfields[1], bitfields[0])) {
+
+		FREE_IMAGE_TYPE image_type = FIT_BITMAP;
+		// Use a hack to decide if the clipboard contains non standard bitmaps ...
+		switch(GET_FREEIMAGE_MARKER(pHead)) {
+			case FIT_UINT16:
+			case FIT_INT16:
+			case FIT_UINT32:
+			case FIT_INT32:
+			case FIT_FLOAT:
+			case FIT_DOUBLE:
+			case FIT_COMPLEX:
+			case FIT_RGB16:
+			case FIT_RGBA16:
+			case FIT_RGBF:
+			case FIT_RGBAF:
+				image_type = GET_FREEIMAGE_MARKER(pHead);
+				break;
+		}
+		if(!setSize(image_type, (WORD)pHead->biWidth, (WORD)pHead->biHeight, pHead->biBitCount, bitfields[2], bitfields[1], bitfields[0])) {
 			GlobalUnlock(lpVoid);
 			return FALSE;
 		}
@@ -272,6 +345,11 @@ BOOL fipWinImage::captureWindow(HWND hWndApplicationWindow, HWND hWndSelectedWin
 	DeleteObject(SelectObject(memDC, oldbm));
 	DeleteObject(memDC);
 
+	// Convert 32-bit images to 24-bit
+	if(getBitsPerPixel() == 32) {
+		convertTo24Bits();
+	}
+
 	return TRUE;
 }
 
@@ -293,7 +371,7 @@ void fipWinImage::drawEx(HDC hDC, RECT& rcDest, BOOL useFileBkg, RGBQUAD *appBkC
 			BOOL bHasBackground = FreeImage_HasBackgroundColor(_dib);
 			BOOL bIsTransparent = FreeImage_IsTransparent(_dib);
 
-			if(!bIsTransparent && !bHasBackground) {
+			if(!bIsTransparent && (!bHasBackground || !useFileBkg)) {
 				// Copy pointer
 				_display_dib = _dib;
 			}
@@ -337,13 +415,16 @@ void fipWinImage::drawEx(HDC hDC, RECT& rcDest, BOOL useFileBkg, RGBQUAD *appBkC
 }
 
 void fipWinImage::setToneMappingOperator(FREE_IMAGE_TMO tmo, double first_param, double second_param) {
-	_tmo = tmo;
-	_tmo_param_1 = first_param;
-	_tmo_param_2 = second_param;
+	// avoid costly operations if possible ...
+	if((_tmo != tmo) && (_tmo_param_1 != first_param) && (_tmo_param_2 != second_param)) {
+		_tmo = tmo;
+		_tmo_param_1 = first_param;
+		_tmo_param_2 = second_param;
 
-	FREE_IMAGE_TYPE image_type = getImageType();
-	if((image_type == FIT_RGBF) || (image_type == FIT_RGB16)) {
-		_bHasChanged = TRUE;
+		FREE_IMAGE_TYPE image_type = getImageType();
+		if((image_type == FIT_RGBF) || (image_type == FIT_RGB16)) {
+			_bHasChanged = TRUE;
+		}
 	}
 }
 

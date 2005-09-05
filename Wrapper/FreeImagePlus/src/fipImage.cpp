@@ -47,6 +47,7 @@ fipImage::fipImage(FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD bpp
 fipImage::~fipImage() {
 	if(_dib) {
 		FreeImage_Unload(_dib);
+		_dib = NULL;
 	}
 }
 
@@ -76,6 +77,14 @@ BOOL fipImage::setSize(FREE_IMAGE_TYPE image_type, WORD width, WORD height, WORD
 	_bHasChanged = TRUE;
 
 	return TRUE;
+}
+
+void fipImage::clear() {
+	if(_dib) {
+		FreeImage_Unload(_dib);
+		_dib = NULL;
+	}
+	_bHasChanged = TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -263,6 +272,33 @@ BOOL fipImage::load(const char* lpszPathName, int flag) {
 	return FALSE;
 }
 
+BOOL fipImage::loadU(const wchar_t* lpszPathName, int flag) {
+	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+
+	// check the file signature and get its format
+	// (the second argument is currently not used by FreeImage)
+	fif = FreeImage_GetFileTypeU(lpszPathName, 0);
+	if(fif == FIF_UNKNOWN) {
+		// no signature ?
+		// try to guess the file format from the file extension
+		fif = FreeImage_GetFIFFromFilenameU(lpszPathName);
+	}
+	// check that the plugin has reading capabilities ...
+	if((fif != FIF_UNKNOWN) && FreeImage_FIFSupportsReading(fif)) {
+		// Free the previous dib
+		if(_dib) {
+			FreeImage_Unload(_dib);			
+		}
+		// Load the file
+		_dib = FreeImage_LoadU(fif, lpszPathName, flag);
+		_bHasChanged = TRUE;
+		if(_dib == NULL)
+			return FALSE;
+		return TRUE;
+	}
+	return FALSE;
+}
+
 BOOL fipImage::loadFromHandle(FreeImageIO *io, fi_handle handle, int flag) {
 	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
 
@@ -325,6 +361,34 @@ BOOL fipImage::save(const char* lpszPathName, int flag) {
 
 		if(bCanSave) {
 			bSuccess = FreeImage_Save(fif, _dib, lpszPathName, flag);
+			return bSuccess;
+		}
+	}
+	return bSuccess;
+}
+
+BOOL fipImage::saveU(const wchar_t* lpszPathName, int flag) {
+	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+	BOOL bSuccess = FALSE;
+
+	// Try to guess the file format from the file extension
+	fif = FreeImage_GetFIFFromFilenameU(lpszPathName);
+	if(fif != FIF_UNKNOWN ) {
+		// Check that the dib can be saved in this format
+		BOOL bCanSave;
+
+		FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(_dib);
+		if(image_type == FIT_BITMAP) {
+			// standard bitmap type
+			WORD bpp = FreeImage_GetBPP(_dib);
+			bCanSave = (FreeImage_FIFSupportsWriting(fif) && FreeImage_FIFSupportsExportBPP(fif, bpp));
+		} else {
+			// special bitmap type
+			bCanSave = FreeImage_FIFSupportsExportType(fif, image_type);
+		}
+
+		if(bCanSave) {
+			bSuccess = FreeImage_SaveU(fif, _dib, lpszPathName, flag);
 			return bSuccess;
 		}
 	}
@@ -450,16 +514,8 @@ BOOL fipImage::convertTo32Bits() {
 
 BOOL fipImage::convertToGrayscale() {
 	if(_dib) {
-		if(FreeImage_GetColorType(_dib) == FIC_PALETTE) {
-			// Convert the palette to 24-bit, then to 8-bit
-			BOOL bResult;
-			bResult = convertTo24Bits();
-			bResult &= convertTo8Bits();
-			return bResult;
-		} else if(FreeImage_GetBPP(_dib) != 8) {
-			// Convert the bitmap to 8-bit greyscale
-			return convertTo8Bits();
-		}
+		FIBITMAP *dib8 = FreeImage_ConvertToGreyscale(_dib);
+		return replace(dib8);
 	}
 	return FALSE;
 }
@@ -482,18 +538,8 @@ BOOL fipImage::dither(FREE_IMAGE_DITHER algorithm) {
 
 BOOL fipImage::convertToRGBF() {
 	if(_dib) {
-		switch(FreeImage_GetImageType(_dib)) {
-			case FIT_BITMAP:
-				if(FreeImage_GetBPP(_dib) < 24) {
-					// conversion is only allowed from 24- or 32-bit
-					if(!convertTo24Bits()) return FALSE;
-				}
-				// no break here
-			case FIT_RGB16:
-			case FIT_RGBF:
-				FIBITMAP *dib = FreeImage_ConvertToRGBF(_dib);
-				return replace(dib);
-		}
+		FIBITMAP *dib = FreeImage_ConvertToRGBF(_dib);
+		return replace(dib);
 	}
 	return FALSE;
 
@@ -698,15 +744,21 @@ BOOL fipImage::getHistogram(DWORD *histo, FREE_IMAGE_COLOR_CHANNEL channel) {
 BOOL fipImage::rescale(WORD new_width, WORD new_height, FREE_IMAGE_FILTER filter) {
 	if(_dib) {
 		int bpp = FreeImage_GetBPP(_dib);
-		if(bpp < 8) {
-			// Convert to 8-bit
-			if(!convertTo8Bits())
-				return FALSE;
-		} else if(bpp == 16) {
-			// Convert to 24-bit
-			if(!convertTo24Bits())
-				return FALSE;
+
+		FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(_dib);
+
+		if(image_type == FIT_BITMAP) {
+			if(bpp < 8) {
+				// Convert to 8-bit
+				if(!convertTo8Bits())
+					return FALSE;
+			} else if(bpp == 16) {
+				// Convert to 24-bit
+				if(!convertTo24Bits())
+					return FALSE;
+			}
 		}
+
 		// Perform upsampling / downsampling
 		FIBITMAP *dst = FreeImage_Rescale(_dib, new_width, new_height, filter);
 		return replace(dst);

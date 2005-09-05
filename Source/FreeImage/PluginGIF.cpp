@@ -79,16 +79,14 @@ protected:
 
 	int m_minCodeSize, m_clearCode, m_endCode, m_nextCode;
 
-	typedef std::basic_string<BYTE> str;
-
 	int m_bpp, m_slack; //Compressor information
-	str m_prefix; //Compressor state variable
+	std::string m_prefix; //Compressor state variable
 	int m_codeSize, m_codeMask; //Compressor/Decompressor state variables
 	int m_oldCode; //Decompressor state variable
 	int m_partial, m_partialSize; //Compressor/Decompressor bit buffer
 
-	str m_strings[MAX_LZW_CODE]; //This is what is really the "string table" data for the Decompressor
-	std::map<str, int> m_strmap; //This is what is really the "string table" data for the Compressor
+	std::string m_strings[MAX_LZW_CODE]; //This is what is really the "string table" data for the Decompressor
+	std::map<std::string, int> m_strmap; //This is what is really the "string table" data for the Compressor
 
 	//input buffer
 	BYTE *m_buffer;
@@ -259,9 +257,9 @@ bool StringTable::Compress(BYTE *buf, int *len)
 	BYTE *bufpos = buf;
 	while( m_bufferPos < m_bufferSize ) {
 		//get the current pixel value
-		BYTE ch = (m_buffer[m_bufferPos] >> m_bufferShift) & mask;
+		char ch = (m_buffer[m_bufferPos] >> m_bufferShift) & mask;
 
-		str nextprefix = m_prefix + ch;
+		std::string nextprefix = m_prefix + ch;
 		if( m_strmap.find(nextprefix) != m_strmap.end() ) {
 			m_prefix = nextprefix;
 		} else {
@@ -386,7 +384,7 @@ void StringTable::ClearCompressorTable(void)
 {
 	m_strmap.clear();
 	for( int i = 0; i < m_clearCode; i++ ) {
-		m_strmap[str(1, (BYTE)i)] = i;
+		m_strmap[std::string(1, (char)i)] = i;
 	}
 	m_nextCode = m_endCode + 1;
 
@@ -1023,6 +1021,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		bool have_transparent = false, no_local_palette = false, interlaced = false;
 		int disposal_method = GIF_DISPOSAL_BACKGROUND, delay_time = 100, transparent_color = 0;
 		WORD left = 0, top = 0, width = FreeImage_GetWidth(dib), height = FreeImage_GetHeight(dib);
+		WORD output_height = height;
 		if( FreeImage_GetMetadataEx(FIMD_ANIMATION, dib, "FrameLeft", FIDT_SHORT, &tag) ) {
 			left = *(WORD *)FreeImage_GetTagValue(tag);
 		}
@@ -1052,13 +1051,14 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		if( page == 0 ) {
 			//gather some info
-			WORD logicalwidth = width, logicalheight = height;
+			WORD logicalwidth = width; // width has already been swapped...
 			if( FreeImage_GetMetadataEx(FIMD_ANIMATION, dib, "LogicalWidth", FIDT_SHORT, &tag) ) {
 				logicalwidth = *(WORD *)FreeImage_GetTagValue(tag);
 #ifdef FREEIMAGE_BIGENDIAN
 				SwapShort(&logicalwidth);
 #endif
 			}
+			WORD logicalheight = height; // height has already been swapped...
 			if( FreeImage_GetMetadataEx(FIMD_ANIMATION, dib, "LogicalHeight", FIDT_SHORT, &tag) ) {
 				logicalheight = *(WORD *)FreeImage_GetTagValue(tag);
 #ifdef FREEIMAGE_BIGENDIAN
@@ -1246,8 +1246,8 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		BYTE buf[255], *bufptr = buf; //255 is the max sub-block length
 		int size = sizeof(buf);
 		b = sizeof(buf);
-		while( y < height ) {
-			memcpy(stringtable.FillInputBuffer(line), FreeImage_GetScanLine(dib, height - y - 1), line);
+		while( y < output_height ) {
+			memcpy(stringtable.FillInputBuffer(line), FreeImage_GetScanLine(dib, output_height - y - 1), line);
 			while( stringtable.Compress(bufptr, &size) ) {
 				bufptr += size;
 				if( bufptr - buf == sizeof(buf) ) {
@@ -1261,7 +1261,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			}
 			if( interlaced ) {
 				y += g_GifInterlaceIncrement[interlacepass];
-				if( y >= height && interlacepass < GIF_INTERLACE_PASSES ) {
+				if( y >= output_height && interlacepass < GIF_INTERLACE_PASSES ) {
 					y = g_GifInterlaceOffset[++interlacepass];
 				}
 			} else {

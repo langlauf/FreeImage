@@ -58,3 +58,21 @@ FreeImage_GetFileType(const char *filename, int size) {
 	return FIF_UNKNOWN;
 }
 
+FREE_IMAGE_FORMAT DLL_CALLCONV 
+FreeImage_GetFileTypeU(const wchar_t *filename, int size) {
+#ifdef WIN32	
+	FreeImageIO io;
+	SetDefaultIO(&io);
+	FILE *handle = _wfopen(filename, L"rb");
+
+	if (handle != NULL) {
+		FREE_IMAGE_FORMAT format = FreeImage_GetFileTypeFromHandle(&io, (fi_handle)handle, size);
+
+		fclose(handle);
+
+		return format;
+	}
+#endif
+	return FIF_UNKNOWN;
+}
+

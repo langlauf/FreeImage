@@ -18,12 +18,12 @@
 /* Set the native cpu bit order (FILLORDER_LSB2MSB or FILLORDER_MSB2LSB) */
 #define HOST_FILLORDER FILLORDER_MSB2LSB
 /* Native cpu byte order: 1 if big-endian (Motorola) or 0 if little-endian (Intel) */
-#define HOST_BIGENDIAN 1
+#define WORDS_BIGENDIAN 1
 #else
 /* Set the native cpu bit order (FILLORDER_LSB2MSB or FILLORDER_MSB2LSB) */
 #define HOST_FILLORDER FILLORDER_LSB2MSB
 /* Native cpu byte order: 1 if big-endian (Motorola) or 0 if little-endian (Intel) */
-#define HOST_BIGENDIAN 0
+#undef WORDS_BIGENDIAN
 #endif // BYTE_ORDER
 
 /* --- compression algorithms --- */
@@ -239,8 +239,21 @@
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
-/* #undef inline */
-#endif
+  #ifdef _MSC_VER
+    #ifndef inline
+    #define inline __inline
+    #endif
+  #else
+    #undef inline
+  #endif // _MSC_VER
+#endif // __cplusplus
+
+#ifdef _MSC_VER 
+#define lfind _lfind
+/* Define to 1 if you have the <search.h> header file. */
+#define HAVE_SEARCH_H 1
+#endif // _MSC_VER
+
 
 /* Define to `long' if <sys/types.h> does not define. */
 /* #undef off_t */
