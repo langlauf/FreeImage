@@ -19,10 +19,16 @@
 // Use at your own risk!
 // ==========================================================
 
-#include "DeprecationMgr.h"
-#ifdef WIN32
+#ifdef _MSC_VER 
+#pragma warning (disable : 4786) // identifier was truncated to 'number' characters
+#endif 
+
+#ifdef _WIN32
 #include <windows.h>
-#endif // WIN32
+#endif // _WIN32
+#include "FreeImage.h"
+#include "Utilities.h"
+#include "DeprecationMgr.h"
 
 // ==========================================================
 
@@ -30,7 +36,7 @@ DeprecationMgr::DeprecationMgr() {
 }
 
 DeprecationMgr::~DeprecationMgr() {
-#ifdef WIN32
+#ifdef _WIN32
 	if (!m_functions.empty()) {
 		OutputDebugString( "*************************************************************************************\n" );
 		OutputDebugString( "This is a warning, because you use one or more deprecated functions.\nContinuing to use these functions might eventually render your program uncompilable.\nThe following functions are deprecated:\n\n" );
@@ -49,7 +55,7 @@ DeprecationMgr::~DeprecationMgr() {
 
 		m_functions.clear();
 	}
-#endif // WIN32
+#endif // _WIN32
 }
 
 // ==========================================================
@@ -64,7 +70,7 @@ DeprecationMgr::GetInstance() {
 
 void
 DeprecationMgr::AddDeprecatedFunction(const char *old_function_name, const char *new_function_name, const void *frame_ptr) {
-#ifdef WIN32
+#ifdef _WIN32
 	int *preturn = (int *)frame_ptr + 1; // usual return address @ [ebp+4]
 	int called_from = IsBadReadPtr(preturn, 4) ? 0 : *preturn;
 
@@ -91,7 +97,7 @@ DeprecationMgr::AddDeprecatedFunction(const char *old_function_name, const char 
 
 		function->called_from.insert(called_from);
 	}
-#endif // WIN32
+#endif // _WIN32
 }
 
 

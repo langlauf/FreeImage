@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_warning.c,v 1.7 2005/07/06 20:11:17 drolon Exp $ */
+/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_warning.c,v 1.15 2006/06/25 16:23:06 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -29,6 +29,8 @@
  */
 #include "tiffiop.h"
 
+TIFFErrorHandlerExt _TIFFwarningHandlerExt = NULL;
+
 TIFFErrorHandler
 TIFFSetWarningHandler(TIFFErrorHandler handler)
 {
@@ -37,13 +39,36 @@ TIFFSetWarningHandler(TIFFErrorHandler handler)
 	return (prev);
 }
 
+TIFFErrorHandlerExt
+TIFFSetWarningHandlerExt(TIFFErrorHandlerExt handler)
+{
+	TIFFErrorHandlerExt prev = _TIFFwarningHandlerExt;
+	_TIFFwarningHandlerExt = handler;
+	return (prev);
+}
+
 void
 TIFFWarning(const char* module, const char* fmt, ...)
 {
-	if (_TIFFwarningHandler) {
-		va_list ap;
-		va_start(ap, fmt);
+	va_list ap;
+	va_start(ap, fmt);
+	if (_TIFFwarningHandler)
 		(*_TIFFwarningHandler)(module, fmt, ap);
-		va_end(ap);
-	}
+	if (_TIFFwarningHandlerExt)
+		(*_TIFFwarningHandlerExt)(0, module, fmt, ap);
+	va_end(ap);
 }
+
+void
+TIFFWarningExt(thandle_t fd, const char* module, const char* fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	if (_TIFFwarningHandler)
+		(*_TIFFwarningHandler)(module, fmt, ap);
+	if (_TIFFwarningHandlerExt)
+		(*_TIFFwarningHandlerExt)(fd, module, fmt, ap);
+	va_end(ap);
+}
+
+

@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_acorn.c,v 1.7 2005/07/06 20:11:13 drolon Exp $ */
+/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_acorn.c,v 1.15 2006/06/25 16:23:05 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -451,7 +451,7 @@ TIFFOpen(const char* name, const char* mode)
 
 	if (fd < 0)
 	{
-		TIFFError(module, "%s: Cannot open", name);
+		TIFFErrorExt(0, module, "%s: Cannot open", name);
 		return ((TIFF *)0);
 	}
 	return (TIFFFdOpen(fd, name, mode));

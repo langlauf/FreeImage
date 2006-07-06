@@ -1,4 +1,4 @@
-/* $Id: tiffiop.h,v 1.7 2005/07/06 20:11:17 drolon Exp $ */
+/* $Id: tiffiop.h,v 1.15 2006/06/25 16:23:06 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -32,34 +32,37 @@
 
 #include "tif_config.h"
 
-#if HAVE_FCNTL_H
+#ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
 
-#if HAVE_SYS_TYPES_H
+#ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
 
-#if HAVE_STRING_H
+#ifdef HAVE_STRING_H
 # include <string.h>
 #endif
 
-#if HAVE_ASSERT_H
+#ifdef HAVE_ASSERT_H
 # include <assert.h>
 #else
 # define assert(x) 
 #endif
 
-#if HAVE_SEARCH_H
+#ifdef HAVE_SEARCH_H
 # include <search.h>
+#else
+extern void *lfind(const void *, const void *, size_t *, size_t,
+		   int (*)(const void *, const void *));
 #endif
 
 #include "tiffio.h"
 #include "tif_dir.h"
 
-typedef double dblparam_t;
-
-#define GLOBALDATA(TYPE,NAME)	extern TYPE NAME
+#ifndef STRIP_SIZE_DEFAULT
+# define STRIP_SIZE_DEFAULT 8192
+#endif
 
 #define    streq(a,b)      (strcmp(a,b) == 0)
 
@@ -111,10 +114,13 @@ struct tiff {
 #define	TIFF_STRIPCHOP		0x8000	/* enable strip chopping support */
 #define	TIFF_HEADERONLY		0x10000	/* read header only, do not process */
 					/* the first directory */
+#define TIFF_NOREADRAW		0x20000 /* skip reading of raw uncompressed */
+					/* image data */
 	toff_t		tif_diroff;	/* file offset of current directory */
 	toff_t		tif_nextdiroff;	/* file offset of following directory */
 	toff_t*		tif_dirlist;	/* list of offsets to already seen */
 					/* directories to prevent IFD looping */
+	tsize_t		tif_dirlistsize;/* number of entires in offset list */
 	uint16		tif_dirnumber;  /* number of already seen directories */
 	TIFFDirectory	tif_dir;	/* internal rep of current directory */
 	TIFFHeader	tif_header;	/* file's header block */
@@ -226,6 +232,8 @@ struct tiff {
 #define TIFFmax(A,B) ((A)>(B)?(A):(B))
 #define TIFFmin(A,B) ((A)<(B)?(A):(B))
 
+#define TIFFArrayCount(a) (sizeof (a) / sizeof ((a)[0]))
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -244,8 +252,8 @@ extern	void _TIFFSwab24BitData(TIFF*, tidata_t, tsize_t);
 extern	void _TIFFSwab32BitData(TIFF*, tidata_t, tsize_t);
 extern	void _TIFFSwab64BitData(TIFF*, tidata_t, tsize_t);
 extern	int TIFFFlushData1(TIFF*);
-extern	void TIFFFreeDirectory(TIFF*);
 extern	int TIFFDefaultDirectory(TIFF*);
+extern	void _TIFFSetDefaultCompressionState(TIFF*);
 extern	int TIFFSetCompressionScheme(TIFF*, int);
 extern	int TIFFSetDefaultCompressionState(TIFF*);
 extern	uint32 _TIFFDefaultStripSize(TIFF*, uint32);
@@ -262,8 +270,13 @@ extern	void _TIFFsetDoubleArray(double**, double*, uint32);
 extern	void _TIFFprintAscii(FILE*, const char*);
 extern	void _TIFFprintAsciiTag(FILE*, const char*, const char*);
 
-GLOBALDATA(TIFFErrorHandler,_TIFFwarningHandler);
-GLOBALDATA(TIFFErrorHandler,_TIFFerrorHandler);
+extern	TIFFErrorHandler _TIFFwarningHandler;
+extern	TIFFErrorHandler _TIFFerrorHandler;
+extern	TIFFErrorHandlerExt _TIFFwarningHandlerExt;
+extern	TIFFErrorHandlerExt _TIFFerrorHandlerExt;
+
+extern	tdata_t _TIFFCheckMalloc(TIFF*, size_t, size_t, const char*);
+extern	tdata_t _TIFFCheckRealloc(TIFF*, tdata_t, size_t, size_t, const char*);
 
 extern	int TIFFInitDumpMode(TIFF*, int);
 #ifdef PACKBITS_SUPPORT

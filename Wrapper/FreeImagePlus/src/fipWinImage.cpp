@@ -21,7 +21,7 @@
 
 #include "FreeImagePlus.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 
 // marker used for clipboard copy / paste
 
@@ -66,6 +66,10 @@ void fipWinImage::clear() {
 	fipImage::clear();
 }
 
+BOOL fipWinImage::isValid() const {
+	return fipImage::isValid();
+}
+
 ///////////////////////////////////////////////////////////////////
 // Copying
 
@@ -100,7 +104,7 @@ fipWinImage& fipWinImage::operator=(const fipWinImage& Image) {
 	return *this;
 }
 
-HANDLE fipWinImage::copyToHandle() {
+HANDLE fipWinImage::copyToHandle() const {
 	HANDLE hMem = NULL;
 
 	if(_dib) {
@@ -248,7 +252,7 @@ BOOL fipWinImage::copyFromBitmap(HBITMAP hbmp) {
 	return FALSE;
 }
 
-BOOL fipWinImage::copyToClipboard(HWND hWndNewOwner) {
+BOOL fipWinImage::copyToClipboard(HWND hWndNewOwner) const {
 	HANDLE hDIB = copyToHandle();
 
 	if(OpenClipboard(hWndNewOwner)) {
@@ -357,7 +361,7 @@ BOOL fipWinImage::captureWindow(HWND hWndApplicationWindow, HWND hWndSelectedWin
 ///////////////////////////////////////////////////////////////////
 // Painting operations
 
-void fipWinImage::drawEx(HDC hDC, RECT& rcDest, BOOL useFileBkg, RGBQUAD *appBkColor, FIBITMAP *bg) {
+void fipWinImage::drawEx(HDC hDC, RECT& rcDest, BOOL useFileBkg, RGBQUAD *appBkColor, FIBITMAP *bg) const {
 	// Convert to a standard bitmap if needed
 	if(_bHasChanged) {
 		if(_bDeleteMe) {
@@ -378,8 +382,13 @@ void fipWinImage::drawEx(HDC hDC, RECT& rcDest, BOOL useFileBkg, RGBQUAD *appBkC
 			else {
 				// Create the transparent / alpha blended image
 				_display_dib = FreeImage_Composite(_dib, useFileBkg, appBkColor, bg);
-				// Remember to delete _display_dib
-				_bDeleteMe = TRUE;
+				if(_display_dib) {
+					// Remember to delete _display_dib
+					_bDeleteMe = TRUE;
+				} else {
+					// Something failed: copy pointers
+					_display_dib = _dib;
+				}
 			}
 		} else {
 			// Convert to a standard dib for display
@@ -416,7 +425,7 @@ void fipWinImage::drawEx(HDC hDC, RECT& rcDest, BOOL useFileBkg, RGBQUAD *appBkC
 
 void fipWinImage::setToneMappingOperator(FREE_IMAGE_TMO tmo, double first_param, double second_param) {
 	// avoid costly operations if possible ...
-	if((_tmo != tmo) && (_tmo_param_1 != first_param) && (_tmo_param_2 != second_param)) {
+	if((_tmo != tmo) || (_tmo_param_1 != first_param) || (_tmo_param_2 != second_param)) {
 		_tmo = tmo;
 		_tmo_param_1 = first_param;
 		_tmo_param_2 = second_param;
@@ -428,11 +437,11 @@ void fipWinImage::setToneMappingOperator(FREE_IMAGE_TMO tmo, double first_param,
 	}
 }
 
-void fipWinImage::getToneMappingOperator(FREE_IMAGE_TMO *tmo, double *first_param, double *second_param) {
+void fipWinImage::getToneMappingOperator(FREE_IMAGE_TMO *tmo, double *first_param, double *second_param) const {
 	*tmo = _tmo;
 	*first_param = _tmo_param_1;
 	*second_param = _tmo_param_2;
 }
 
 
-#endif // WIN32
+#endif // _WIN32

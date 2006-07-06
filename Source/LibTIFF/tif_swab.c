@@ -1,4 +1,4 @@
-/* $Id: tif_swab.c,v 1.7 2005/07/06 20:11:17 drolon Exp $ */
+/* $Id: tif_swab.c,v 1.15 2006/06/25 16:23:05 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

@@ -184,6 +184,10 @@ SOURCE=..\FreeImage\PluginDDS.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\FreeImage\PluginG3.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\FreeImage\PluginGIF.cpp
 # End Source File
 # Begin Source File
@@ -233,6 +237,10 @@ SOURCE=..\FreeImage\PluginPSD.cpp
 # Begin Source File
 
 SOURCE=..\FreeImage\PluginRAS.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\FreeImage\PluginSGI.cpp
 # End Source File
 # Begin Source File
 

@@ -1,4 +1,4 @@
-/* $Id: tif_dir.h,v 1.7 2005/07/06 20:11:14 drolon Exp $ */
+/* $Id: tif_dir.h,v 1.15 2006/06/25 16:23:05 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -38,69 +38,48 @@ typedef	struct {
 	/* bit vector of fields that are set */
 	unsigned long	td_fieldsset[FIELD_SETLONGS];
 
-	uint32	td_imagewidth, td_imagelength, td_imagedepth;
-	uint32	td_tilewidth, td_tilelength, td_tiledepth;
-	uint32	td_subfiletype;
-	uint16	td_bitspersample;
-	uint16	td_sampleformat;
-	uint16	td_compression;
-	uint16	td_photometric;
-	uint16	td_threshholding;
-	uint16	td_fillorder;
-	uint16	td_orientation;
-	uint16	td_samplesperpixel;
-	uint32	td_rowsperstrip;
-	uint16	td_minsamplevalue, td_maxsamplevalue;
-	double	td_sminsamplevalue, td_smaxsamplevalue;
-	float	td_xresolution, td_yresolution;
-	uint16	td_resolutionunit;
-	uint16	td_planarconfig;
-	float	td_xposition, td_yposition;
-	uint16	td_pagenumber[2];
-	uint16*	td_colormap[3];
-	uint16	td_halftonehints[2];
-	uint16	td_extrasamples;
-	uint16*	td_sampleinfo;
-	double	td_stonits;
-	tstrip_t td_stripsperimage;
-	tstrip_t td_nstrips;		/* size of offset & bytecount arrays */
-	uint32*	td_stripoffset;
-	uint32*	td_stripbytecount;
-	int	td_stripbytecountsorted; /* is the bytecount array sorted ascending? */
-	uint16	td_nsubifd;
-	uint32*	td_subifd;
+	uint32  td_imagewidth, td_imagelength, td_imagedepth;
+	uint32  td_tilewidth, td_tilelength, td_tiledepth;
+	uint32  td_subfiletype;
+	uint16  td_bitspersample;
+	uint16  td_sampleformat;
+	uint16  td_compression;
+	uint16  td_photometric;
+	uint16  td_threshholding;
+	uint16  td_fillorder;
+	uint16  td_orientation;
+	uint16  td_samplesperpixel;
+	uint32  td_rowsperstrip;
+	uint16  td_minsamplevalue, td_maxsamplevalue;
+	double  td_sminsamplevalue, td_smaxsamplevalue;
+	float   td_xresolution, td_yresolution;
+	uint16  td_resolutionunit;
+	uint16  td_planarconfig;
+	float   td_xposition, td_yposition;
+	uint16  td_pagenumber[2];
+	uint16* td_colormap[3];
+	uint16  td_halftonehints[2];
+	uint16  td_extrasamples;
+	uint16* td_sampleinfo;
+	/* even though the name is misleading, td_stripsperimage is the number
+	 * of striles (=strips or tiles) per plane, and td_nstrips the total
+	 * number of striles */
+	tstrile_t td_stripsperimage;
+	tstrile_t td_nstrips;            /* size of offset & bytecount arrays */
+	toff_t* td_stripoffset;
+	toff_t* td_stripbytecount;
+	int     td_stripbytecountsorted; /* is the bytecount array sorted ascending? */
+	uint16  td_nsubifd;
+	uint32* td_subifd;
 	/* YCbCr parameters */
-	float*	td_ycbcrcoeffs;
-	uint16	td_ycbcrsubsampling[2];
-	uint16	td_ycbcrpositioning;
+	uint16  td_ycbcrsubsampling[2];
+	uint16  td_ycbcrpositioning;
 	/* Colorimetry parameters */
-	float*	td_whitepoint;
-	float*	td_primarychromas;
-	float*	td_refblackwhite;
-	uint16*	td_transferfunction[3];
+	uint16* td_transferfunction[3];
 	/* CMYK parameters */
-	uint16	td_inkset;
-	uint16	td_ninks;
-	uint16	td_dotrange[2];
-	int	td_inknameslen;
-	char*	td_inknames;
-	/* ICC parameters */
-	uint32	td_profileLength;
-	void	*td_profileData;
-	/* Adobe Photoshop tag handling */
-	uint32	td_photoshopLength;
-	void	*td_photoshopData;
-	/* IPTC parameters */
-	uint32	td_richtiffiptcLength;
-	void	*td_richtiffiptcData;
-        /* Begin Pixar Tag values. */
-        uint32	td_imagefullwidth, td_imagefulllength;
- 	float	td_fovcot;
- 	float*	td_matrixWorldToScreen;
- 	float*	td_matrixWorldToCamera;
- 	/* End Pixar Tag Values. */
-	uint32	td_xmlpacketLength;
-	void	*td_xmlpacketData;
+	int     td_inknameslen;
+	char*   td_inknames;
+
 	int     td_customValueCount;
         TIFFTagValue *td_customValues;
 } TIFFDirectory;
@@ -134,26 +113,17 @@ typedef	struct {
 #define	FIELD_PHOTOMETRIC		8
 #define	FIELD_THRESHHOLDING		9
 #define	FIELD_FILLORDER			10
-/* unused - was FIELD_DOCUMENTNAME	11 */
-/* unused - was FIELD_IMAGEDESCRIPTION	12 */
-/* unused - was FIELD_MAKE		13 */
-/* unused - was FIELD_MODEL		14 */
 #define	FIELD_ORIENTATION		15
 #define	FIELD_SAMPLESPERPIXEL		16
 #define	FIELD_ROWSPERSTRIP		17
 #define	FIELD_MINSAMPLEVALUE		18
 #define	FIELD_MAXSAMPLEVALUE		19
 #define	FIELD_PLANARCONFIG		20
-/* unused - was FIELD_PAGENAME		21 */
 #define	FIELD_RESOLUTIONUNIT		22
 #define	FIELD_PAGENUMBER		23
 #define	FIELD_STRIPBYTECOUNTS		24
 #define	FIELD_STRIPOFFSETS		25
 #define	FIELD_COLORMAP			26
-/* unused - was FIELD_ARTIST		27 */
-/* unused - was FIELD_DATETIME		28 */
-/* unused - was FIELD_HOSTCOMPUTER	29 */
-/* unused - was FIELD_SOFTWARE          30 */
 #define	FIELD_EXTRASAMPLES		31
 #define FIELD_SAMPLEFORMAT		32
 #define	FIELD_SMINSAMPLEVALUE		33
@@ -161,33 +131,11 @@ typedef	struct {
 #define FIELD_IMAGEDEPTH		35
 #define FIELD_TILEDEPTH			36
 #define	FIELD_HALFTONEHINTS		37
-#define FIELD_YCBCRCOEFFICIENTS		38
 #define FIELD_YCBCRSUBSAMPLING		39
 #define FIELD_YCBCRPOSITIONING		40
-#define	FIELD_REFBLACKWHITE		41
-#define	FIELD_WHITEPOINT		42
-#define	FIELD_PRIMARYCHROMAS		43
 #define	FIELD_TRANSFERFUNCTION		44
-#define	FIELD_INKSET			45
 #define	FIELD_INKNAMES			46
-#define	FIELD_DOTRANGE			47
-/* unused - was FIELD_TARGETPRINTER	48 */
 #define	FIELD_SUBIFD			49
-#define	FIELD_NUMBEROFINKS		50
-#define FIELD_ICCPROFILE		51
-#define FIELD_PHOTOSHOP			52
-#define FIELD_RICHTIFFIPTC		53
-#define FIELD_STONITS			54
-/* Begin PIXAR */
-#define	FIELD_IMAGEFULLWIDTH		55
-#define	FIELD_IMAGEFULLLENGTH		56
-/* unused - was FIELD_TEXTUREFORMAT	57 */
-/* unused - was FIELD_WRAPMODES		58 */
-#define FIELD_FOVCOT			59
-#define FIELD_MATRIX_WORLDTOSCREEN	60
-#define FIELD_MATRIX_WORLDTOCAMERA	61
-/* unused - was FIELD_COPYRIGHT		62 */
-#define FIELD_XMLPACKET			63
 /*      FIELD_CUSTOM (see tiffio.h)     65 */
 /* end of support for well-known tags; codec-private tags follow */
 #define	FIELD_CODEC			66	/* base of codec-private tags */
@@ -229,7 +177,9 @@ typedef	struct {
 #if defined(__cplusplus)
 extern "C" {
 #endif
-extern	void _TIFFSetupFieldInfo(TIFF*);
+extern	const TIFFFieldInfo *_TIFFGetFieldInfo(size_t *);
+extern	const TIFFFieldInfo *_TIFFGetExifFieldInfo(size_t *);
+extern	void _TIFFSetupFieldInfo(TIFF*, const TIFFFieldInfo[], size_t);
 extern	void _TIFFPrintFieldInfo(TIFF*, FILE*);
 extern	TIFFDataType _TIFFSampleToTagType(TIFF*);
 extern  const TIFFFieldInfo* _TIFFFindOrRegisterFieldInfo( TIFF *tif,

@@ -19,11 +19,15 @@
 // Use at your own risk!
 // ==========================================================
 
-#include "../DeprecationManager/DeprecationMgr.h"
+#ifdef _MSC_VER 
+#pragma warning (disable : 4786) // identifier was truncated to 'number' characters
+#endif 
+
 #include "FreeImage.h"
 #include "Utilities.h"
 #include "FreeImageIO.h"
 #include "Plugin.h"
+#include "../DeprecationManager/DeprecationMgr.h"
 
 // ----------------------------------------------------------
 
@@ -60,7 +64,7 @@ FreeImage_GetFileType(const char *filename, int size) {
 
 FREE_IMAGE_FORMAT DLL_CALLCONV 
 FreeImage_GetFileTypeU(const wchar_t *filename, int size) {
-#ifdef WIN32	
+#ifdef _WIN32	
 	FreeImageIO io;
 	SetDefaultIO(&io);
 	FILE *handle = _wfopen(filename, L"rb");

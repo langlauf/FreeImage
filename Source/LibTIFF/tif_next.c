@@ -1,4 +1,4 @@
-/* $Id: tif_next.c,v 1.7 2005/07/06 20:11:16 drolon Exp $ */
+/* $Id: tif_next.c,v 1.15 2006/06/25 16:23:05 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -125,7 +125,7 @@ NeXTDecode(TIFF* tif, tidata_t buf, tsize_t occ, tsample_t s)
 	tif->tif_rawcc = cc;
 	return (1);
 bad:
-	TIFFError(tif->tif_name, "NeXTDecode: Not enough data for scanline %ld",
+	TIFFErrorExt(tif->tif_clientdata, tif->tif_name, "NeXTDecode: Not enough data for scanline %ld",
 	    (long) tif->tif_row);
 	return (0);
 }

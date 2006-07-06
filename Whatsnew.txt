@@ -5,7 +5,42 @@ What's New for FreeImage
 ! : changed
 + : added
 
-September 5th, 2005 - 3.8.0
+July 6th, 2005 - 3.9.0
+! FreeImage now uses libPNG 1.2.12
+! FreeImage now uses libTIFF 3.8.2 (with patch 2006-06-24)
+! FreeImage_Allocate/FreeImage_Allocate now set the resolution to 72 dpi instead of 0
++ [Herve Drolon/Petr Pytelka] added a raw FAX G3 format loader
++ [Herve Drolon] added support for most image types to FreeImage_Rescale
++ [Herve Drolon] added FreeImage_MakeThumbnail
++ [Herve Drolon] added support for 64-bit images to FreeImage_ConvertTo32Bits
++ [Herve Drolon] added support for Exif tags to TIF plugin (read only)
++ [Herve Drolon] added FreeImage_ReadMemory
++ [Herve Drolon] added FreeImage_WriteMemory
++ [Herve Drolon] added new Exif maker note tags
++ [Sherman Wilcox] added a SGI file format loader
++ [Herve Drolon] added support for separated images to PluginTIFF
++ [Herve Drolon] added support for progressive-JPEG saving to PluginJPEG
+* [Carsten Klein] FreeImage_Dither and FreeImage_Threshold now work with palettized 8-bit dib
+* [Christophe Petit] fixed a bug in FreeImage_GetFIFFromFilenameU occuring with files without extension
+* [Leigh Brasington] fixed a bug in PluginGIF causing FreeImage not working on Win/98/ME
+* [Herve Drolon] fixed a bug in PluginTIFF with writing of JPEG-in-TIFF files
+* [Jojakim Stahl] fixed a bug occuring with 4-bit PCX files
+* [Sandor Szalacsi] fixed a bug in FreeImage_SetBackgroundColor (bkgnd clearing)
+* [Petr Pytelka] fixed PluginTIFF::_tiffSizeProc failing on some images
+* [Sherman Wilcox] fixed a bug in DDS plugin when loading images whose size is not a multiple of 4
+* [Sherman Wilcox] fixed a memory leak in PluginDDS::LoadDXT_Helper
+* [Sherman Wilcox] fixed DDS plugin bad behavior with invalid DDS files (such as files with zero length)
+* [Floris van den Berg] fixed a memory leak in the MultiPage cache mechanism
+* [Herve Drolon] replaced WIN32 #define by _WIN32 #define as this is needed by VS2005
+* [Herve Drolon] fixed a VS2005 error in FreeImage_DeletePage
+* [Petr Supina] fixed a pow(long,long) function not being standard ANSI C/C++
+* [Petr Supina] fixed FreeImage_FindBlock function not being standard ANSI C/C++
+* [Olaf Stoyke] added support for 64-bit Linux OS
+* [Craig Stark] fixed FreeImage support on Intel based Mac OS
+* [Herve Drolon] fixed PluginTIFF failing on bad fax tiff images (bad images are now loaded 'as is')
+* [Zack Simpson] fixed a bug occuring in rare situations with FreeImage_Aligned_Malloc
+
+September 5, 2005 - 3.8.0
 ! FreeImage now uses libTIFF 3.7.3
 ! FreeImage now uses ZLib 1.2.3
 + [Herve Drolon] added support for 48-bit images to FreeImage_ConvertTo24Bits

@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -26,7 +26,12 @@
 LIBPORT = $(top_builddir)/port/libport.la
 LIBTIFF = $(top_builddir)/libtiff/libtiff.la
 
-EXTRA_DIST = Makefile.vc tif_config.h.vc tiffconf.h.vc libtiff.def \
+EXTRA_DIST = Makefile.vc \
+	     SConstruct \
+	     tif_config.h-vms \
+	     tif_config.h.vc \
+	     tiffconf.h.vc \
+	     libtiff.def \
 	     $(EXTRA_SRCS)
 
 HDRS = \
@@ -63,6 +68,7 @@ SRCS = \
 	tif_fax3sm.c \
 	tif_flush.c \
 	tif_getimage.c \
+	tif_jbig.c \
 	tif_jpeg.c \
 	tif_luv.c \
 	tif_lzw.c \
@@ -112,6 +118,7 @@ libtiff_la_LDFLAGS = \
 if HAVE_RPATH
 libtiff_la_LDFLAGS += $(LIBDIR)
 endif
+libtiff_la_LIBADD = $(LIBPORT)
 
 libtiffxx_la_SOURCES = $(SRCSXX)
 libtiffxx_la_LDFLAGS = \
@@ -120,7 +127,7 @@ libtiffxx_la_LDFLAGS = \
 if HAVE_RPATH
 libtiffxx_la_LDFLAGS += $(LIBDIR)
 endif
-libtiffxx_la_LIBADD = $(LIBTIFF)
+libtiffxx_la_LIBADD = $(LIBTIFF) $(LIBPORT)
 libtiffxx_la_DEPENDENCIES = libtiff.la
 
 #

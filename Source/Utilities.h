@@ -35,6 +35,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include <string>
 #include <list>
@@ -63,11 +64,11 @@ void FreeImage_Aligned_Free(void* mem);
 // these structs are for file I/O and should not be confused with similar
 // structs in FreeImage.h which are for in-memory bitmap handling
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma pack(push, 1)
 #else
 #pragma pack(1)
-#endif // WIN32
+#endif // _WIN32
 
 typedef struct tagFILE_RGBA {
   unsigned char r,g,b,a;
@@ -85,17 +86,17 @@ typedef struct tagFILE_BGR {
   unsigned char b,g,r;
 } FILE_BGR;
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma pack(pop)
 #else
 #pragma pack()
-#endif // WIN32
+#endif // _WIN32
 
 // ==========================================================
 //   Utility functions
 // ==========================================================
 
-#ifndef WIN32
+#ifndef _WIN32
 inline char*
 i2a(unsigned i, char *a, unsigned r) {
 	if (i/r > 0) a = i2a(i/r,a,r);
@@ -122,7 +123,7 @@ _itoa(int i, char *a, int r) {
 	return a;
 }
 
-#endif // !WIN32
+#endif // !_WIN32
 
 inline unsigned char
 HINIBBLE (unsigned char byte) {
@@ -194,13 +195,13 @@ ReplaceExtension(char *result, const char *filename, const char *extension) {
 // ==========================================================
 
 inline void
-SwapShort(unsigned short *sp) {
-	unsigned char *cp = (unsigned char *)sp, t = cp[0]; cp[0] = cp[1]; cp[1] = t;
+SwapShort(WORD *sp) {
+	BYTE *cp = (BYTE *)sp, t = cp[0]; cp[0] = cp[1]; cp[1] = t;
 }
 
 inline void
-SwapLong(unsigned long *lp) {
-	unsigned char *cp = (unsigned char *)lp, t = cp[0]; cp[0] = cp[3]; cp[3] = t;
+SwapLong(DWORD *lp) {
+	BYTE *cp = (BYTE *)lp, t = cp[0]; cp[0] = cp[3]; cp[3] = t;
 	t = cp[1]; cp[1] = cp[2]; cp[2] = t;
 }
 

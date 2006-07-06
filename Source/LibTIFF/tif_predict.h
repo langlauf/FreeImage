@@ -1,4 +1,4 @@
-/* $Id: tif_predict.h,v 1.7 2005/07/06 20:11:16 drolon Exp $ */
+/* $Id: tif_predict.h,v 1.15 2006/06/25 16:23:05 drolon Exp $ */
 
 /*
  * Copyright (c) 1995-1997 Sam Leffler
@@ -55,6 +55,7 @@ typedef struct {
 extern "C" {
 #endif
 extern	int TIFFPredictorInit(TIFF*);
+extern	int TIFFPredictorCleanup(TIFF*);
 #if defined(__cplusplus)
 }
 #endif

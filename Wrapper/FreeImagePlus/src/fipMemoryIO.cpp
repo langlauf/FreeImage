@@ -35,11 +35,11 @@ fipMemoryIO::~fipMemoryIO() {
 	FreeImage_CloseMemory(_hmem);
 }
 
-BOOL fipMemoryIO::isValid() {
+BOOL fipMemoryIO::isValid() const {
 	return (_hmem != NULL);
 }
 
-FREE_IMAGE_FORMAT fipMemoryIO::getFileType() {
+FREE_IMAGE_FORMAT fipMemoryIO::getFileType() const {
 	if(_hmem != NULL) {
 		return FreeImage_GetFileTypeFromMemory(_hmem, 0);
 	}
@@ -47,15 +47,23 @@ FREE_IMAGE_FORMAT fipMemoryIO::getFileType() {
 	return FIF_UNKNOWN;
 }
 
-FIBITMAP* fipMemoryIO::read(FREE_IMAGE_FORMAT fif, int flags) {
+FIBITMAP* fipMemoryIO::load(FREE_IMAGE_FORMAT fif, int flags) const {
 	return FreeImage_LoadFromMemory(fif, _hmem, flags);
 }
 
-BOOL fipMemoryIO::write(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, int flags) {
+BOOL fipMemoryIO::save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, int flags) {
 	return FreeImage_SaveToMemory(fif, dib, _hmem, flags);
 }
 
-long fipMemoryIO::tell() {
+unsigned fipMemoryIO::read(void *buffer, unsigned size, unsigned count) const {
+	return FreeImage_ReadMemory(buffer, size, count, _hmem);
+}
+
+unsigned fipMemoryIO::write(const void *buffer, unsigned size, unsigned count) {
+	return FreeImage_WriteMemory(buffer, size, count, _hmem);
+}
+
+long fipMemoryIO::tell() const {
 	return FreeImage_TellMemory(_hmem);
 }
 

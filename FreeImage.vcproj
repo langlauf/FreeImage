@@ -200,6 +200,9 @@ copy Source\FreeImage.h Dist
 					RelativePath="Source\FreeImage\PluginDDS.cpp">
 				</File>
 				<File
+					RelativePath=".\Source\FreeImage\PluginG3.cpp">
+				</File>
+				<File
 					RelativePath="Source\FreeImage\PluginGIF.cpp">
 				</File>
 				<File
@@ -237,6 +240,9 @@ copy Source\FreeImage.h Dist
 				</File>
 				<File
 					RelativePath="Source\FreeImage\PluginRAS.cpp">
+				</File>
+				<File
+					RelativePath=".\Source\FreeImage\PluginSGI.cpp">
 				</File>
 				<File
 					RelativePath="Source\FreeImage\PluginTARGA.cpp">

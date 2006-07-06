@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_win3.c,v 1.5 2005/07/06 20:11:17 drolon Exp $ */
+/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_win3.c,v 1.13 2006/06/25 16:23:06 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -121,7 +121,7 @@ TIFFOpen(const char* name, const char* mode)
 		mm |= OF_READWRITE;
 	fd = OpenFile(name, &of, mm);
 	if (fd < 0) {
-		TIFFError(module, "%s: Cannot open", name);
+		TIFFErrorExt(0, module, "%s: Cannot open", name);
 		return ((TIFF*)0);
 	}
 	return (TIFFFdOpen(fd, name, mode));

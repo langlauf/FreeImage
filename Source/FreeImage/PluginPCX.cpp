@@ -34,7 +34,7 @@
 
 // ----------------------------------------------------------
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma pack(push, 1)
 #else
 #pragma pack(1)
@@ -61,7 +61,7 @@ typedef struct tagPCXHEADER {
 	BYTE  filler[54];		// Reserved filler
 } PCXHEADER;
 		
-#ifdef WIN32
+#ifdef _WIN32
 #pragma pack(pop)
 #else
 #pragma pack()
@@ -462,7 +462,8 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					bits -= pitch;
 				}
 			} else if ((header.planes == 4) && (header.bpp == 1)) {
-				BYTE bit, index, mask, skip;
+				BYTE bit,  mask, skip;
+        		        WORD index;
 				BYTE *buffer;
 				WORD x, y, written;
 
