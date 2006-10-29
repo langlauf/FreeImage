@@ -241,7 +241,7 @@ FreeImage_AllocateT(FREE_IMAGE_TYPE type, int width, int height, int bpp, unsign
 			bih->biHeight           = height;
 			bih->biPlanes           = 1;
 			bih->biCompression      = 0;
-			bih->biBitCount         = bpp;
+			bih->biBitCount         = (WORD)bpp;
 			bih->biClrUsed          = CalculateUsedPaletteEntries(bpp);
 			bih->biClrImportant     = bih->biClrUsed;
 			bih->biXPelsPerMeter	= 2835;	// 72 dpi
@@ -506,7 +506,7 @@ FreeImage_GetBackgroundColor(FIBITMAP *dib, RGBQUAD *bkcolor) {
 					if(bkgnd_color->rgbRed == pal[i].rgbRed) {
 						if(bkgnd_color->rgbGreen == pal[i].rgbGreen) {
 							if(bkgnd_color->rgbBlue == pal[i].rgbBlue) {
-								bkcolor->rgbReserved = i;
+								bkcolor->rgbReserved = (BYTE)i;
 								return TRUE;
 							}
 						}
@@ -566,7 +566,7 @@ FreeImage_GetTransparencyTable(FIBITMAP *dib) {
 void DLL_CALLCONV
 FreeImage_SetTransparent(FIBITMAP *dib, BOOL enabled) {
 	if (dib) {
-		if ((FreeImage_GetBPP(dib) == 8) || (FreeImage_GetBPP(dib) == 32)) {
+		if ((FreeImage_GetBPP(dib) <= 8) || (FreeImage_GetBPP(dib) == 32)) {
 			((FREEIMAGEHEADER *)dib->data)->transparent = enabled;
 		} else {
 			((FREEIMAGEHEADER *)dib->data)->transparent = FALSE;
@@ -582,7 +582,7 @@ FreeImage_GetTransparencyCount(FIBITMAP *dib) {
 void DLL_CALLCONV
 FreeImage_SetTransparencyTable(FIBITMAP *dib, BYTE *table, int count) {
 	if (dib) {
-		if (FreeImage_GetBPP(dib) == 8) {
+		if (FreeImage_GetBPP(dib) <= 8) {
 			((FREEIMAGEHEADER *)dib->data)->transparent = TRUE;
 			((FREEIMAGEHEADER *)dib->data)->transparency_count = count;
 
@@ -609,8 +609,11 @@ FreeImage_CreateICCProfile(FIBITMAP *dib, void *data, long size) {
 	FreeImage_DestroyICCProfile(dib);
 	// create the new profile
 	FIICCPROFILE *profile = FreeImage_GetICCProfile(dib);
-	if (size && (profile->data = malloc(size))) {
-		memcpy(profile->data, data, profile->size = size);
+	if(size) {
+		profile->data = malloc(size);
+		if(profile->data) {
+			memcpy(profile->data, data, profile->size = size);
+		}
 	}
 	return profile;
 }
@@ -810,29 +813,55 @@ FreeImage_SetMetadata(FREE_IMAGE_MDMODEL model, FIBITMAP *dib, const char *key, 
 			tagmap = new TAGMAP();
 			(*metadata)[model] = tagmap;
 		}
-
-		// first check the tag
+		
 		if(tag) {
+			// first check the tag
 			if(FreeImage_GetTagKey(tag) == NULL) {
 				FreeImage_SetTagKey(tag, key);
 			} else if(strcmp(key, FreeImage_GetTagKey(tag)) != 0) {
 				// set the tag key
 				FreeImage_SetTagKey(tag, key);
 			}
-			if(FreeImage_GetTagCount(tag) * FreeImage_TagDataWidth(FreeImage_GetTagType(tag)) != FreeImage_GetTagLength(tag)) {
-				// invalid data count ?
+			if(FreeImage_GetTagCount(tag) * FreeImage_TagDataWidth((WORD)FreeImage_GetTagType(tag)) != FreeImage_GetTagLength(tag)) {
+				FreeImage_OutputMessageProc(FIF_UNKNOWN, "Invalid data count for tag '%s'", key);
 				return FALSE;
 			}
-		}
 
-		// delete existing tag
-		FITAG *old_tag = (*tagmap)[key];
-		if(old_tag) {
-			FreeImage_DeleteTag(old_tag);
-		}
+			// fill the tag ID if possible and if it's needed
+			TagLib& tag_lib = TagLib::instance();
+			switch(model) {
+				case FIMD_IPTC:
+				{
+					int id = tag_lib.getTagID(TagLib::IPTC, key);
+					if(id == -1) {
+						FreeImage_OutputMessageProc(FIF_UNKNOWN, "IPTC: Invalid key '%s'", key);
+					}
+					FreeImage_SetTagID(tag, (WORD)id);
+				}
+				break;
 
-		// create a new tag
-		(*tagmap)[key] = FreeImage_CloneTag(tag);
+				default:
+					break;
+			}
+
+			// delete existing tag
+			FITAG *old_tag = (*tagmap)[key];
+			if(old_tag) {
+				FreeImage_DeleteTag(old_tag);
+			}
+
+			// create a new tag
+			(*tagmap)[key] = FreeImage_CloneTag(tag);
+		}
+		else {
+			// delete existing tag
+			TAGMAP::iterator i = tagmap->find(key);
+			if(i != tagmap->end()) {
+				FITAG *old_tag = (*i).second;
+				FreeImage_DeleteTag(old_tag);
+				tagmap->erase(key);
+			}
+		}
 	}
 	else {
 		// destroy the metadata model

@@ -33,7 +33,6 @@
 
 // ----------------------------------------------------------
 
-#define PNG_ASSEMBLER_CODE_SUPPORTED
 #define PNG_BYTES_TO_CHECK 8
 
 // ----------------------------------------------------------
@@ -54,7 +53,10 @@ typedef struct {
 static void
 _ReadProc(png_structp png_ptr, unsigned char *data, png_size_t size) {
     pfi_ioStructure pfio = (pfi_ioStructure)png_get_io_ptr(png_ptr);
-	pfio->s_io->read_proc(data, size, 1, pfio->s_handle);
+	unsigned n = pfio->s_io->read_proc(data, size, 1, pfio->s_handle);
+	if(size && (n == 0)) {
+		throw "Read error: invalid or corrupted PNG file";
+	}
 }
 
 static void
@@ -134,7 +136,6 @@ WriteMetadata(png_structp png_ptr, png_infop info_ptr, FIBITMAP *dib) {
 	BOOL bResult = TRUE;
 
 	png_text text_metadata;
-	int num_text = 0;
 
 	// set the 'Comments' metadata as iTXt chuncks
 
@@ -255,7 +256,7 @@ SupportsICCProfiles() {
 
 static FIBITMAP * DLL_CALLCONV
 Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
-	png_structp png_ptr;
+	png_structp png_ptr = NULL;
 	png_infop info_ptr;
 	png_uint_32 width, height;
 	png_colorp png_palette;
@@ -410,8 +411,8 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			png_bytep trans               = NULL;
 			int num_trans                 = 0;
-			png_color_16p trans_values    = NULL;
-			png_uint_32 transparent_value = png_get_tRNS(png_ptr, info_ptr, &trans, &num_trans, &trans_values);
+			//png_color_16p trans_values    = NULL;
+			//png_uint_32 transparent_value = png_get_tRNS(png_ptr, info_ptr, &trans, &num_trans, &trans_values);
 
 			// unlike the example in the libpng documentation, we have *no* idea where
 			// this file may have come from--so if it doesn't have a file gamma, don't
@@ -481,7 +482,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 						for (i = 0; i < palette_entries; i++) {
 							palette[i].rgbRed   =
 							palette[i].rgbGreen =
-							palette[i].rgbBlue  = (i * 255) / (palette_entries - 1);
+							palette[i].rgbBlue  = (BYTE)((i * 255) / (palette_entries - 1));
 						}
 					}
 					// store the transparency table

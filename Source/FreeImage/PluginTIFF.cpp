@@ -63,10 +63,11 @@ BOOL tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib);
 
 /** Supported loading methods */
 typedef enum {
-	LoadAsRBGA = 0, 
-	LoadAsCMYK = 1, 
-	LoadAs8BitTrns = 2, 
-	LoadAsGenericStrip = 3
+	LoadAsRBGA			= 0, 
+	LoadAsCMYK			= 1, 
+	LoadAs8BitTrns		= 2, 
+	LoadAsGenericStrip	= 3, 
+	LoadAsTiled			= 4
 } TIFFLoadMethod;
 
 // ----------------------------------------------------------
@@ -99,6 +100,7 @@ static BOOL tiff_read_xmp_profile(TIFF *tiff, FIBITMAP *dib);
 static BOOL tiff_read_exif_profile(TIFF *tiff, FIBITMAP *dib);
 static void ReadMetadata(TIFF *tiff, FIBITMAP *dib);
 
+static BOOL tiff_write_iptc_profile(TIFF *tiff, FIBITMAP *dib);
 static BOOL tiff_write_xmp_profile(TIFF *tiff, FIBITMAP *dib);
 static void WriteMetadata(TIFF *tiff, FIBITMAP *dib);
 
@@ -775,7 +777,6 @@ tiff_read_xmp_profile(TIFF *tiff, FIBITMAP *dib) {
 */
 static BOOL 
 tiff_read_exif_profile(TIFF *tiff, FIBITMAP *dib) {
-	uint16  count = 0;
     uint32 exif_offset = 0;
 
 	// read EXIF-TIFF tags
@@ -815,6 +816,40 @@ ReadMetadata(TIFF *tiff, FIBITMAP *dib) {
 // ----------------------------------------------------------
 
 /**
+	Write the TIFFTAG_RICHTIFFIPTC tag (IPTC/NAA or Adobe Photoshop profile)
+*/
+static BOOL 
+tiff_write_iptc_profile(TIFF *tiff, FIBITMAP *dib) {
+	if(FreeImage_GetMetadataCount(FIMD_IPTC, dib)) {
+		BYTE *profile = NULL;
+		uint32 profile_size = 0;
+		// create a binary profile
+		if(write_iptc_profile(dib, &profile, &profile_size)) {
+			uint32 iptc_size = profile_size;
+			iptc_size += (4-(iptc_size & 0x03)); // Round up for long word alignment
+			BYTE *iptc_profile = (BYTE*)malloc(iptc_size);
+			if(!iptc_profile) {
+				free(profile);
+				return FALSE;
+			}
+			memset(iptc_profile, 0, iptc_size);
+			memcpy(iptc_profile, profile, profile_size);
+			if (TIFFIsByteSwapped(tiff))
+				TIFFSwabArrayOfLong((uint32 *) iptc_profile, (unsigned long)iptc_size/4);
+			// Tag is type TIFF_LONG so byte length is divided by four
+			TIFFSetField(tiff, TIFFTAG_RICHTIFFIPTC, iptc_size/4, iptc_profile);
+			// release the profile data
+			free(iptc_profile);
+			free(profile);
+
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+/**
 	Write the TIFFTAG_XMLPACKET tag (XMP profile)
 	@param dib Input FIBITMAP
 	@param tiff LibTIFF TIFF handle
@@ -840,6 +875,8 @@ Write TIFF special profiles
 */
 static void 
 WriteMetadata(TIFF *tiff, FIBITMAP *dib) {
+	// IPTC
+	tiff_write_iptc_profile(tiff, dib);
 
 	// Adobe XMP
 	tiff_write_xmp_profile(tiff, dib);
@@ -929,7 +966,6 @@ SupportsICCProfiles() {
 
 static void * DLL_CALLCONV
 Open(FreeImageIO *io, fi_handle handle, BOOL read) {
-	TIFF *tif = NULL;
 	// wrapper for TIFF I/O
 	fi_TIFFIO *fio = (fi_TIFFIO*)malloc(sizeof(fi_TIFFIO));
 	if(!fio) return NULL;
@@ -993,6 +1029,8 @@ FindLoadMethod(TIFF *tif, FREE_IMAGE_TYPE image_type, int flags) {
 	TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);
 	TIFFGetFieldDefaulted(tif, TIFFTAG_PLANARCONFIG, &planar_config);
 
+	BOOL bIsTiled = (TIFFIsTiled(tif) == 0) ? FALSE:TRUE;
+
 	switch(photometric) {
 		// convert to 24 or 32 bits RGB if the image is full color
 		case PHOTOMETRIC_RGB:
@@ -1018,7 +1056,7 @@ FindLoadMethod(TIFF *tif, FREE_IMAGE_TYPE image_type, int flags) {
 				// to avoid multiple conversions. Conversion can be done by changing 
 				// the profile from it's original CMYK to an RGB profile with an 
 				// apropriate color management system. Works with non-tiled TIFFs.
-				if((((flags & TIFF_CMYK) == TIFF_CMYK) || samplesperpixel > 4) && !TIFFIsTiled(tif)) {
+				if((((flags & TIFF_CMYK) == TIFF_CMYK) || samplesperpixel > 4) && !bIsTiled) {
 					loadMethod = LoadAsCMYK;
 				} else {
 					loadMethod = LoadAsRBGA;
@@ -1041,6 +1079,10 @@ FindLoadMethod(TIFF *tif, FREE_IMAGE_TYPE image_type, int flags) {
 		default:
 			loadMethod = LoadAsGenericStrip;
 			break;
+	}
+
+	if((loadMethod == LoadAsGenericStrip) && bIsTiled) {
+		loadMethod = LoadAsTiled;
 	}
 
 	return loadMethod;
@@ -1070,7 +1112,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			tif = fio->tif;
 
 			if (page != -1)
-				if (!tif || !TIFFSetDirectory(tif, page))
+				if (!tif || !TIFFSetDirectory(tif, (tdir_t)page))
 					throw "Error encountered while opening TIFF file";			
 
 			TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric);
@@ -1091,9 +1133,6 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			if((photometric == PHOTOMETRIC_SEPARATED) && (bitspersample == 16))
 				throw "Unable to handle 16-bit CMYK TIFF";
-
-			if( TIFFIsTiled(tif) )
-				throw "Tiled TIFF images are not supported";
 
 			// ---------------------------------------------------------------------------------
 
@@ -1584,6 +1623,88 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					}
 				}
 
+			} else if(loadMethod == LoadAsTiled) {
+				uint32 tileWidth, tileHeight;
+				uint32 src_line = 0;
+
+				// create a new DIB
+				dib = CreateImageType(image_type, width, height, bitspersample, samplesperpixel);
+				if (dib == NULL) {
+					throw "No space for DIB image";
+				}
+
+				// fill in the resolution (english or universal)
+
+				ReadResolution(tif, dib);
+
+				// set up the colormap based on photometric	
+
+				ReadPalette(tif, photometric, bitspersample, dib);
+
+				// get the tile geometry
+				if(!TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tileWidth) || !TIFFGetField(tif, TIFFTAG_TILELENGTH, &tileHeight)) {
+					throw "Invalid tiled TIFF image";
+				}
+
+				// get the maximum number of bytes required to contain a tile
+				tsize_t tileSize = TIFFTileSize(tif);
+
+				// allocate tile buffer
+				BYTE *tileBuffer = (BYTE*)malloc(tileSize * sizeof(BYTE));
+				if(tileBuffer == NULL) throw "Not enough space for tile buffer";
+
+				// calculate src line and dst pitch
+				int dst_pitch = FreeImage_GetPitch(dib);
+				int tileRowSize = TIFFTileRowSize(tif);
+				int imageRowSize = TIFFScanlineSize(tif);
+
+
+				// In the tiff file the lines are save from up to down 
+				// In a DIB the lines must be saved from down to up
+
+				bits = FreeImage_GetScanLine(dib, height - 1);
+
+				// read the tiff lines and save them in the DIB
+
+				if(planar_config == PLANARCONFIG_CONTIG) {
+					uint32 x, y, rowSize;
+					for (y = 0; y < height; y += tileHeight) {						
+						int32 nrows = (y + tileHeight > height ? height - y : tileHeight);					
+
+						for (x = 0, rowSize = 0; x < width; x += tileWidth, rowSize += tileRowSize) {
+							memset(tileBuffer, 0, tileSize);
+
+							// read one tile
+							if (TIFFReadTile(tif, tileBuffer, x, y, 0, 0) < 0) {
+								free(tileBuffer);
+								throw "Corrupted tiled TIFF file!";
+							}
+							// convert to strip
+							if(x + tileWidth > width) {
+								src_line = imageRowSize - rowSize;
+							} else {
+								src_line = tileRowSize;
+							}
+							BYTE *src_bits = tileBuffer;
+							BYTE *dst_bits = bits + rowSize;
+							for(int k = 0; k < nrows; k++) {
+								memcpy(dst_bits, src_bits, src_line);
+								src_bits += tileRowSize;
+								dst_bits -= dst_pitch;
+							}
+						}
+
+						bits -= nrows * dst_pitch;
+					}
+
+				}
+				else if(planar_config == PLANARCONFIG_SEPARATE) {
+					free(tileBuffer);
+					throw "Separated tiled TIFF images are not supported"; 
+				}
+
+				free(tileBuffer);
+
 			} else {
 				throw "Unknown format";
 			}
@@ -1601,12 +1722,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			return (FIBITMAP *)dib;
 
-		} catch (const char *message) {
+		} catch (const char *message) {			
+			if(dib)	FreeImage_Unload(dib);
 			FreeImage_OutputMessageProc(s_format_id, message);
-
-			if(dib)
-				FreeImage_Unload(dib);
-
 			return NULL;
 		}
 	}
@@ -1634,7 +1752,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		width = FreeImage_GetWidth(dib);
 		height = FreeImage_GetHeight(dib);
-		bitsperpixel = FreeImage_GetBPP(dib);
+		bitsperpixel = (uint16)FreeImage_GetBPP(dib);
 
 		FIICCPROFILE *iccProfile = FreeImage_GetICCProfile(dib);
 
@@ -1723,7 +1841,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 		if (photometric == PHOTOMETRIC_PALETTE) {
 			uint16 *r, *g, *b;
-			uint16 nColors = FreeImage_GetColorsUsed(dib);
+			uint16 nColors = (uint16)FreeImage_GetColorsUsed(dib);
 			RGBQUAD *pal = FreeImage_GetPalette(dib);
 
 			r = (uint16 *) _TIFFmalloc(sizeof(uint16) * 3 * nColors);
@@ -1754,7 +1872,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		// and save them in the TIF
 		// -------------------------------------
 		
-		pitch = FreeImage_GetPitch(dib);
+		pitch = (uint16)FreeImage_GetPitch(dib);
 
 		if(image_type == FIT_BITMAP) {
 			// standard bitmap type
@@ -1796,11 +1914,14 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 					}
 					else {
 						// other cases
-						for (y = height - 1; y >= 0; y--) {
-							BYTE *bits = FreeImage_GetScanLine(dib, y);
-
-							TIFFWriteScanline(out, bits, height - y - 1, 0);
+						BYTE *buffer = (BYTE *)malloc(pitch * sizeof(BYTE));
+						for (y = 0; y < height; y++) {
+							// get a copy of the scanline
+							memcpy(buffer, FreeImage_GetScanLine(dib, height - y - 1), pitch);
+							// write the scanline to disc
+							TIFFWriteScanline(out, buffer, y, 0);
 						}
+						free(buffer);
 					}
 
 					break;
@@ -1849,14 +1970,16 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				case 64:
 				case 128:
 				{
-					for (y = height - 1; y >= 0; y--) {
-						BYTE *bits = FreeImage_GetScanLine(dib, y);
-
-						TIFFWriteScanline(out, bits, height - y - 1, 0);
+					BYTE *buffer = (BYTE *)malloc(pitch * sizeof(BYTE));
+					for (y = 0; y < height; y++) {
+						// get a copy of the scanline
+						memcpy(buffer, FreeImage_GetScanLine(dib, height - y - 1), pitch);
+						// write the scanline to disc
+						TIFFWriteScanline(out, buffer, y, 0);
 					}
-
-					break;
-				}				
+					free(buffer);
+				}	
+				break;
 			}
 		}
 

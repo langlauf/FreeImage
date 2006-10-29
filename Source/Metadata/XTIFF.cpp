@@ -4,6 +4,7 @@
 //
 // Design and implementation by
 // - Hervé Drolon (drolon@infonie.fr)
+// - Thorsten Radde (support@IdealSoftware.com)
 //
 // Based on the LibTIFF xtiffio sample and on LibGeoTIFF
 //
@@ -150,7 +151,7 @@ tiff_read_geotiff_profile(TIFF *tif, FIBITMAP *dib) {
 				FreeImage_SetTagID(tag, tag_id);
 				FreeImage_SetTagKey(tag, tag_lib.getTagFieldName(TagLib::GEOTIFF, tag_id));
 				FreeImage_SetTagDescription(tag, tag_lib.getTagDescription(TagLib::GEOTIFF, tag_id));
-				FreeImage_SetTagLength(tag, FreeImage_TagDataWidth(tag_type) * tag_count);
+				FreeImage_SetTagLength(tag, FreeImage_TagDataWidth((WORD)tag_type) * tag_count);
 				FreeImage_SetTagCount(tag, tag_count);
 				FreeImage_SetTagValue(tag, data);
 				FreeImage_SetMetadata(FIMD_GEOTIFF, dib, FreeImage_GetTagKey(tag), tag);
@@ -204,14 +205,14 @@ BOOL tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
     for(i = 0; i < count; i++) {
         ttag_t tag = TIFFGetTagListEntry(tif, i);
         const TIFFFieldInfo *fip;
-        uint16 value_count;
+        uint32 value_count;
         int mem_alloc = 0;
         void *raw_data;
 
 		if(tag == TIFFTAG_EXIFIFD) continue;
 
 		// get the tag key - use FALSE to avoid reading GeoTIFF tags
-		const char *key = tagLib.getTagFieldName(md_model, tag, FALSE);
+		const char *key = tagLib.getTagFieldName(md_model, (WORD)tag, FALSE);
 		if(key == NULL) continue;
         
 		fip = TIFFFieldWithTag(tif, tag);
@@ -253,7 +254,7 @@ BOOL tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
 			return FALSE;
 		}
 
-		FreeImage_SetTagID(fitag, tag);
+		FreeImage_SetTagID(fitag, (WORD)tag);
 		FreeImage_SetTagKey(fitag, key);
 
 		switch(fip->field_type) {
@@ -317,7 +318,7 @@ BOOL tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
 			{
 				// LibTIFF converts rational to floats : reconvert floats to rationals
 				DWORD *rvalue = (DWORD*)malloc(2 * value_count * sizeof(DWORD));
-				for(int i = 0; i < value_count; i++) {
+				for(uint32 i = 0; i < value_count; i++) {
 					float *fv = (float*)raw_data;
 					FIRational rational(fv[i]);
 					rvalue[2*i] = rational.getNumerator();
@@ -335,7 +336,7 @@ BOOL tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
 			{
 				// LibTIFF converts rational to floats : reconvert floats to rationals
 				LONG *rvalue = (LONG*)malloc(2 * value_count * sizeof(LONG));
-				for(int i = 0; i < value_count; i++) {
+				for(uint32 i = 0; i < value_count; i++) {
 					float *fv = (float*)raw_data;
 					FIRational rational(fv[i]);
 					rvalue[2*i] = rational.getNumerator();
@@ -374,7 +375,7 @@ BOOL tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
 			break;
 		}
 
-		const char *description = tagLib.getTagDescription(md_model, tag);
+		const char *description = tagLib.getTagDescription(md_model, (WORD)tag);
 		if(description) {
 			FreeImage_SetTagDescription(fitag, description);
 		}

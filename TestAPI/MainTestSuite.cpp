@@ -31,7 +31,9 @@
 */
 void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
 	printf("\n*** "); 
-	printf("%s Format\n", FreeImage_GetFormatFromFIF(fif));
+	if(fif != FIF_UNKNOWN) {
+		printf("%s Format\n", FreeImage_GetFormatFromFIF(fif));
+	}
 	printf(message);
 	printf(" ***\n");
 }
@@ -74,8 +76,14 @@ int main(int argc, char *argv[]) {
 	testBuildMPage("sample.png", "sample.tif", FIF_TIFF, 24);
 	//testBuildMPage("sample.png", "sample.gif", FIF_GIF, 8);
 
+	// test multipage cache
+	testMPageCache("sample.png");
+
 	// test memory IO
 	testMemIO("sample.png");
+
+	// test JPEG lossless transform & cropping
+	testJPEG();
 	
 #if defined(FREEIMAGE_LIB) || !defined(WIN32)
 	FreeImage_DeInitialise();
