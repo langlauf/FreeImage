@@ -764,7 +764,8 @@ static TagInfo
     {  0x0237, (char *) "DateCreated", (char *) "Date Created"},
     {  0x025A, (char *) "City", (char *) "City"},
     {  0x025F, (char *) "Province/State", (char *) "State/Province"},
-    {  0x0265, (char *) "Country/PrimaryLocation", (char *) "Country"},
+    {  0x0264, (char *) "Country/PrimaryLocationCode", (char *) "Country Code"},
+	{  0x0265, (char *) "Country/PrimaryLocationName", (char *) "Country Name"},
     {  0x0267, (char *) "OriginalTransmissionReference", (char *) "Transmission Reference"},
     {  0x020F, (char *) "Category", (char *) "Category"},
     {  0x0214, (char *) "SupplementalCategory", (char *) "Supplemental Categories"},
@@ -909,14 +910,13 @@ TagLib::getTagInfo(MDMODEL md_model, WORD tagID) {
 }
 
 const char* 
-TagLib::getTagFieldName(MDMODEL md_model, WORD tagID, int bBuildKey) {
-	static char unknown_tag[11];
+TagLib::getTagFieldName(MDMODEL md_model, WORD tagID, char *defaultKey) {
 
 	const TagInfo *info = getTagInfo(md_model, tagID);
 	if(NULL == info) {
-		if(bBuildKey == TRUE) {
-			sprintf(unknown_tag, "Tag 0x%04X", tagID);
-			return &unknown_tag[0];
+		if(defaultKey != NULL) {
+			sprintf(defaultKey, "Tag 0x%04X", tagID);
+			return &defaultKey[0];
 		} else {
 			return NULL;
 		}

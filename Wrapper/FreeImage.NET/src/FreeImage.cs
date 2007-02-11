@@ -82,6 +82,8 @@ namespace FreeImageAPI
 		public byte rgbtRed;
 	}
 
+	/*
+	These structures should not be used by a wrapper
 	[StructLayout(LayoutKind.Sequential)]
 	public class BITMAPINFOHEADER {
 		public uint size;
@@ -102,6 +104,7 @@ namespace FreeImageAPI
 	  public BITMAPINFOHEADER bmiHeader; 
 	  public RGBQUAD bmiColors;
 	}
+	*/
 
 	// Types used in the library (specific to FreeImage) ------------------------
 	/** 48-bit RGB 
@@ -150,6 +153,20 @@ namespace FreeImageAPI
 		public double r;
 		// imaginary part
 		public double i;
+	}
+
+	// ICC profile support ------------------------------------------------------
+
+	public enum ICCFlags {
+		FIICC_DEFAULT		= 0x00,
+		FIICC_COLOR_IS_CMYK	= 0x01
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public class FIICCPROFILE {
+		public ushort flags;	// info flag
+		public uint size;		// profile's size measured in bytes
+		public IntPtr data;		// points to a block of contiguous memory containing the profile
 	}
 
 	// Important enums ----------------------------------------------------------
@@ -240,7 +257,8 @@ namespace FreeImageAPI
 		FIF_DDS     = 24,
 		FIF_GIF     = 25,
 		FIF_HDR		= 26,
-		FIF_FAXG3	= 27
+		FIF_FAXG3	= 27,
+		FIF_SGI		= 28
 	}
 
 	/** Image type used in FreeImage.
@@ -289,7 +307,8 @@ namespace FreeImageAPI
 		FID_BAYER8x8	= 2,	// Bayer ordered dispersed dot dithering (order 3 dithering matrix)
 		FID_CLUSTER6x6	= 3,	// Ordered clustered dot dithering (order 3 - 6x6 matrix)
 		FID_CLUSTER8x8	= 4,	// Ordered clustered dot dithering (order 4 - 8x8 matrix)
-		FID_CLUSTER16x16= 5		// Ordered clustered dot dithering (order 8 - 16x16 matrix)
+		FID_CLUSTER16x16= 5,	// Ordered clustered dot dithering (order 8 - 16x16 matrix)
+		FID_BAYER16x16	= 6		// Bayer ordered dispersed dot dithering (order 4 dithering matrix)
 	}
 	/** Lossless JPEG transformations
 	Constants used in FreeImage_JPEGTransform
@@ -600,9 +619,42 @@ namespace FreeImageAPI
 		[DllImport(dllName, EntryPoint="FreeImage_GetDIBSize")]
 		public static extern uint GetDIBSize(FIBITMAP dib);
 		
-		[DllImport(dllName, EntryPoint="FreeImage_GetPalette")]
-		[return: MarshalAs(UnmanagedType.LPArray)]
-		public static extern RGBQUAD GetPalette(FIBITMAP dib);
+		/**
+		Returns a pointer to the bitmap’s palette. If the bitmap doesn’t have a palette 
+		(i.e. when the pixel bit depth is greater than 8), this function returns NULL. 
+		@param dib Bitmap to get the palette for.
+		@return Pointer to the start of the palette data.
+		*/
+		[DllImport(dllName, EntryPoint="FreeImage_GetPalette")] 
+		private static extern UIntPtr GetRawPalette(FIBITMAP dib);
+
+		/**
+		Get a deep copy of the image palette.
+		@param bitmap Pointer to a loaded image.
+		@return Array or RGBQUAD values representing the image palette.
+		*/
+		public static unsafe RGBQUAD [] GetPaletteCopy(FIBITMAP dib) {  
+			RGBQUAD [] paletteCopy = new FreeImageAPI.RGBQUAD[256];  
+ 
+			// Only interested in indexed images. 
+			if (GetBPP(dib) <= 8) { 
+				UIntPtr palette = GetRawPalette(dib);  
+ 				byte * ptr = (byte *)(void*)palette; 
+ 				for (int q = 0; q < 256; q++) { 
+					paletteCopy[q] = new FreeImageAPI.RGBQUAD(); 
+					paletteCopy[q].rgbBlue = (byte)*ptr; 
+					ptr += 1;  
+					paletteCopy[q].rgbGreen = (byte)*ptr; 
+					ptr += 1;  
+					paletteCopy[q].rgbRed = (byte)*ptr; 
+					ptr += 1;  
+					paletteCopy[q].rgbReserved = (byte)*ptr; 
+					ptr += 1;  
+				}  
+			} 
+ 
+			return paletteCopy; 
+		} 
 		
 		[DllImport(dllName, EntryPoint="FreeImage_GetDotsPerMeterX")]
 		public static extern uint GetDotsPerMeterX(FIBITMAP dib);
@@ -610,14 +662,12 @@ namespace FreeImageAPI
 		[DllImport(dllName, EntryPoint="FreeImage_GetDotsPerMeterY")]
 		public static extern uint GetDotsPerMeterY(FIBITMAP dib);
 		
-		[DllImport(dllName, EntryPoint="FreeImage_GetInfoHeader")]
-		[return: MarshalAs(UnmanagedType.LPStruct)]
-		public static extern BITMAPINFOHEADER GetInfoHeader(FIBITMAP dib);
-		
-		[DllImport(dllName, EntryPoint="FreeImage_GetInfo")]
-		[return: MarshalAs(UnmanagedType.LPStruct)]
-		public static extern BITMAPINFO GetInfo(FIBITMAP dib);
-		
+		[DllImport(dllName, EntryPoint = "FreeImage_GetInfoHeader")]
+		public static extern IntPtr FreeImage_GetInfoHeader(FIBITMAP dib);
+
+		[DllImport(dllName, EntryPoint = "FreeImage_GetInfo")]
+		public static extern IntPtr FreeImage_GetInfo(FIBITMAP dib);
+
 		[DllImport(dllName, EntryPoint="FreeImage_GetColorType")]
 		public static extern FREE_IMAGE_COLOR_TYPE GetColorType(FIBITMAP dib);
 		
@@ -655,6 +705,17 @@ namespace FreeImageAPI
 		[DllImport(dllName, EntryPoint="FreeImage_SetBackgroundColor")]
 		public static extern bool SetBackgroundColor(FIBITMAP dib, 
 			[In, MarshalAs(UnmanagedType.LPStruct)]RGBQUAD bkcolor);
+
+		// ICC profile routines -----------------------------------------------------
+
+		[DllImport(dllName,EntryPoint="FreeImage_DestroyICCProfile")]
+		public static extern void DestroyICCProfile(FIBITMAP dib);
+
+		[DllImport(dllName,EntryPoint="FreeImage_GetICCProfile")]
+		public static extern FIICCPROFILE GetICCProfile(FIBITMAP dib);
+		
+		[DllImport(dllName,EntryPoint="FreeImage_CreateICCProfile")]
+		public static extern FIICCPROFILE CreateICCProfile(FIBITMAP dib, IntPtr data, uint size);
 
 		// Smart conversion routines ------------------------------------------------
 
