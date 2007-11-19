@@ -38,6 +38,7 @@
 /**
 nominal CRT primaries 
 */
+/*
 static const float CIE_x_r = 0.640F;
 static const float CIE_y_r = 0.330F;
 static const float CIE_x_g = 0.290F;
@@ -46,7 +47,18 @@ static const float CIE_x_b = 0.150F;
 static const float CIE_y_b = 0.060F;
 static const float CIE_x_w = 0.3333F;	// use true white
 static const float CIE_y_w = 0.3333F;
-
+*/
+/**
+sRGB primaries
+*/
+static const float CIE_x_r = 0.640F;
+static const float CIE_y_r = 0.330F;
+static const float CIE_x_g = 0.300F;
+static const float CIE_y_g = 0.600F;
+static const float CIE_x_b = 0.150F;
+static const float CIE_y_b = 0.060F;
+static const float CIE_x_w = 0.3127F;	// Illuminant D65
+static const float CIE_y_w = 0.3290F;
 
 static const float CIE_D = ( CIE_x_r*(CIE_y_g - CIE_y_b) + CIE_x_g*(CIE_y_b - CIE_y_r) + CIE_x_b*(CIE_y_r - CIE_y_g) );
 static const float CIE_C_rD = ( (1/CIE_y_w) * ( CIE_x_w*(CIE_y_g - CIE_y_b) - CIE_y_w*(CIE_x_g - CIE_x_b) + CIE_x_g*CIE_y_b - CIE_x_b*CIE_y_g) );
@@ -101,6 +113,18 @@ static const float XYZ2RGB[3][3] = {
 	{ 2.56562F, -1.16699F, -0.398511F },
 	{ -1.02209F, 1.97826F, 0.0438210F }, 
 	{ 0.0746980F, -0.251851F, 1.17680F } 
+};
+*/
+/*
+static const float RGB2XYZ[3][3] = { 
+	{ 0.412391F, 0.357584F, 0.180481F },
+	{ 0.212639F, 0.715169F, 0.0721923F },
+	{ 0.0193308F, 0.119195F, 0.950532F }
+};
+static const float XYZ2RGB[3][3] = { 
+	{ 3.24097F, -1.53738F, -0.498611F },
+	{ -0.969244F, 1.87597F, 0.0415551F }, 
+	{ 0.0556300F, -0.203977F, 1.05697F } 
 };
 */
 
@@ -376,4 +400,88 @@ LuminanceFromY(FIBITMAP *dib, float *maxLum, float *minLum, float *worldLum) {
 
 	return TRUE;
 }
+// --------------------------------------------------------------------------
 
+static void findMaxMinPercentile(FIBITMAP *Y, float minPrct, float *minLum, float maxPrct, float *maxLum) {
+	int x, y;
+	int width = FreeImage_GetWidth(Y);
+	int height = FreeImage_GetHeight(Y);
+	int pitch = FreeImage_GetPitch(Y);
+
+	std::vector<float> vY(width * height);
+
+	BYTE *bits = (BYTE*)FreeImage_GetBits(Y);
+	for(y = 0; y < height; y++) {
+		float *pixel = (float*)bits;
+		for(x = 0; x < width; x++) {
+			if(pixel[x] != 0) {
+				vY.push_back(pixel[x]);
+			}
+		}
+		bits += pitch;
+	}
+
+	std::sort(vY.begin(), vY.end());
+	
+	*minLum = vY.at( int(minPrct * vY.size()) );
+	*maxLum = vY.at( int(maxPrct * vY.size()) );
+}
+
+/**
+Clipping function<br>
+Remove any extremely bright and/or extremely dark pixels 
+and normalize between 0 and 1. 
+@param Y Input/Output image
+@param minPrct Minimum percentile
+@param maxPrct Maximum percentile
+*/
+void 
+NormalizeY(FIBITMAP *Y, float minPrct, float maxPrct) {
+	int x, y;
+	float maxLum, minLum;
+
+	if(minPrct > maxPrct) {
+		// swap values
+		float t = minPrct; minPrct = maxPrct; maxPrct = t;
+	}
+	if(minPrct < 0) minPrct = 0;
+	if(maxPrct > 1) maxPrct = 1;
+
+	int width = FreeImage_GetWidth(Y);
+	int height = FreeImage_GetHeight(Y);
+	int pitch = FreeImage_GetPitch(Y);
+
+	// find max & min luminance values
+	if((minPrct > 0) || (maxPrct < 1)) {
+		maxLum = 0, minLum = 0;
+		findMaxMinPercentile(Y, minPrct, &minLum, maxPrct, &maxLum);
+	} else {
+		maxLum = -1e20F, minLum = 1e20F;
+		BYTE *bits = (BYTE*)FreeImage_GetBits(Y);
+		for(y = 0; y < height; y++) {
+			const float *pixel = (float*)bits;
+			for(x = 0; x < width; x++) {
+				const float value = pixel[x];
+				maxLum = (maxLum < value) ? value : maxLum;	// max Luminance in the scene
+				minLum = (minLum < value) ? minLum : value;	// min Luminance in the scene
+			}
+			// next line
+			bits += pitch;
+		}
+	}
+	if(maxLum == minLum) return;
+
+	// normalize to range 0..1 
+	const float divider = maxLum - minLum;
+	BYTE *bits = (BYTE*)FreeImage_GetBits(Y);
+	for(y = 0; y < height; y++) {
+		float *pixel = (float*)bits;
+		for(x = 0; x < width; x++) {
+			pixel[x] = (pixel[x] - minLum) / divider;
+			if(pixel[x] <= 0) pixel[x] = EPSILON;
+			if(pixel[x] > 1) pixel[x] = 1;
+		}
+		// next line
+		bits += pitch;
+	}
+}

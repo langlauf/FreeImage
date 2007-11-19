@@ -1,4 +1,4 @@
-/* "$Id: mkg3states.c,v 1.16 2006/10/28 19:36:43 drolon Exp $ */
+/* "$Id: mkg3states.c,v 1.20 2007/11/10 18:40:43 drolon Exp $ */
 
 /*
  * Copyright (c) 1991-1997 Sam Leffler
@@ -40,6 +40,10 @@
 #endif
 
 #include "tif_fax3.h"
+
+#ifndef HAVE_GETOPT
+extern int getopt(int, char**, char*);
+#endif
 
 #define	streq(a,b)	(strcmp(a,b) == 0)
 

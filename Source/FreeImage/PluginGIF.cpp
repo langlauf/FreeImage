@@ -199,6 +199,9 @@ void StringTable::Initialize(int minCodeSize)
 	m_bpp = 8;
 	m_minCodeSize = minCodeSize;
 	m_clearCode = 1 << m_minCodeSize;
+	if(m_clearCode > MAX_LZW_CODE) {
+		m_clearCode = MAX_LZW_CODE;
+	}
 	m_endCode = m_clearCode + 1;
 
 	m_partial = 0;
@@ -889,7 +892,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		//Image Data Sub-blocks
 		int x = 0, xpos = 0, y = 0, shift = 8 - bpp, mask = (1 << bpp) - 1, interlacepass = 0;
 		BYTE *scanline = FreeImage_GetScanLine(dib, height - 1);
-		BYTE buf[1024];
+		BYTE buf[4096];
 		io->read_proc(&b, 1, 1, handle);
 		while( b ) {
 			io->read_proc(stringtable->FillInputBuffer(b), b, 1, handle);

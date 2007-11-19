@@ -44,6 +44,14 @@ namespace FreeImageAPI
 	Handle to a memory I/O stream
 	*/
 	using FIMEMORY = UInt32;
+	/**
+	  Handle to a metadata model
+	*/
+	using FIMETADATA = UInt32;
+	/** 
+	Handle to a FreeImage tag
+	*/
+	using FITAG = UInt32;
 
 	/*	[StructLayout(LayoutKind.Sequential)]
 		public class FreeImageIO
@@ -176,6 +184,14 @@ namespace FreeImageAPI
 		BMP_SAVE_RLE		= 1,
 		CUT_DEFAULT			= 0,
 		DDS_DEFAULT			= 0,
+		EXR_DEFAULT			= 0,		// save data as half with piz-based wavelet compression
+		EXR_FLOAT			= 0x0001,	// save data as float instead of as half (not recommended)
+		EXR_NONE			= 0x0002,	// save with no compression
+		EXR_ZIP				= 0x0004,	// save with zlib compression, in blocks of 16 scan lines
+		EXR_PIZ				= 0x0008,	// save with piz-based wavelet compression
+		EXR_PXR24			= 0x0010,	// save with lossy 24-bit float compression
+		EXR_B44				= 0x0020,	// save with lossy 44% float compression - goes to 22% when combined with EXR_LC
+		EXR_LC				= 0x0040,	// save images with one luminance and two chroma channels, rather than as RGB (lossy compression)
 		FAXG3_DEFAULT		= 0,
 		GIF_DEFAULT			= 0,
 		GIF_LOAD256			= 1,		// Load	the	image as a 256 color image with	ununsed	palette	entries, if	it's 16	or 2 color
@@ -184,6 +200,8 @@ namespace FreeImageAPI
 		ICO_DEFAULT			= 0,
 		ICO_MAKEALPHA		= 1,		// convert to 32bpp	and	create an alpha	channel	from the AND-mask when loading
 		IFF_DEFAULT			= 0,
+		J2K_DEFAULT			= 0,		// save with a 16:1 rate
+		JP2_DEFAULT			= 0,		// save with a 16:1 rate
 		JPEG_DEFAULT		= 0,
 		JPEG_FAST			= 1,
 		JPEG_ACCURATE		= 2,
@@ -258,7 +276,10 @@ namespace FreeImageAPI
 		FIF_GIF     = 25,
 		FIF_HDR		= 26,
 		FIF_FAXG3	= 27,
-		FIF_SGI		= 28
+		FIF_SGI		= 28,
+		FIF_EXR		= 29,
+		FIF_J2K		= 30,
+		FIF_JP2		= 31		
 	}
 
 	/** Image type used in FreeImage.
@@ -330,6 +351,7 @@ namespace FreeImageAPI
 	public enum FREE_IMAGE_TMO {
 		FITMO_DRAGO03	 = 0,	// Adaptive logarithmic mapping (F. Drago, 2003)
 		FITMO_REINHARD05 = 1,	// Dynamic range reduction inspired by photoreceptor physiology (E. Reinhard, 2005)
+		FITMO_FATTAL02	 = 2	// Gradient domain high dynamic range compression (R. Fattal, 2002)
 	};
 
 	/** Upsampling / downsampling filters. 
@@ -359,6 +381,49 @@ namespace FreeImageAPI
 		FICC_MAG	= 8,	// Complex images: use magnitude
 		FICC_PHASE	= 9		// Complex images: use phase
 	}
+
+	// Metadata support ---------------------------------------------------------
+	
+	/**
+	  Tag data type information (based on TIFF specifications)
+	
+	  Note: RATIONALs are the ratio of two 32-bit integer values.
+	*/
+	public enum FREE_IMAGE_MDTYPE {
+		FIDT_NOTYPE		= 0,	// placeholder 
+		FIDT_BYTE		= 1,	// 8-bit unsigned integer 
+		FIDT_ASCII		= 2,	// 8-bit bytes w/ last byte null 
+		FIDT_SHORT		= 3,	// 16-bit unsigned integer 
+		FIDT_LONG		= 4,	// 32-bit unsigned integer 
+		FIDT_RATIONAL	= 5,	// 64-bit unsigned fraction 
+		FIDT_SBYTE		= 6,	// 8-bit signed integer 
+		FIDT_UNDEFINED	= 7,	// 8-bit untyped data 
+		FIDT_SSHORT		= 8,	// 16-bit signed integer 
+		FIDT_SLONG		= 9,	// 32-bit signed integer 
+		FIDT_SRATIONAL	= 10,	// 64-bit signed fraction 
+		FIDT_FLOAT		= 11,	// 32-bit IEEE floating point 
+		FIDT_DOUBLE		= 12,	// 64-bit IEEE floating point 
+		FIDT_IFD		= 13,	// 32-bit unsigned integer (offset) 
+		FIDT_PALETTE	= 14	// 32-bit RGBQUAD 
+	};
+
+	/**
+	  Metadata models supported by FreeImage
+	*/
+	public enum FREE_IMAGE_MDMODEL {
+		FIMD_NODATA			= -1,
+		FIMD_COMMENTS		= 0,	// single comment or keywords
+		FIMD_EXIF_MAIN		= 1,	// Exif-TIFF metadata
+		FIMD_EXIF_EXIF		= 2,	// Exif-specific metadata
+		FIMD_EXIF_GPS		= 3,	// Exif GPS metadata
+		FIMD_EXIF_MAKERNOTE = 4,	// Exif maker note metadata
+		FIMD_EXIF_INTEROP	= 5,	// Exif interoperability metadata
+		FIMD_IPTC			= 6,	// IPTC/NAA metadata
+		FIMD_XMP			= 7,	// Abobe XMP metadata
+		FIMD_GEOTIFF		= 8,	// GeoTIFF metadata
+		FIMD_ANIMATION		= 9,	// Animation metadata
+		FIMD_CUSTOM			= 10	// Used to attach other metadata types to a dib
+	};
 
 
 	// Message output function --------------------------------------------------
@@ -662,6 +727,12 @@ namespace FreeImageAPI
 		[DllImport(dllName, EntryPoint="FreeImage_GetDotsPerMeterY")]
 		public static extern uint GetDotsPerMeterY(FIBITMAP dib);
 		
+		[DllImport(dllName, EntryPoint="FreeImage_SetDotsPerMeterX")]
+		public static extern void SetDotsPerMeterX(FIBITMAP dib, uint res);
+		
+		[DllImport(dllName, EntryPoint="FreeImage_SetDotsPerMeterY")]
+		public static extern void SetDotsPerMeterY(FIBITMAP dib, uint res);
+
 		[DllImport(dllName, EntryPoint = "FreeImage_GetInfoHeader")]
 		public static extern IntPtr FreeImage_GetInfoHeader(FIBITMAP dib);
 
