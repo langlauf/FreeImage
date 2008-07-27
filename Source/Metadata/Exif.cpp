@@ -461,7 +461,7 @@ processExifTag(FIBITMAP *dib, FITAG *tag, char *pval, BOOL msb_order, TagLib::MD
 	@return 
 */
 static BOOL 
-jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned int offset, unsigned int length, BOOL msb_order) {
+jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned long offset, unsigned int length, BOOL msb_order) {
 	WORD de, nde;
 
 	std::stack<WORD>			destack;	// directory entries stack
@@ -495,7 +495,7 @@ jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned int offset, unsign
 		}
 
 		// remember that we've visited this directory so that we don't visit it again later
-		DWORD visited = (((DWORD)ifdp & 0xFFFF) << 16) | (DWORD)de;
+		DWORD visited = (DWORD)( (((size_t)ifdp & 0xFFFF) << 16) | (size_t)de );
 		if(visitedIFD.find(visited) != visitedIFD.end()) {
 			continue;
 		} else {
@@ -537,11 +537,17 @@ jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned int offset, unsign
 				// 4 bytes or less and value is in the dir entry itself
 				pval = pde + 8;
 			} else {
-				DWORD offset_value;
-
 				// if its bigger than 4 bytes, the directory entry contains an offset
-				offset_value = ReadUint32(msb_order, pde + 8);
-				if((size_t) (offset_value + FreeImage_GetTagLength(tag)) > length) {
+				// first check if offset exceeds buffer, at this stage FreeImage_GetTagLength may return invalid data
+				DWORD offset_value = ReadUint32(msb_order, pde + 8);
+				if(offset_value > length) {
+					// a problem occured : delete the tag (not free'd after)
+					FreeImage_DeleteTag(tag);
+					// jump to next entry
+					continue;
+				}
+				// now check if offset + tag length exceeds buffer
+				if(offset_value > length - FreeImage_GetTagLength(tag)) {
 					// a problem occured : delete the tag (not free'd after)
 					FreeImage_DeleteTag(tag);
 					// jump to next entry
@@ -634,7 +640,7 @@ jpeg_read_exif_profile(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen)
 	BYTE lsb_first[4] = { 0x49, 0x49, 0x2A, 0x00 };		// Intel order
 	BYTE msb_first[4] = { 0x4D, 0x4D, 0x00, 0x2A };		// Motorola order
 
-	size_t length = datalen;
+	unsigned int length = datalen;
 	BYTE *profile = (BYTE*)dataptr;
 
 	// verify the identifying string
@@ -663,7 +669,7 @@ jpeg_read_exif_profile(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen)
 		}
 
 		// this is the offset to the first IFD
-		size_t first_offset = ReadUint32(bMotorolaOrder, profile + 4);
+		unsigned long first_offset = ReadUint32(bMotorolaOrder, profile + 4);
 
 		if (first_offset < 8 || first_offset > 16) {
 			// This is usually set to 8

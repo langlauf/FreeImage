@@ -1,4 +1,4 @@
-/* $Id: tif_pixarlog.c,v 1.20 2007/11/10 18:41:25 drolon Exp $ */
+/* $Id: tif_pixarlog.c,v 1.23 2008/06/08 18:47:34 drolon Exp $ */
 
 /*
  * Copyright (c) 1996-1997 Sam Leffler

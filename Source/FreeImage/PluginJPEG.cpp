@@ -203,7 +203,7 @@ term_destination (j_compress_ptr cinfo) {
 	// write any data remaining in the buffer
 
 	if (datacount > 0) {
-		if (dest->m_io->write_proc(dest->buffer, 1, datacount, dest->outfile) != datacount)
+		if (dest->m_io->write_proc(dest->buffer, 1, (unsigned int)datacount, dest->outfile) != datacount)
 		  throw(cinfo, JERR_FILE_WRITE);
 	}
 }
@@ -398,7 +398,7 @@ jpeg_read_comment(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen) {
 	// create a tag
 	FITAG *tag = FreeImage_CreateTag();
 	if(tag) {
-		unsigned count = length + 1;	// includes the null value
+		unsigned int count = (unsigned int)length + 1;	// includes the null value
 
 		FreeImage_SetTagID(tag, JPEG_COM);
 		FreeImage_SetTagKey(tag, "Comment");
@@ -590,8 +590,8 @@ jpeg_read_xmp_profile(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen) 
 		if(tag) {
 			FreeImage_SetTagID(tag, JPEG_APP0+1);	// 0xFFE1
 			FreeImage_SetTagKey(tag, g_TagLib_XMPFieldName);
-			FreeImage_SetTagLength(tag, length);
-			FreeImage_SetTagCount(tag, length);
+			FreeImage_SetTagLength(tag, (DWORD)length);
+			FreeImage_SetTagCount(tag, (DWORD)length);
 			FreeImage_SetTagType(tag, FIDT_ASCII);
 			FreeImage_SetTagValue(tag, profile);
 			
@@ -773,7 +773,7 @@ jpeg_write_xmp_profile(j_compress_ptr cinfo, FIBITMAP *dib) {
 
 		if(NULL != tag_value) {
 			// XMP signature is 29 bytes long
-			unsigned xmp_header_size = strlen(xmp_signature) + 1;
+			unsigned int xmp_header_size = (unsigned int)strlen(xmp_signature) + 1;
 
 			DWORD tag_length = FreeImage_GetTagLength(tag_xmp);
 
@@ -827,13 +827,13 @@ store_size_info(FIBITMAP *dib, JDIMENSION width, JDIMENSION height) {
 	// create a tag
 	FITAG *tag = FreeImage_CreateTag();
 	if(tag) {
-		int length = 0;
+		size_t length = 0;
 		// set the original width
 		sprintf(buffer, "%d", (int)width);
 		length = strlen(buffer) + 1;	// include the NULL/0 value
 		FreeImage_SetTagKey(tag, "OriginalJPEGWidth");
-		FreeImage_SetTagLength(tag, length);
-		FreeImage_SetTagCount(tag, length);
+		FreeImage_SetTagLength(tag, (DWORD)length);
+		FreeImage_SetTagCount(tag, (DWORD)length);
 		FreeImage_SetTagType(tag, FIDT_ASCII);
 		FreeImage_SetTagValue(tag, buffer);
 		FreeImage_SetMetadata(FIMD_COMMENTS, dib, FreeImage_GetTagKey(tag), tag);
@@ -841,8 +841,8 @@ store_size_info(FIBITMAP *dib, JDIMENSION width, JDIMENSION height) {
 		sprintf(buffer, "%d", (int)height);
 		length = strlen(buffer) + 1;	// include the NULL/0 value
 		FreeImage_SetTagKey(tag, "OriginalJPEGHeight");
-		FreeImage_SetTagLength(tag, length);
-		FreeImage_SetTagCount(tag, length);
+		FreeImage_SetTagLength(tag, (DWORD)length);
+		FreeImage_SetTagCount(tag, (DWORD)length);
 		FreeImage_SetTagType(tag, FIDT_ASCII);
 		FreeImage_SetTagValue(tag, buffer);
 		FreeImage_SetMetadata(FIMD_COMMENTS, dib, FreeImage_GetTagKey(tag), tag);
@@ -1009,18 +1009,14 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			// step 5c: handle metrices
 
-			BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-
 			if (cinfo.density_unit == 1) {
 				// dots/inch
-
-				pInfoHeader->biXPelsPerMeter = (int) (((float)cinfo.X_density) / 0.0254000 + 0.5);
-				pInfoHeader->biYPelsPerMeter = (int) (((float)cinfo.Y_density) / 0.0254000 + 0.5);
+				FreeImage_SetDotsPerMeterX(dib, (unsigned) (((float)cinfo.X_density) / 0.0254000 + 0.5));
+				FreeImage_SetDotsPerMeterY(dib, (unsigned) (((float)cinfo.Y_density) / 0.0254000 + 0.5));
 			} else if (cinfo.density_unit == 2) {
 				// dots/cm
-
-				pInfoHeader->biXPelsPerMeter = cinfo.X_density * 100;
-				pInfoHeader->biYPelsPerMeter = cinfo.Y_density * 100;
+				FreeImage_SetDotsPerMeterX(dib, (unsigned) (cinfo.X_density * 100));
+				FreeImage_SetDotsPerMeterY(dib, (unsigned) (cinfo.Y_density * 100));
 			}
 
 			// step 6a: while (scan lines remain to be read) jpeg_read_scanlines(...);
@@ -1168,10 +1164,54 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			// Set JFIF density parameters from the DIB data
 
-			BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-			cinfo.X_density = (UINT16) (0.5 + 0.0254 * pInfoHeader->biXPelsPerMeter);
-			cinfo.Y_density = (UINT16) (0.5 + 0.0254 * pInfoHeader->biYPelsPerMeter);
+			cinfo.X_density = (UINT16) (0.5 + 0.0254 * FreeImage_GetDotsPerMeterX(dib));
+			cinfo.Y_density = (UINT16) (0.5 + 0.0254 * FreeImage_GetDotsPerMeterY(dib));
 			cinfo.density_unit = 1;	// dots / inch
+
+			// set subsampling options if required
+
+			if(cinfo.in_color_space == JCS_RGB) {
+				if((flags & JPEG_SUBSAMPLING_411) == JPEG_SUBSAMPLING_411) { 
+					// 4:1:1 (4x1 1x1 1x1) - CrH 25% - CbH 25% - CrV 100% - CbV 100%
+					// the horizontal color resolution is quartered
+					cinfo.comp_info[0].h_samp_factor = 4;	// Y 
+					cinfo.comp_info[0].v_samp_factor = 1; 
+					cinfo.comp_info[1].h_samp_factor = 1;	// Cb 
+					cinfo.comp_info[1].v_samp_factor = 1; 
+					cinfo.comp_info[2].h_samp_factor = 1;	// Cr 
+					cinfo.comp_info[2].v_samp_factor = 1; 
+				} else if((flags & JPEG_SUBSAMPLING_420) == JPEG_SUBSAMPLING_420) {
+					// 4:2:0 (2x2 1x1 1x1) - CrH 50% - CbH 50% - CrV 50% - CbV 50%
+					// the chrominance resolution in both the horizontal and vertical directions is cut in half
+					cinfo.comp_info[0].h_samp_factor = 2;	// Y
+					cinfo.comp_info[0].v_samp_factor = 2; 
+					cinfo.comp_info[1].h_samp_factor = 1;	// Cb
+					cinfo.comp_info[1].v_samp_factor = 1; 
+					cinfo.comp_info[2].h_samp_factor = 1;	// Cr
+					cinfo.comp_info[2].v_samp_factor = 1; 
+				} else if((flags & JPEG_SUBSAMPLING_422) == JPEG_SUBSAMPLING_422){ //2x1 (low) 
+					// 4:2:2 (2x1 1x1 1x1) - CrH 50% - CbH 50% - CrV 100% - CbV 100%
+					// half of the horizontal resolution in the chrominance is dropped (Cb & Cr), 
+					// while the full resolution is retained in the vertical direction, with respect to the luminance
+					cinfo.comp_info[0].h_samp_factor = 2;	// Y 
+					cinfo.comp_info[0].v_samp_factor = 1; 
+					cinfo.comp_info[1].h_samp_factor = 1;	// Cb 
+					cinfo.comp_info[1].v_samp_factor = 1; 
+					cinfo.comp_info[2].h_samp_factor = 1;	// Cr 
+					cinfo.comp_info[2].v_samp_factor = 1; 
+				} 
+				else if((flags & JPEG_SUBSAMPLING_444) == JPEG_SUBSAMPLING_444){ //1x1 (no subsampling) 
+					// 4:4:4 (1x1 1x1 1x1) - CrH 100% - CbH 100% - CrV 100% - CbV 100%
+					// the resolution of chrominance information (Cb & Cr) is preserved 
+					// at the same rate as the luminance (Y) information
+					cinfo.comp_info[0].h_samp_factor = 1;	// Y 
+					cinfo.comp_info[0].v_samp_factor = 1; 
+					cinfo.comp_info[1].h_samp_factor = 1;	// Cb 
+					cinfo.comp_info[1].v_samp_factor = 1; 
+					cinfo.comp_info[2].h_samp_factor = 1;	// Cr 
+					cinfo.comp_info[2].v_samp_factor = 1;  
+				} 
+			}
 
 			// Step 4: set quality
 			// the first 7 bits are reserved for low level quality settings
