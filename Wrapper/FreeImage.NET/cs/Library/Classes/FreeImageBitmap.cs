@@ -28,9 +28,9 @@
 
 // ==========================================================
 // CVS
-// $Revision: 1.5 $
-// $Date: 2008/07/01 08:32:12 $
-// $Id: FreeImageBitmap.cs,v 1.5 2008/07/01 08:32:12 cklein05 Exp $
+// $Revision: 1.10 $
+// $Date: 2009/02/23 12:28:56 $
+// $Id: FreeImageBitmap.cs,v 1.10 2009/02/23 12:28:56 cklein05 Exp $
 // ==========================================================
 
 using System;
@@ -43,6 +43,7 @@ using System.Runtime.Serialization;
 using System.Collections;
 using System.Collections.Generic;
 using FreeImageAPI.Metadata;
+using System.Diagnostics;
 
 namespace FreeImageAPI
 {
@@ -50,29 +51,72 @@ namespace FreeImageAPI
 	/// Encapsulates a FreeImage-bitmap.
 	/// </summary>
 	[Serializable, Guid("64a4c935-b757-499c-ab8c-6110316a9e51")]
-	public class FreeImageBitmap : ICloneable, IDisposable, IEnumerable, ISerializable
+	public class FreeImageBitmap : MarshalByRefObject, ICloneable, IDisposable, IEnumerable, ISerializable
 	{
 		#region Fields
 
-		private bool disposed = false;
-		private object tag = null;
+		/// <summary>
+		/// Indicates whether this instance is disposed.
+		/// </summary>
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+		private bool disposed;
+
+		/// <summary>
+		/// Tab object.
+		/// </summary>
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+		private object tag;
+
+		/// <summary>
+		/// Object used to syncronize lock methods.
+		/// </summary>
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private object lockObject = new object();
+
+		/// <summary>
+		/// Holds information used by SaveAdd() methods.
+		/// </summary>
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private SaveInformation saveInformation = new SaveInformation();
+
+		/// <summary>
+		/// The file that this instance was loaded from or
+		/// null if it wasn't loaded from a file, has been
+		/// cloned or deserialized.
+		/// </summary>
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+		private FileStream file;
+
+		/// <summary>
+		/// The number of frames contained by a mutlipage bitmap.
+		/// Default value is 1 and only changed if needed.
+		/// </summary>
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+		private int frameCount = 1;
+
+		/// <summary>
+		/// The index of the loaded frame.
+		/// Default value is 0 and only changed if needed.
+		/// </summary>
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+		private int frameIndex = 0;
 
 		/// <summary>
 		/// Format of the sourceimage.
 		/// </summary>
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private FREE_IMAGE_FORMAT originalFormat = FREE_IMAGE_FORMAT.FIF_UNKNOWN;
 
 		/// <summary>
 		/// Handle to the encapsulated FreeImage-bitmap.
 		/// </summary>
-		private FIBITMAP dib = 0;
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+		private FIBITMAP dib;
 
-		/// <summary>
-		/// Handle to the encapsulated FreeImage-multipagebitmap.
-		/// </summary>
-		private FIMULTIBITMAP mdib = 0;
+		private const string ErrorLoadingBitmap = "Unable to load bitmap.";
+		private const string ErrorLoadingFrame = "Unable to load frame.";
+		private const string ErrorCreatingBitmap = "Unable to create bitmap.";
+		private const string ErrorUnloadBitmap = "Unable to unload bitmap.";
 
 		#endregion
 
@@ -94,9 +138,10 @@ namespace FreeImageAPI
 		{
 			if (dib.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorLoadingBitmap);
 			}
 			this.dib = dib;
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -105,14 +150,20 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="original">The original to clone from.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
 		public FreeImageBitmap(FreeImageBitmap original)
 		{
+			if (original == null)
+			{
+				throw new ArgumentNullException("original");
+			}
 			original.EnsureNotDisposed();
 			dib = FreeImage.Clone(original.dib);
 			if (dib.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorLoadingBitmap);
 			}
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -123,7 +174,7 @@ namespace FreeImageAPI
 		/// <param name="newSize">The Size structure that represent the
 		/// size of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// <paramref name="newSize.Width"/> or <paramref name="newSize.Height"/> are less or equal zero.
 		/// </exception>
@@ -140,7 +191,7 @@ namespace FreeImageAPI
 		/// <param name="width">Width of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="height">Height of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// <paramref name="width"/> or <paramref name="height"/> are less or equal zero.</exception>
 		public FreeImageBitmap(FreeImageBitmap original, int width, int height)
@@ -161,8 +212,9 @@ namespace FreeImageAPI
 			dib = FreeImage.Rescale(original.dib, width, height, FREE_IMAGE_FILTER.FILTER_BICUBIC);
 			if (dib.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorLoadingBitmap);
 			}
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -170,6 +222,14 @@ namespace FreeImageAPI
 		/// bases on the specified image.
 		/// </summary>
 		/// <param name="original">The original to clone from.</param>
+		/// <remarks>
+		/// Although this constructor supports creating images in both formats
+		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
+		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
+		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
+		/// images respectively. Currently, there is no  support for automatic premultiplying images in
+		/// <see cref="FreeImageBitmap"/>.
+		/// </remarks>
 		/// <exception cref="Exception">The operation failed.</exception>
 		public FreeImageBitmap(Image original)
 			: this(original as Bitmap)
@@ -183,8 +243,16 @@ namespace FreeImageAPI
 		/// <param name="original">The original to clone from.</param>
 		/// <param name="newSize">The Size structure that represent the
 		/// size of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <remarks>
+		/// Although this constructor supports creating images in both formats
+		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
+		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
+		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
+		/// images respectively. Currently, there is no  support for automatic premultiplying images in
+		/// <see cref="FreeImageBitmap"/>.
+		/// </remarks>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// <paramref name="newSize.Width"/> or <paramref name="newSize.Height"/> are less or equal zero.
 		/// </exception>
@@ -200,8 +268,16 @@ namespace FreeImageAPI
 		/// <param name="original">The original to clone from.</param>
 		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <remarks>
+		/// Although this constructor supports creating images in both formats
+		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
+		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
+		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
+		/// images respectively. Currently, there is no  support for automatic premultiplying images in
+		/// <see cref="FreeImageBitmap"/>.
+		/// </remarks>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// <paramref name="width"/> or <paramref name="height"/> are less or equal zero.</exception>
 		public FreeImageBitmap(Image original, int width, int height)
@@ -214,6 +290,15 @@ namespace FreeImageAPI
 		/// bases on the specified image.
 		/// </summary>
 		/// <param name="original">The original to clone from.</param>
+		/// <remarks>
+		/// Although this constructor supports creating images in both formats
+		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
+		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
+		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
+		/// images respectively. Currently, there is no  support for automatic premultiplying images in
+		/// <see cref="FreeImageBitmap"/>.
+		/// </remarks>
+		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
 		/// <exception cref="Exception">The operation failed.</exception>
 		public FreeImageBitmap(Bitmap original)
 		{
@@ -224,8 +309,9 @@ namespace FreeImageAPI
 			dib = FreeImage.CreateFromBitmap(original, true);
 			if (dib.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorLoadingBitmap);
 			}
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -235,8 +321,16 @@ namespace FreeImageAPI
 		/// <param name="original">The original to clone from.</param>
 		/// <param name="newSize">The Size structure that represent the
 		/// size of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <remarks>
+		/// Although this constructor supports creating images in both formats
+		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
+		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
+		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
+		/// images respectively. Currently, there is no  support for automatic premultiplying images in
+		/// <see cref="FreeImageBitmap"/>.
+		/// </remarks>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// <paramref name="newSize.Width"/> or <paramref name="newSize.Height"/> are less or equal zero.
 		/// </exception>
@@ -252,8 +346,16 @@ namespace FreeImageAPI
 		/// <param name="original">The original to clone from.</param>
 		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <remarks>
+		/// Although this constructor supports creating images in both formats
+		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
+		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
+		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
+		/// images respectively. Currently, there is no  support for automatic premultiplying images in
+		/// <see cref="FreeImageBitmap"/>.
+		/// </remarks>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// <paramref name="width"/> or <paramref name="height"/> are less or equal zero.</exception>
 		public FreeImageBitmap(Bitmap original, int width, int height)
@@ -273,17 +375,15 @@ namespace FreeImageAPI
 			FIBITMAP temp = FreeImage.CreateFromBitmap(original, true);
 			if (temp.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorLoadingBitmap);
 			}
-			else
+			dib = FreeImage.Rescale(temp, width, height, FREE_IMAGE_FILTER.FILTER_BICUBIC);
+			FreeImage.Unload(temp);
+			if (dib.IsNull)
 			{
-				dib = FreeImage.Rescale(temp, width, height, FREE_IMAGE_FILTER.FILTER_BICUBIC);
-				FreeImage.Unload(temp);
-				if (dib.IsNull)
-				{
-					throw new Exception();
-				}
+				throw new Exception(ErrorLoadingBitmap);
 			}
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -293,7 +393,7 @@ namespace FreeImageAPI
 		/// <param name="stream">Stream to read from.</param>
 		/// <param name="useIcm">Ignored.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is a null reference.</exception>
 		public FreeImageBitmap(Stream stream, bool useIcm)
 			: this(stream)
 		{
@@ -305,7 +405,7 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="stream">Stream to read from.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is a null reference.</exception>
 		public FreeImageBitmap(Stream stream)
 			: this(stream, FREE_IMAGE_FORMAT.FIF_UNKNOWN, FREE_IMAGE_LOAD_FLAGS.DEFAULT)
 		{
@@ -318,7 +418,7 @@ namespace FreeImageAPI
 		/// <param name="stream">Stream to read from.</param>
 		/// <param name="format">Format of the image.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is a null reference.</exception>
 		public FreeImageBitmap(Stream stream, FREE_IMAGE_FORMAT format)
 			: this(stream, format, FREE_IMAGE_LOAD_FLAGS.DEFAULT)
 		{
@@ -331,7 +431,7 @@ namespace FreeImageAPI
 		/// <param name="stream">Stream to read from.</param>
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is a null reference.</exception>
 		public FreeImageBitmap(Stream stream, FREE_IMAGE_LOAD_FLAGS flags)
 			: this(stream, FREE_IMAGE_FORMAT.FIF_UNKNOWN, flags)
 		{
@@ -346,7 +446,7 @@ namespace FreeImageAPI
 		/// <param name="format">Format of the image.</param>
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is a null reference.</exception>
 		public FreeImageBitmap(Stream stream, FREE_IMAGE_FORMAT format, FREE_IMAGE_LOAD_FLAGS flags)
 		{
 			if (stream == null)
@@ -359,10 +459,11 @@ namespace FreeImageAPI
 
 			if (dib.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorLoadingBitmap);
 			}
 
 			originalFormat = format;
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -370,7 +471,7 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="filename">The complete name of the file to load.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is a null reference.</exception>
 		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
 		public FreeImageBitmap(string filename)
 			: this(filename, FREE_IMAGE_LOAD_FLAGS.DEFAULT)
@@ -383,7 +484,7 @@ namespace FreeImageAPI
 		/// <param name="filename">The complete name of the file to load.</param>
 		/// <param name="useIcm">Ignored.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is a null reference.</exception>
 		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
 		public FreeImageBitmap(string filename, bool useIcm)
 			: this(filename)
@@ -397,7 +498,7 @@ namespace FreeImageAPI
 		/// <param name="filename">The complete name of the file to load.</param>
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is a null reference.</exception>
 		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
 		public FreeImageBitmap(string filename, FREE_IMAGE_LOAD_FLAGS flags)
 			: this(filename, FREE_IMAGE_FORMAT.FIF_UNKNOWN, flags)
@@ -411,7 +512,7 @@ namespace FreeImageAPI
 		/// <param name="filename">The complete name of the file to load.</param>
 		/// <param name="format">Format of the image.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is a null reference.</exception>
 		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
 		public FreeImageBitmap(string filename, FREE_IMAGE_FORMAT format)
 			: this(filename, format, FREE_IMAGE_LOAD_FLAGS.DEFAULT)
@@ -426,7 +527,7 @@ namespace FreeImageAPI
 		/// <param name="format">Format of the image.</param>
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is a null reference.</exception>
 		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
 		public FreeImageBitmap(string filename, FREE_IMAGE_FORMAT format, FREE_IMAGE_LOAD_FLAGS flags)
 		{
@@ -438,46 +539,29 @@ namespace FreeImageAPI
 			{
 				throw new FileNotFoundException("filename");
 			}
-			saveInformation.loadFlags = flags;
+			// Loading from files locks the source file to ensure multipaged bitmaps are not
+			// altered in the lifetime of the instance.
+			file = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-			mdib = FreeImage.OpenMultiBitmapEx(filename, ref format, flags, false, true, false);
-
+			FIMULTIBITMAP mdib = FreeImage.OpenMultiBitmapEx(filename, false, true, true);
 			if (mdib.IsNull)
+				throw new Exception(ErrorLoadingBitmap);
+			try
 			{
-				throw new Exception();
+				frameCount = FreeImage.GetPageCount(mdib);
+			}
+			finally
+			{
+				if (!FreeImage.CloseMultiBitmapEx(ref mdib))
+					throw new Exception(ErrorUnloadBitmap);
 			}
 
-			originalFormat = format;
+			dib = FreeImage.LoadEx(filename, flags, ref format);
+			if (dib.IsNull)
+				throw new Exception(ErrorLoadingBitmap);
 
-			if (FreeImage.GetPageCount(mdib) != 0)
-			{
-				if (FreeImage.GetPageCount(mdib) == 1)
-				{
-					if (!FreeImage.CloseMultiBitmapEx(ref mdib, FREE_IMAGE_SAVE_FLAGS.DEFAULT))
-					{
-						throw new Exception();
-					}
-
-					dib = FreeImage.LoadEx(filename, flags, ref format);
-					if (dib.IsNull)
-					{
-						throw new Exception();
-					}
-
-					return;
-				}
-				else
-				{
-					dib = FreeImage.LockPage(mdib, 0);
-					if (!dib.IsNull)
-					{
-						return;
-					}
-				}
-			}
-
-			FreeImage.CloseMultiBitmap(mdib, FREE_IMAGE_SAVE_FLAGS.DEFAULT);
-			throw new Exception();
+			saveInformation.loadFlags = flags;
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -498,8 +582,9 @@ namespace FreeImageAPI
 				FreeImage.FI_RGBA_BLUE_MASK);
 			if (dib.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorCreatingBitmap);
 			}
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -521,7 +606,7 @@ namespace FreeImageAPI
 		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="g">The Graphics object that specifies the resolution for the new <see cref="FreeImageBitmap"/>.</param>
 		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="g"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="g"/> is a null reference.</exception>
 		public FreeImageBitmap(int width, int height, Graphics g)
 			: this(width, height)
 		{
@@ -535,6 +620,14 @@ namespace FreeImageAPI
 		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="format">The PixelFormat enumeration for the new <see cref="FreeImageBitmap"/>.</param>
+		/// <remarks>
+		/// Although this constructor supports creating images in both formats
+		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
+		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
+		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
+		/// images respectively. Currently, there is no  support for automatic premultiplying images in
+		/// <see cref="FreeImageBitmap"/>.
+		/// </remarks>
 		/// <exception cref="Exception">The operation failed.</exception>
 		/// <exception cref="ArgumentException"><paramref name="format"/> is invalid.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">
@@ -550,21 +643,23 @@ namespace FreeImageAPI
 				throw new ArgumentOutOfRangeException("height");
 			}
 			uint bpp, redMask, greenMask, blueMask;
-			if (!FreeImage.GetFormatParameters(format, out bpp, out redMask, out greenMask, out blueMask))
+			FREE_IMAGE_TYPE type;
+			if (!FreeImage.GetFormatParameters(format, out type, out bpp, out redMask, out greenMask, out blueMask))
 			{
-				throw new ArgumentException("format is invalid.");
+				throw new ArgumentException("format is invalid");
 			}
-			dib = FreeImage.Allocate(width, height, (int)bpp, redMask, greenMask, blueMask);
+			dib = FreeImage.AllocateT(type, width, height, (int)bpp, redMask, greenMask, blueMask);
 			if (dib.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorCreatingBitmap);
 			}
+			AddMemoryPressure();
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class bases on the specified size and type.
 		/// Only non standard bitmaps are supported.
-		/// </summary>
+		/// </summary>	
 		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="type">The type of the bitmap.</param>
@@ -591,8 +686,9 @@ namespace FreeImageAPI
 			dib = FreeImage.AllocateT(type, width, height, 0, 0u, 0u, 0u);
 			if (dib.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorCreatingBitmap);
 			}
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -601,13 +697,21 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <param name="stride">nteger that specifies the byte offset between the beginning
+		/// <param name="stride">Integer that specifies the byte offset between the beginning
 		/// of one scan line and the next. This is usually (but not necessarily)
 		/// the number of bytes in the pixel format (for example, 2 for 16 bits per pixel)
 		/// multiplied by the width of the bitmap. The value passed to this parameter must
 		/// be a multiple of four..</param>
 		/// <param name="format">The PixelFormat enumeration for the new <see cref="FreeImageBitmap"/>.</param>
 		/// <param name="scan0">Pointer to an array of bytes that contains the pixel data.</param>
+		/// <remarks>
+		/// Although this constructor supports creating images in both formats
+		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
+		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
+		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
+		/// images respectively. Currently, there is no  support for automatic premultiplying images in
+		/// <see cref="FreeImageBitmap"/>.
+		/// </remarks>
 		/// <exception cref="Exception">The operation failed.</exception>
 		/// <exception cref="ArgumentException"><paramref name="format"/> is invalid.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">
@@ -623,20 +727,182 @@ namespace FreeImageAPI
 				throw new ArgumentOutOfRangeException("height");
 			}
 			uint bpp, redMask, greenMask, blueMask;
+			FREE_IMAGE_TYPE type;
 			bool topDown = (stride > 0);
 			stride = (stride > 0) ? stride : (stride * -1);
 
-			if (!FreeImage.GetFormatParameters(format, out bpp, out redMask, out greenMask, out blueMask))
+			if (!FreeImage.GetFormatParameters(format, out type, out bpp, out redMask, out greenMask, out blueMask))
 			{
 				throw new ArgumentException("format is invalid.");
 			}
 
 			dib = FreeImage.ConvertFromRawBits(
-				scan0, width, height, stride, bpp, redMask, greenMask, blueMask, topDown);
+				scan0, type, width, height, stride, bpp, redMask, greenMask, blueMask, topDown);
+
 			if (dib.IsNull)
 			{
-				throw new Exception();
+				throw new Exception(ErrorCreatingBitmap);
 			}
+			AddMemoryPressure();
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class bases on the specified size,
+		/// pixel format and pixel data.
+		/// </summary>
+		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <param name="stride">Integer that specifies the byte offset between the beginning
+		/// of one scan line and the next. This is usually (but not necessarily)
+		/// the number of bytes in the pixel format (for example, 2 for 16 bits per pixel)
+		/// multiplied by the width of the bitmap. The value passed to this parameter must
+		/// be a multiple of four..</param>
+		/// <param name="format">The PixelFormat enumeration for the new <see cref="FreeImageBitmap"/>.</param>
+		/// <param name="bits">Array of bytes containing the bitmap data.</param>
+		/// <remarks>
+		/// Although this constructor supports creating images in both formats
+		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
+		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
+		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
+		/// images respectively. Currently, there is no  support for automatic premultiplying images in
+		/// <see cref="FreeImageBitmap"/>.
+		/// </remarks>
+		/// <exception cref="Exception">The operation failed.</exception>
+		/// <exception cref="ArgumentException"><paramref name="format"/> is invalid.</exception>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// <paramref name="width"/> or <paramref name="height"/> are less or equal zero.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="bits"/> is null</exception>
+		public FreeImageBitmap(int width, int height, int stride, PixelFormat format, byte[] bits)
+		{
+			if (width <= 0)
+			{
+				throw new ArgumentOutOfRangeException("width");
+			}
+			if (height <= 0)
+			{
+				throw new ArgumentOutOfRangeException("height");
+			}
+			if (bits == null)
+			{
+				throw new ArgumentNullException("bits");
+			}
+			uint bpp, redMask, greenMask, blueMask;
+			FREE_IMAGE_TYPE type;
+			bool topDown = (stride > 0);
+			stride = (stride > 0) ? stride : (stride * -1);
+
+			if (!FreeImage.GetFormatParameters(format, out type, out bpp, out redMask, out greenMask, out blueMask))
+			{
+				throw new ArgumentException("format is invalid.");
+			}
+
+			dib = FreeImage.ConvertFromRawBits(
+				bits, type, width, height, stride, bpp, redMask, greenMask, blueMask, topDown);
+
+			if (dib.IsNull)
+			{
+				throw new Exception(ErrorCreatingBitmap);
+			}
+			AddMemoryPressure();
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class bases on the specified size,
+		/// pixel format and pixel data.
+		/// </summary>
+		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <param name="stride">Integer that specifies the byte offset between the beginning
+		/// of one scan line and the next. This is usually (but not necessarily)
+		/// the number of bytes in the pixel format (for example, 2 for 16 bits per pixel)
+		/// multiplied by the width of the bitmap. The value passed to this parameter must
+		/// be a multiple of four..</param>
+		/// <param name="bpp">The color depth of the new <see cref="FreeImageBitmap"/></param>
+		/// <param name="type">The type for the new <see cref="FreeImageBitmap"/>.</param>
+		/// <param name="scan0">Pointer to an array of bytes that contains the pixel data.</param>
+		/// <exception cref="Exception">The operation failed.</exception>
+		/// <exception cref="ArgumentException"><paramref name="format"/> is invalid.</exception>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// <paramref name="width"/> or <paramref name="height"/> are less or equal zero.</exception>
+		public FreeImageBitmap(int width, int height, int stride, int bpp, FREE_IMAGE_TYPE type, IntPtr scan0)
+		{
+			if (width <= 0)
+			{
+				throw new ArgumentOutOfRangeException("width");
+			}
+			if (height <= 0)
+			{
+				throw new ArgumentOutOfRangeException("height");
+			}
+			uint redMask, greenMask, blueMask;
+			bool topDown = (stride > 0);
+			stride = (stride > 0) ? stride : (stride * -1);
+
+			if (!FreeImage.GetTypeParameters(type, bpp, out redMask, out greenMask, out blueMask))
+			{
+				throw new ArgumentException("bpp and type are invalid or not supported.");
+			}
+
+			dib = FreeImage.ConvertFromRawBits(
+				scan0, type, width, height, stride, (uint)bpp, redMask, greenMask, blueMask, topDown);
+
+			if (dib.IsNull)
+			{
+				throw new Exception(ErrorCreatingBitmap);
+			}
+			AddMemoryPressure();
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class bases on the specified size,
+		/// pixel format and pixel data.
+		/// </summary>
+		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
+		/// <param name="stride">Integer that specifies the byte offset between the beginning
+		/// of one scan line and the next. This is usually (but not necessarily)
+		/// the number of bytes in the pixel format (for example, 2 for 16 bits per pixel)
+		/// multiplied by the width of the bitmap. The value passed to this parameter must
+		/// be a multiple of four..</param>
+		/// <param name="bpp">The color depth of the new <see cref="FreeImageBitmap"/></param>
+		/// <param name="type">The type for the new <see cref="FreeImageBitmap"/>.</param>
+		/// <param name="bits">Array of bytes containing the bitmap data.</param>
+		/// <exception cref="Exception">The operation failed.</exception>
+		/// <exception cref="ArgumentException"><paramref name="format"/> is invalid.</exception>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// <paramref name="width"/> or <paramref name="height"/> are less or equal zero.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="bits"/> is null</exception>
+		public FreeImageBitmap(int width, int height, int stride, int bpp, FREE_IMAGE_TYPE type, byte[] bits)
+		{
+			if (width <= 0)
+			{
+				throw new ArgumentOutOfRangeException("width");
+			}
+			if (height <= 0)
+			{
+				throw new ArgumentOutOfRangeException("height");
+			}
+			if (bits == null)
+			{
+				throw new ArgumentNullException("bits");
+			}
+			uint redMask, greenMask, blueMask;
+			bool topDown = (stride > 0);
+			stride = (stride > 0) ? stride : (stride * -1);
+
+			if (!FreeImage.GetTypeParameters(type, bpp, out redMask, out greenMask, out blueMask))
+			{
+				throw new ArgumentException("bpp and type are invalid or not supported.");
+			}
+
+			dib = FreeImage.ConvertFromRawBits(
+				bits, type, width, height, stride, (uint)bpp, redMask, greenMask, blueMask, topDown);
+
+			if (dib.IsNull)
+			{
+				throw new Exception(ErrorCreatingBitmap);
+			}
+			AddMemoryPressure();
 		}
 
 		/// <summary>
@@ -649,20 +915,23 @@ namespace FreeImageAPI
 			try
 			{
 				byte[] data = (byte[])info.GetValue("Bitmap Data", typeof(byte[]));
-				if (data != null && data.Length > 0)
+				if ((data != null) && (data.Length > 0))
 				{
 					MemoryStream memory = new MemoryStream(data);
 					FREE_IMAGE_FORMAT format = FREE_IMAGE_FORMAT.FIF_TIFF;
 					dib = FreeImage.LoadFromStream(memory, ref format);
-				}
-				if (dib.IsNull)
-				{
-					throw new Exception();
+
+					if (dib.IsNull)
+					{
+						throw new Exception(ErrorLoadingBitmap);
+					}
+
+					AddMemoryPressure();
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
-				throw new SerializationException();
+				throw new SerializationException("Deserialization failed.", ex);
 			}
 		}
 
@@ -684,16 +953,15 @@ namespace FreeImageAPI
 		/// <param name="value">A <see cref="FreeImageBitmap"/> instance.</param>
 		/// <returns>A new instance of <see cref="Bitmap"/> initialized to <paramref name="value"/>.</returns>
 		/// <remarks>
-		/// The implicit conversion from <see cref="FreeImageBitmap"/> into Bitmap
+		/// The explicit conversion from <see cref="FreeImageBitmap"/> into Bitmap
 		/// allows to create an instance on the fly and use it as if
 		/// was a Bitmap. This way it can be directly used with a
 		/// PixtureBox for example without having to call any
 		/// conversion operations.
 		/// </remarks>
-		public static implicit operator Bitmap(FreeImageBitmap value)
+		public static explicit operator Bitmap(FreeImageBitmap value)
 		{
-			value.EnsureNotDisposed();
-			return FreeImage.GetBitmap(value.dib, true);
+			return value.ToBitmap();
 		}
 
 		/// <summary>
@@ -702,20 +970,13 @@ namespace FreeImageAPI
 		/// <param name="value">A <see cref="Bitmap"/> instance.</param>
 		/// <returns>A new instance of <see cref="FreeImageBitmap"/> initialized to <paramref name="value"/>.</returns>
 		/// <remarks>
-		/// The implicit conversion from <see cref="Bitmap"/> into <see cref="FreeImageBitmap"/>
+		/// The explicit conversion from <see cref="Bitmap"/> into <see cref="FreeImageBitmap"/>
 		/// allows to create an instance on the fly to perform
 		/// image processing operations and converting it back.
 		/// </remarks>
-		public static implicit operator FreeImageBitmap(Bitmap value)
+		public static explicit operator FreeImageBitmap(Bitmap value)
 		{
-			FreeImageBitmap result = null;
-			FIBITMAP newDib = FreeImage.CreateFromBitmap(value, true);
-			if (!newDib.IsNull)
-			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
-			}
-			return result;
+			return new FreeImageBitmap(value);
 		}
 
 		/// <summary>
@@ -754,7 +1015,7 @@ namespace FreeImageAPI
 		/// </returns>
 		public static bool operator !=(FreeImageBitmap left, FreeImageBitmap right)
 		{
-			return !(left == right);
+			return (!(left == right));
 		}
 
 		#endregion
@@ -862,7 +1123,7 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Returns a structure that represents the palette of a FreeImage bitmap.
 		/// </summary>
-		/// <exception cref="Exception"><see cref="HasPalette"/> is false.</exception>
+		/// <exception cref="InvalidOperationException"><see cref="HasPalette"/> is false.</exception>
 		public Palette Palette
 		{
 			get
@@ -872,7 +1133,7 @@ namespace FreeImageAPI
 				{
 					return new Palette(dib);
 				}
-				throw new Exception();
+				throw new InvalidOperationException("This bitmap does not have a palette.");
 			}
 		}
 
@@ -883,6 +1144,7 @@ namespace FreeImageAPI
 		{
 			get
 			{
+				EnsureNotDisposed();
 				return FreeImage.IsRGB555(dib);
 			}
 		}
@@ -894,6 +1156,7 @@ namespace FreeImageAPI
 		{
 			get
 			{
+				EnsureNotDisposed();
 				return FreeImage.IsRGB565(dib);
 			}
 		}
@@ -1416,12 +1679,7 @@ namespace FreeImageAPI
 			get
 			{
 				EnsureNotDisposed();
-				int result = 1;
-				if (!mdib.IsNull)
-				{
-					result = FreeImage.GetPageCount(mdib);
-				}
-				return result;
+				return frameCount;
 			}
 		}
 
@@ -1448,6 +1706,14 @@ namespace FreeImageAPI
 				EnsureNotDisposed();
 				return originalFormat;
 			}
+		}
+
+		/// <summary>
+		/// Gets the encapsulated FIBITMAP.
+		/// </summary>
+		internal FIBITMAP Dib
+		{
+			get { EnsureNotDisposed(); return dib; }
 		}
 
 		#endregion
@@ -1511,8 +1777,7 @@ namespace FreeImageAPI
 				dib, thumbWidth, thumbHeight, FREE_IMAGE_FILTER.FILTER_BICUBIC);
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -1533,10 +1798,19 @@ namespace FreeImageAPI
 			FIBITMAP newDib = FreeImage.MakeThumbnail(dib, maxPixelSize, convert);
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
+		}
+
+		/// <summary>
+		/// Converts this <see cref="FreeImageBitmap"/> instance to a <see cref="Bitmap"/> instance.
+		/// </summary>
+		/// <returns>A new instance of <see cref="Bitmap"/> initialized this instance.</returns>
+		public Bitmap ToBitmap()
+		{
+			EnsureNotDisposed();
+			return FreeImage.GetBitmap(dib, true);
 		}
 
 		/// <summary>
@@ -1578,7 +1852,7 @@ namespace FreeImageAPI
 		/// FreeImageBitmap bitmap = new FreeImageBitmap(@"C:\Pictures\picture.bmp");
 		/// if (bitmap.ColorDepth == 32)
 		/// {
-		/// 	Scanline&lt;RGBQUAD&gt; scanline = (Scanline&lt;RGBQUAD&gt;)bitmap.GetScanline(0);
+		/// 	Scanline&lt;RGBQUAD&gt; scanline = bitmap.GetScanline&lt;RGBQUAD&gt;(0);
 		/// 	foreach (RGBQUAD pixel in scanline)
 		/// 	{
 		///			Console.WriteLine(pixel);
@@ -1841,7 +2115,7 @@ namespace FreeImageAPI
 		{
 			EnsureNotDisposed();
 
-			FIBITMAP newDib = 0;
+			FIBITMAP newDib = new FIBITMAP();
 			uint bpp = FreeImage.GetBPP(dib);
 
 			switch (rotateFlipType)
@@ -1898,7 +2172,7 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="bitmap">The bitmap to read the metadata from.</param>
 		/// <exception cref="ArgumentNullException">
-		/// <paramref name="bitmap"/> is null.
+		/// <paramref name="bitmap"/> is a null reference.
 		/// </exception>
 		public void CloneMetadataFrom(FreeImageBitmap bitmap)
 		{
@@ -1918,7 +2192,7 @@ namespace FreeImageAPI
 		/// <param name="bitmap">The bitmap to read the metadata from.</param>
 		/// <param name="flags">Specifies the way the metadata is copied.</param>
 		/// <exception cref="ArgumentNullException">
-		/// <paramref name="bitmap"/> is null.
+		/// <paramref name="bitmap"/> is a null reference.
 		/// </exception>
 		public void CloneMetadataFrom(FreeImageBitmap bitmap, FREE_IMAGE_METADATA_COPY flags)
 		{
@@ -1975,7 +2249,7 @@ namespace FreeImageAPI
 			}
 			if (!FreeImage.SaveEx(dib, filename, format, flags))
 			{
-				throw new Exception();
+				throw new Exception("Unable to save bitmap");
 			}
 
 			saveInformation.filename = filename;
@@ -1988,7 +2262,7 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="stream">The stream where this <see cref="FreeImageBitmap"/> will be saved.</param>
 		/// <param name="format">An <see cref="FREE_IMAGE_FORMAT"/> that specifies the format of the saved image.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is a null reference.</exception>
 		/// <exception cref="Exception">Saving the image failed.</exception>
 		public void Save(Stream stream, FREE_IMAGE_FORMAT format)
 		{
@@ -2002,7 +2276,7 @@ namespace FreeImageAPI
 		/// <param name="stream">The stream where this <see cref="FreeImageBitmap"/> will be saved.</param>
 		/// <param name="format">An <see cref="FREE_IMAGE_FORMAT"/> that specifies the format of the saved image.</param>
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="stream"/> is a null reference.</exception>
 		/// <exception cref="Exception">Saving the image failed.</exception>
 		public void Save(Stream stream, FREE_IMAGE_FORMAT format, FREE_IMAGE_SAVE_FLAGS flags)
 		{
@@ -2013,16 +2287,15 @@ namespace FreeImageAPI
 			}
 			if (!FreeImage.SaveToStream(dib, stream, format, flags))
 			{
-				throw new Exception();
+				throw new Exception("Unable to save bitmap");
 			}
 
 			saveInformation.filename = null;
 		}
 
 		/// <summary>
-		/// Adds a frame to the file specified in a previous call to the <see cref="Save(String)"/> method.
-		/// Use this method to save selected frames from a multiple-frame image to
-		/// another multiple-frame image.
+		/// Adds a frame to the file specified in a previous call to the <see cref="Save(String)"/>
+		/// method.
 		/// </summary>
 		/// <exception cref="InvalidOperationException">
 		/// This instance has not been saved to a file using Save(...) before.</exception>
@@ -2033,17 +2306,27 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// Adds a frame to the file specified in a previous call to the <see cref="Save(String)"/> method.
-		/// Use this method to save selected frames from a multiple-frame image to
-		/// another multiple-frame image.
+		/// </summary>
+		/// <param name="insertPosition">The position at which the frame should be inserted.</param>
+		/// <exception cref="InvalidOperationException">
+		/// This instance has not yet been saved to a file using the Save(...) method.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="insertPosition"/> is out of range.</exception>
+		public void SaveAdd(int insertPosition)
+		{
+			SaveAdd(this, insertPosition);
+		}
+
+		/// <summary>
+		/// Adds a frame to the file specified in a previous call to the <see cref="Save(String)"/> method.
 		/// </summary>
 		/// <param name="bitmap">A <see cref="FreeImageBitmap"/> that contains the frame to add.</param>
 		/// <exception cref="InvalidOperationException">
-		/// This instance has not been saved to a file using Save(...) before.</exception>
+		/// This instance has not yet been saved to a file using the Save(...) method.</exception>
 		public void SaveAdd(FreeImageBitmap bitmap)
 		{
 			if (saveInformation.filename == null)
 			{
-				throw new InvalidOperationException();
+				throw new InvalidOperationException("This operation requires a previous call of Save().");
 			}
 
 			SaveAdd(
@@ -2055,14 +2338,36 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
+		/// Adds a frame to the file specified in a previous call to the <see cref="Save(String)"/> method.
+		/// </summary>
+		/// <param name="bitmap">A <see cref="FreeImageBitmap"/> that contains the frame to add.</param>
+		/// <param name="insertPosition">The position at which the frame should be inserted.</param>
+		/// <exception cref="InvalidOperationException">
+		/// This instance has not yet been saved to a file using the Save(...) method.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="insertPosition"/> is out of range.</exception>
+		public void SaveAdd(FreeImageBitmap bitmap, int insertPosition)
+		{
+			if (saveInformation.filename == null)
+			{
+				throw new InvalidOperationException("This operation requires a previous call of Save().");
+			}
+
+			SaveAdd(
+				saveInformation.filename,
+				bitmap,
+				insertPosition,
+				saveInformation.format,
+				saveInformation.loadFlags,
+				saveInformation.saveFlags);
+		}
+
+		/// <summary>
 		/// Adds a frame to the file specified.
-		/// Use this method to save selected frames from a multiple-frame image to
-		/// another multiple-frame image.
 		/// </summary>
 		/// <param name="filename">File to add this frame to.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is a null reference.</exception>
 		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
-		/// <exception cref="Exception">Saving the image failed.</exception>
+		/// <exception cref="Exception">Saving the image has failed.</exception>
 		public void SaveAdd(string filename)
 		{
 			SaveAdd(
@@ -2074,17 +2379,35 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
+		/// Adds a frame to the file specified.
+		/// </summary>
+		/// <param name="filename">File to add this frame to.</param>
+		/// <param name="insertPosition">The position at which the frame should be inserted.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is a null reference.</exception>
+		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
+		/// <exception cref="Exception">Saving the image has failed.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="insertPosition"/> is out of range.</exception>
+		public void SaveAdd(string filename, int insertPosition)
+		{
+			SaveAdd(
+				filename,
+				this,
+				insertPosition,
+				FREE_IMAGE_FORMAT.FIF_UNKNOWN,
+				FREE_IMAGE_LOAD_FLAGS.DEFAULT,
+				FREE_IMAGE_SAVE_FLAGS.DEFAULT);
+		}
+
+		/// <summary>
 		/// Adds a frame to the file specified using the specified parameters.
-		/// Use this method to save selected frames from a multiple-frame image to
-		/// another multiple-frame image.
 		/// </summary>
 		/// <param name="filename">File to add this frame to.</param>
 		/// <param name="format">Format of the image.</param>
 		/// <param name="loadFlags">Flags to enable or disable plugin-features.</param>
 		/// <param name="saveFlags">Flags to enable or disable plugin-features.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is a null reference.</exception>
 		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
-		/// <exception cref="Exception">Saving the image failed.</exception>
+		/// <exception cref="Exception">Saving the image has failed.</exception>
 		public void SaveAdd(
 			string filename,
 			FREE_IMAGE_FORMAT format,
@@ -2100,13 +2423,41 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
-		/// Selects the frame specified by the dimension and index.
+		/// Adds a frame to the file specified using the specified parameters.
+		/// </summary>
+		/// <param name="filename">File to add this frame to.</param>
+		/// <param name="insertPosition">The position at which the frame should be inserted.</param>
+		/// <param name="format">Format of the image.</param>
+		/// <param name="loadFlags">Flags to enable or disable plugin-features.</param>
+		/// <param name="saveFlags">Flags to enable or disable plugin-features.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="filename"/> is a null reference.</exception>
+		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
+		/// <exception cref="Exception">Saving the image has failed.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="insertPosition"/> is out of range.</exception>
+		public void SaveAdd(
+			string filename,
+			int insertPosition,
+			FREE_IMAGE_FORMAT format,
+			FREE_IMAGE_LOAD_FLAGS loadFlags,
+			FREE_IMAGE_SAVE_FLAGS saveFlags)
+		{
+			SaveAdd(
+				filename,
+				this,
+				insertPosition,
+				format,
+				loadFlags,
+				saveFlags);
+		}
+
+		/// <summary>
+		/// Selects the frame specified by the index.
 		/// </summary>
 		/// <param name="frameIndex">The index of the active frame.</param>
 		/// <exception cref="ArgumentOutOfRangeException">
-		/// <paramref name="frameIndex"/> is out of range.
-		/// </exception>
+		/// <paramref name="frameIndex"/> is out of range.</exception>
 		/// <exception cref="Exception">The operation failed.</exception>
+		/// <exception cref="InvalidOperationException">The loaded bitmap is not multipaged.</exception>
 		public void SelectActiveFrame(int frameIndex)
 		{
 			EnsureNotDisposed();
@@ -2114,17 +2465,50 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentOutOfRangeException("frameIndex");
 			}
-			if (!mdib.IsNull)
+			if (file == null)
 			{
-				if (frameIndex >= FrameCount)
+				throw new InvalidOperationException("No multipaged bitmap loaded.");
+			}
+			if (frameIndex >= frameCount)
+			{
+				throw new ArgumentOutOfRangeException("frameIndex");
+			}
+
+			if (frameIndex != this.frameIndex)
+			{
+				FIMULTIBITMAP mdib = FreeImage.OpenMultiBitmapEx(file.Name, false, true, true);
+				if (mdib.IsNull)
+					throw new Exception(ErrorLoadingBitmap);
+
+				try
 				{
-					throw new ArgumentOutOfRangeException("frameIndex");
+					if (frameIndex >= FreeImage.GetPageCount(mdib))
+						throw new ArgumentOutOfRangeException("frameIndex");
+
+					FIBITMAP newDib = FreeImage.LockPage(mdib, frameIndex);
+					if (newDib.IsNull)
+						throw new Exception(ErrorLoadingFrame);
+
+					try
+					{
+						FIBITMAP clone = FreeImage.Clone(newDib);
+						if (clone.IsNull)
+							throw new Exception(ErrorCreatingBitmap);
+						ReplaceDib(clone);
+					}
+					finally
+					{
+						if (!newDib.IsNull)
+							FreeImage.UnlockPage(mdib, newDib, false);
+					}
 				}
-				ReplaceDib(FreeImage.LockPage(mdib, frameIndex));
-				if (dib.IsNull)
+				finally
 				{
-					throw new Exception();
+					if (!FreeImage.CloseMultiBitmapEx(ref mdib, FREE_IMAGE_SAVE_FLAGS.DEFAULT))
+						throw new Exception(ErrorUnloadBitmap);
 				}
+
+				this.frameIndex = frameIndex;
 			}
 		}
 
@@ -2196,7 +2580,7 @@ namespace FreeImageAPI
 					RGBQUAD rgbq;
 					if (!FreeImage.GetPixelColor(dib, (uint)x, (uint)y, out rgbq))
 					{
-						throw new Exception();
+						throw new Exception("FreeImage.GetPixelColor() failed");
 					}
 					return rgbq.Color;
 				}
@@ -2205,13 +2589,13 @@ namespace FreeImageAPI
 					byte index;
 					if (!FreeImage.GetPixelIndex(dib, (uint)x, (uint)y, out index))
 					{
-						throw new Exception();
+						throw new Exception("FreeImage.GetPixelIndex() failed");
 					}
 					RGBQUAD* palette = (RGBQUAD*)FreeImage.GetPalette(dib);
 					return palette[index].Color;
 				}
 			}
-			throw new NotSupportedException();
+			throw new NotSupportedException("The type of the image is not supported");
 		}
 
 		/// <summary>
@@ -2255,7 +2639,7 @@ namespace FreeImageAPI
 					RGBQUAD rgbq = color;
 					if (!FreeImage.SetPixelColor(dib, (uint)x, (uint)y, ref rgbq))
 					{
-						throw new Exception();
+						throw new Exception("FreeImage.SetPixelColor() failed");
 					}
 					return;
 				}
@@ -2270,7 +2654,7 @@ namespace FreeImageAPI
 							byte index = (byte)i;
 							if (!FreeImage.SetPixelIndex(dib, (uint)x, (uint)y, ref index))
 							{
-								throw new Exception();
+								throw new Exception("FreeImage.SetPixelIndex() failed");
 							}
 							return;
 						}
@@ -2278,7 +2662,7 @@ namespace FreeImageAPI
 					throw new ArgumentOutOfRangeException("color");
 				}
 			}
-			throw new NotSupportedException();
+			throw new NotSupportedException("The type of the image is not supported");
 		}
 
 		/// <summary>
@@ -2332,7 +2716,7 @@ namespace FreeImageAPI
 		/// color depth.</para>
 		/// <para>Adding the <see cref="FREE_IMAGE_COLOR_DEPTH.FICD_REORDER_PALETTE"/> flag
 		/// will allow the algorithm to reorder the palette. This operation will not be performed to
-		/// non-greyscale images to prevent data lost by mistake.</para>
+		/// non-greyscale images to prevent data loss by mistake.</para>
 		/// </summary>
 		/// <param name="bpp">A bitfield containing information about the conversion
 		/// to perform.</param>
@@ -2375,8 +2759,7 @@ namespace FreeImageAPI
 				FIBITMAP newDib = FreeImage.ConvertToType(dib, type, scaleLinear);
 				if (!newDib.IsNull)
 				{
-					result = new FreeImageBitmap();
-					result.dib = newDib;
+					result = new FreeImageBitmap(newDib);
 				}
 			}
 			return result;
@@ -2391,7 +2774,7 @@ namespace FreeImageAPI
 		/// first perform a convesion to greyscale. This can be done with any target color depth.</para>
 		/// <para>Adding the <see cref="FREE_IMAGE_COLOR_DEPTH.FICD_REORDER_PALETTE"/> flag will
 		/// allow the algorithm to reorder the palette. This operation will not be performed to
-		/// non-greyscale images to prevent data lost by mistake.</para>
+		/// non-greyscale images to prevent data loss by mistake.</para>
 		/// </summary>
 		/// <param name="bpp">A bitfield containing information about the conversion
 		/// to perform.</param>
@@ -2407,8 +2790,7 @@ namespace FreeImageAPI
 			}
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -2468,8 +2850,7 @@ namespace FreeImageAPI
 			FIBITMAP newDib = FreeImage.Rescale(dib, width, height, filter);
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -2599,8 +2980,7 @@ namespace FreeImageAPI
 			FIBITMAP newDib = FreeImage.ColorQuantizeEx(dib, algorithm, paletteSize, reserveSize, reservePalette);
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -2689,8 +3069,7 @@ namespace FreeImageAPI
 			}
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -2735,8 +3114,7 @@ namespace FreeImageAPI
 				dib, angle, xShift, yShift, xOrigin, yOrigin, useMask);
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -2825,8 +3203,7 @@ namespace FreeImageAPI
 			FIBITMAP newDib = FreeImage.GetChannel(dib, channel);
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -2857,8 +3234,7 @@ namespace FreeImageAPI
 			FIBITMAP newDib = FreeImage.GetComplexChannel(dib, channel);
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -2903,8 +3279,7 @@ namespace FreeImageAPI
 			FIBITMAP newDib = FreeImage.Copy(dib, left, top, right, bottom);
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -2955,7 +3330,7 @@ namespace FreeImageAPI
 		/// <param name="applicationBackground">Backgroundcolor used in case <paramref name="useBitmapBackground"/> is false
 		/// and <paramref name="applicationBackground"/> is not null.</param>
 		/// <param name="bitmapBackGround">Background used in case <paramref name="useBitmapBackground"/>
-		/// is false and <paramref name="applicationBackground"/> is null.</param>
+		/// is false and <paramref name="applicationBackground"/> is a null reference.</param>
 		/// <returns>Returns true on success, false on failure.</returns>
 		public bool Composite(bool useBitmapBackground, Color? applicationBackground, FreeImageBitmap bitmapBackGround)
 		{
@@ -3027,7 +3402,7 @@ namespace FreeImageAPI
 		/// each destination color is also mapped to the corresponding source color.</param>
 		/// <returns>The total number of pixels changed.</returns>
 		/// <exception cref="ArgumentNullException">
-		/// <paramref name="srccolors"/> or <paramref name="dstcolors"/> is null.
+		/// <paramref name="srccolors"/> or <paramref name="dstcolors"/> is a null reference.
 		/// </exception>
 		/// <exception cref="ArgumentException">
 		/// <paramref name="srccolors"/> has a different length than <paramref name="dstcolors"/>.
@@ -3076,7 +3451,7 @@ namespace FreeImageAPI
 		/// each destination index is also mapped to the corresponding source index.</param>
 		/// <returns>The total number of pixels changed.</returns>
 		/// <exception cref="ArgumentNullException">
-		/// <paramref name="srccolors"/> or <paramref name="dstcolors"/> is null.
+		/// <paramref name="srccolors"/> or <paramref name="dstcolors"/> is a null reference.
 		/// </exception>
 		/// <exception cref="ArgumentException">
 		/// <paramref name="srccolors"/> has a different length than <paramref name="dstcolors"/>.
@@ -3116,7 +3491,7 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="data">The data of the new ICC-Profile.</param>
 		/// <returns>The new ICC-Profile of the bitmap.</returns>
-		/// <exception cref="ArgumentNullException"><paramref name="data"/> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="data"/> is a null reference.</exception>
 		public FIICCPROFILE CreateICCProfile(byte[] data)
 		{
 			if (data == null)
@@ -3260,8 +3635,7 @@ namespace FreeImageAPI
 			FIBITMAP newDib = FreeImage.CreateFromHbitmap(hbitmap, IntPtr.Zero);
 			if (!newDib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
+				result = new FreeImageBitmap(newDib);
 			}
 			return result;
 		}
@@ -3294,14 +3668,7 @@ namespace FreeImageAPI
 		/// <returns>The <see cref="FreeImageBitmap"/> this method creates.</returns>
 		public static FreeImageBitmap FromStream(Stream stream)
 		{
-			try
-			{
-				return new FreeImageBitmap(stream);
-			}
-			catch
-			{
-				return null;
-			}
+			return new FreeImageBitmap(stream);
 		}
 
 		/// <summary>
@@ -3487,8 +3854,7 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// Adds a specified frame to the file specified using the specified parameters.
-		/// Use this method to save selected frames from a multiple-frame image to
-		/// another multiple-frame image.
+		/// Use this method to save selected frames from an to a multiple-frame image.
 		/// </summary>
 		/// <param name="filename">File to add this frame to.</param>
 		/// <param name="bitmap">A <see cref="FreeImageBitmap"/> that contains the frame to add.</param>
@@ -3520,25 +3886,87 @@ namespace FreeImageAPI
 				throw new ArgumentNullException("bitmap");
 			}
 			bitmap.EnsureNotDisposed();
-			if (bitmap.dib.IsNull)
-			{
-				throw new Exception();
-			}
+
+			FIBITMAP dib = bitmap.dib;
+			if (dib.IsNull)
+				throw new ArgumentNullException("bitmap");
 
 			FIMULTIBITMAP mpBitmap =
 				FreeImage.OpenMultiBitmapEx(filename, ref format, loadFlags, false, false, true);
 
 			if (mpBitmap.IsNull)
-			{
-				throw new Exception();
-			}
+				throw new Exception(ErrorLoadingBitmap);
 
 			FreeImage.AppendPage(mpBitmap, bitmap.dib);
 
 			if (!FreeImage.CloseMultiBitmap(mpBitmap, saveFlags))
+				throw new Exception(ErrorUnloadBitmap);
+		}
+
+		/// <summary>
+		/// Adds a specified frame to the file specified using the specified parameters.
+		/// Use this method to save selected frames from an image to a multiple-frame image.
+		/// </summary>
+		/// <param name="filename">File to add this frame to.</param>
+		/// <param name="bitmap">A <see cref="FreeImageBitmap"/> that contains the frame to add.</param>
+		/// <param name="insertPosition">The position of the inserted frame.</param>
+		/// <param name="format">Format of the image.</param>
+		/// <param name="loadFlags">Flags to enable or disable plugin-features.</param>
+		/// <param name="saveFlags">Flags to enable or disable plugin-features.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <paramref name="filename"/> or <paramref name="bitmap"/> is null.
+		/// </exception>
+		/// <exception cref="FileNotFoundException"><paramref name="filename"/> does not exist.</exception>
+		/// <exception cref="Exception">Saving the image failed.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="insertPosition"/> is out of range.</exception>
+		public static void SaveAdd(
+			string filename,
+			FreeImageBitmap bitmap,
+			int insertPosition,
+			FREE_IMAGE_FORMAT format,
+			FREE_IMAGE_LOAD_FLAGS loadFlags,
+			FREE_IMAGE_SAVE_FLAGS saveFlags)
+		{
+			if (filename == null)
 			{
-				throw new Exception();
+				throw new ArgumentNullException("filename");
 			}
+			if (!File.Exists(filename))
+			{
+				throw new FileNotFoundException("filename");
+			}
+			if (bitmap == null)
+			{
+				throw new ArgumentNullException("bitmap");
+			}
+			if (insertPosition < 0)
+			{
+				throw new ArgumentOutOfRangeException("insertPosition");
+			}
+			bitmap.EnsureNotDisposed();
+
+			FIBITMAP dib = bitmap.dib;
+			if (dib.IsNull)
+				throw new ArgumentNullException("bitmap");
+
+			FIMULTIBITMAP mpBitmap =
+				FreeImage.OpenMultiBitmapEx(filename, ref format, loadFlags, false, false, true);
+
+			if (mpBitmap.IsNull)
+				throw new Exception(ErrorLoadingBitmap);
+
+			int pageCount = FreeImage.GetPageCount(mpBitmap);
+
+			if (insertPosition > pageCount)
+				throw new ArgumentOutOfRangeException("insertPosition");
+
+			if (insertPosition == pageCount)
+				FreeImage.AppendPage(mpBitmap, bitmap.dib);
+			else
+				FreeImage.InsertPage(mpBitmap, insertPosition, bitmap.dib);
+
+			if (!FreeImage.CloseMultiBitmap(mpBitmap, saveFlags))
+				throw new Exception(ErrorUnloadBitmap);
 		}
 
 		/// <summary>
@@ -3582,10 +4010,11 @@ namespace FreeImageAPI
 		private bool ReplaceDib(FIBITMAP newDib)
 		{
 			bool result = false;
-			if (dib != newDib && (!newDib.IsNull))
+			if ((dib != newDib) && (!newDib.IsNull))
 			{
 				UnloadDib();
 				dib = newDib;
+				AddMemoryPressure();
 				result = true;
 			}
 			return result;
@@ -3597,15 +4026,23 @@ namespace FreeImageAPI
 		/// </summary>
 		private void UnloadDib()
 		{
-			if (mdib.IsNull || FreeImage.GetLockedPageCount(mdib) == 0)
+			if (!dib.IsNull)
 			{
+				long size = FreeImage.GetDIBSize(dib);
 				FreeImage.UnloadEx(ref dib);
+				if (size > 0L)
+					GC.RemoveMemoryPressure(size);
 			}
-			else if (!dib.IsNull)
-			{
-				FreeImage.UnlockPage(mdib, dib, false);
-				dib = 0;
-			}
+		}
+
+		/// <summary>
+		/// Informs the runtime about unmanaged allocoted memory.
+		/// </summary>
+		private void AddMemoryPressure()
+		{
+			long dataSize;
+			if ((dataSize = DataSize) > 0L)
+				GC.AddMemoryPressure(dataSize);
 		}
 
 		#endregion
@@ -3615,9 +4052,9 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Helper class to store informations for <see cref="FreeImageBitmap.SaveAdd()"/>.
 		/// </summary>
-		private class SaveInformation : ICloneable
+		private sealed class SaveInformation : ICloneable
 		{
-			public string filename = null;
+			public string filename;
 			public FREE_IMAGE_FORMAT format = FREE_IMAGE_FORMAT.FIF_UNKNOWN;
 			public FREE_IMAGE_LOAD_FLAGS loadFlags = FREE_IMAGE_LOAD_FLAGS.DEFAULT;
 			public FREE_IMAGE_SAVE_FLAGS saveFlags = FREE_IMAGE_SAVE_FLAGS.DEFAULT;
@@ -3639,9 +4076,8 @@ namespace FreeImageAPI
 			FIBITMAP newDib = FreeImage.Clone(dib);
 			if (!dib.IsNull)
 			{
-				result = new FreeImageBitmap();
-				result.dib = newDib;
-				result.saveInformation = saveInformation.Clone() as SaveInformation;
+				result = new FreeImageBitmap(newDib);
+				result.saveInformation = (SaveInformation)saveInformation.Clone();
 				result.tag = tag;
 				result.originalFormat = originalFormat;
 			}
@@ -3678,12 +4114,18 @@ namespace FreeImageAPI
 			// Clean up managed resources
 			if (disposing)
 			{
-				tag = null;
+				if (file != null)
+				{
+					file.Dispose();
+				}
 			}
+
+			tag = null;
+			file = null;
+			saveInformation = null;
 
 			// Clean up unmanaged resources
 			UnloadDib();
-			FreeImage.CloseMultiBitmapEx(ref mdib);
 		}
 
 		/// <summary>
@@ -3701,7 +4143,7 @@ namespace FreeImageAPI
 			EnsureNotDisposed();
 			using (MemoryStream memory = new MemoryStream(DataSize))
 			{
-				if (!FreeImage.SaveToStream(ref dib, memory, FREE_IMAGE_FORMAT.FIF_TIFF, FREE_IMAGE_SAVE_FLAGS.TIFF_LZW, false))
+				if (!FreeImage.SaveToStream(dib, memory, FREE_IMAGE_FORMAT.FIF_TIFF, FREE_IMAGE_SAVE_FLAGS.TIFF_LZW))
 				{
 					throw new SerializationException();
 				}

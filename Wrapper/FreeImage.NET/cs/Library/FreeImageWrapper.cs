@@ -28,9 +28,9 @@
 
 // ==========================================================
 // CVS
-// $Revision: 1.6 $
-// $Date: 2008/06/17 13:50:59 $
-// $Id: FreeImageWrapper.cs,v 1.6 2008/06/17 13:50:59 cklein05 Exp $
+// $Revision: 1.13 $
+// $Date: 2009/02/27 16:33:38 $
+// $Id: FreeImageWrapper.cs,v 1.13 2009/02/27 16:33:38 cklein05 Exp $
 // ==========================================================
 
 using System;
@@ -59,13 +59,6 @@ namespace FreeImageAPI
 		/// </summary>
 		public static readonly FREE_IMAGE_MDMODEL[] FREE_IMAGE_MDMODELS =
 			(FREE_IMAGE_MDMODEL[])Enum.GetValues(typeof(FREE_IMAGE_MDMODEL));
-
-		/// <summary>
-		/// Saved instance for faster access.
-		/// </summary>
-		private static readonly ConstructorInfo PropertyItemConstructor =
-			typeof(PropertyItem).GetConstructor(
-			BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { }, null);
 
 		private const int DIB_RGB_COLORS = 0;
 		private const int DIB_PAL_COLORS = 1;
@@ -107,57 +100,15 @@ namespace FreeImageAPI
 
 		#endregion
 
-		#region Callback
-
-		// Callback delegate
-		private static OutputMessageFunction outputMessageFunction;
-		// Handle to pin the functions address
-		private static GCHandle outputMessageHandle;
-
-		static FreeImage()
-		{
-			// Check if FreeImage.dll is present and cancel setting the callbackfuntion if not
-			if (!IsAvailable())
-			{
-				return;
-			}
-			// Create a delegate (function pointer) to 'OnMessage'
-			outputMessageFunction = new OutputMessageFunction(OnMessage);
-			// Pin the object so the garbage collector does not move it around in memory
-			outputMessageHandle = GCHandle.Alloc(outputMessageFunction, GCHandleType.Normal);
-			// Set the callback
-			SetOutputMessage(outputMessageFunction);
-		}
-
-		/// <summary>
-		/// Internal callback
-		/// </summary>
-		private static void OnMessage(FREE_IMAGE_FORMAT fif, string message)
-		{
-			// Invoke the message
-			if (Message != null)
-			{
-				Message.Invoke(fif, message);
-			}
-		}
-
-		/// <summary>
-		/// Internal errors in FreeImage generate a logstring that can be
-		/// captured by this event.
-		/// </summary>
-		public static event OutputMessageFunction Message;
-
-		#endregion
-
 		#region General functions
 
 		/// <summary>
 		/// Returns the internal version of this FreeImage 3 .NET wrapper.
 		/// </summary>
 		/// <returns>The internal version of this FreeImage 3 .NET wrapper.</returns>
-		public static string GetWrapperVersion()
+		public static Version GetWrapperVersion()
 		{
-			return FREEIMAGE_MAJOR_VERSION + "." + FREEIMAGE_MINOR_VERSION + "." + FREEIMAGE_RELEASE_SERIAL;
+			return new Version(1, 0, 5, 0);
 		}
 
 		/// <summary>
@@ -255,16 +206,36 @@ namespace FreeImageAPI
 				ColorPalette palette = result.Palette;
 				// Get the orgininal palette
 				Color[] colorPalette = new Palette(dib).ColorData;
-				// Copy each value
-				if (palette.Entries.Length == colorPalette.Length)
+				// Get the maximum number of palette entries to copy
+				int entriesToCopy = Math.Min(colorPalette.Length, palette.Entries.Length);
+
+				// Check whether the bitmap is transparent
+				if (IsTransparent(dib))
 				{
-					for (int i = 0; i < colorPalette.Length; i++)
+					byte[] transTable = GetTransparencyTableEx(dib);
+					int i = 0;
+					int maxEntriesWithTrans = Math.Min(entriesToCopy, transTable.Length);
+					// Copy palette entries and include transparency
+					for (; i < maxEntriesWithTrans; i++)
+					{
+						palette.Entries[i] = Color.FromArgb(transTable[i], colorPalette[i]);
+					}
+					// Copy palette entries and that have no transparancy
+					for (; i < entriesToCopy; i++)
+					{
+						palette.Entries[i] = Color.FromArgb(0xFF, colorPalette[i]);
+					}
+				}
+				else
+				{
+					for (int i = 0; i < entriesToCopy; i++)
 					{
 						palette.Entries[i] = colorPalette[i];
 					}
-					// Set the bitmaps palette
-					result.Palette = palette;
 				}
+
+				// Set the bitmaps palette
+				result.Palette = palette;
 			}
 			// Copy metadata
 			if (copyMetadata)
@@ -294,7 +265,7 @@ namespace FreeImageAPI
 								byte* src = (byte*)GetTagValue(tag);
 								fixed (byte* dst = buffer)
 								{
-									MoveMemory(dst, src, (uint)propItem.Len);
+									CopyMemory(dst, src, (uint)propItem.Len);
 								}
 							}
 
@@ -351,10 +322,12 @@ namespace FreeImageAPI
 				throw new ArgumentNullException("bitmap");
 			}
 			uint bpp, red_mask, green_mask, blue_mask;
-			if (!GetFormatParameters(bitmap.PixelFormat, out bpp, out red_mask, out green_mask, out blue_mask))
+			FREE_IMAGE_TYPE type;
+			if (!GetFormatParameters(bitmap.PixelFormat, out type, out bpp, out red_mask, out green_mask, out blue_mask))
 			{
 				throw new ArgumentException("The bitmaps pixelformat is invalid.");
 			}
+
 			// Locking the complete bitmap in readonly mode
 			BitmapData data = bitmap.LockBits(
 				new Rectangle(0, 0, bitmap.Width, bitmap.Height),
@@ -363,6 +336,7 @@ namespace FreeImageAPI
 			FIBITMAP result =
 				ConvertFromRawBits(
 					data.Scan0,
+					type,
 					data.Width,
 					data.Height,
 					data.Stride,
@@ -376,12 +350,20 @@ namespace FreeImageAPI
 			if (GetPalette(result) != IntPtr.Zero)
 			{
 				Palette palette = new Palette(result);
-				if (palette.Length == bitmap.Palette.Entries.Length)
+				Color[] colors = bitmap.Palette.Entries;
+				// Only copy available palette entries
+				int entriesToCopy = Math.Min(palette.Length, colors.Length);
+				byte[] transTable = new byte[entriesToCopy];
+				for (int i = 0; i < entriesToCopy; i++)
 				{
-					for (int i = 0; i < palette.Length; i++)
-					{
-						palette[i] = (RGBQUAD)bitmap.Palette.Entries[i];
-					}
+					RGBQUAD color = (RGBQUAD)colors[i];
+					color.rgbReserved = 0x00;
+					palette[i] = color;
+					transTable[i] = colors[i].A;
+				}
+				if ((bitmap.Flags & (int)ImageFlags.HasAlpha) != 0)
+				{
+					FreeImage.SetTransparencyTable(result, transTable);
 				}
 			}
 			// Handle meta data
@@ -399,6 +381,113 @@ namespace FreeImageAPI
 			//    }
 			//}
 			return result;
+		}
+
+		/// <summary>
+		/// Converts a raw bitmap to a FreeImage bitmap.
+		/// </summary>
+		/// <param name="bits">Array of bytes containing the raw bitmap.</param>
+		/// <param name="type">The type of the raw bitmap.</param>
+		/// <param name="width">The width in pixels of the raw bitmap.</param>
+		/// <param name="height">The height in pixels of the raw bitmap.</param>
+		/// <param name="pitch">Defines the total width of a scanline in the raw bitmap,
+		/// including padding bytes.</param>
+		/// <param name="bpp">The bit depth (bits per pixel) of the raw bitmap.</param>
+		/// <param name="red_mask">The bit mask describing the bits used to store a single 
+		/// pixel's red component in the raw bitmap. This is only applied to 16-bpp raw bitmaps.</param>
+		/// <param name="green_mask">The bit mask describing the bits used to store a single
+		/// pixel's green component in the raw bitmap. This is only applied to 16-bpp raw bitmaps.</param>
+		/// <param name="blue_mask">The bit mask describing the bits used to store a single
+		/// pixel's blue component in the raw bitmap. This is only applied to 16-bpp raw bitmaps.</param>
+		/// <param name="topdown">If true, the raw bitmap is stored in top-down order (top-left pixel first)
+		/// and in bottom-up order (bottom-left pixel first) otherwise.</param>
+		/// <returns>Handle to a FreeImage bitmap.</returns>
+		public static unsafe FIBITMAP ConvertFromRawBits(
+			byte[] bits,
+			FREE_IMAGE_TYPE type,
+			int width,
+			int height,
+			int pitch,
+			uint bpp,
+			uint red_mask,
+			uint green_mask,
+			uint blue_mask,
+			bool topdown)
+		{
+			fixed (byte* ptr = bits)
+			{
+				return ConvertFromRawBits(
+					(IntPtr)ptr,
+					type,
+					width,
+					height,
+					pitch,
+					bpp,
+					red_mask,
+					green_mask,
+					blue_mask,
+					topdown);
+			}
+		}
+
+		/// <summary>
+		/// Converts a raw bitmap to a FreeImage bitmap.
+		/// </summary>
+		/// <param name="bits">Pointer to the memory block containing the raw bitmap.</param>
+		/// <param name="type">The type of the raw bitmap.</param>
+		/// <param name="width">The width in pixels of the raw bitmap.</param>
+		/// <param name="height">The height in pixels of the raw bitmap.</param>
+		/// <param name="pitch">Defines the total width of a scanline in the raw bitmap,
+		/// including padding bytes.</param>
+		/// <param name="bpp">The bit depth (bits per pixel) of the raw bitmap.</param>
+		/// <param name="red_mask">The bit mask describing the bits used to store a single 
+		/// pixel's red component in the raw bitmap. This is only applied to 16-bpp raw bitmaps.</param>
+		/// <param name="green_mask">The bit mask describing the bits used to store a single
+		/// pixel's green component in the raw bitmap. This is only applied to 16-bpp raw bitmaps.</param>
+		/// <param name="blue_mask">The bit mask describing the bits used to store a single
+		/// pixel's blue component in the raw bitmap. This is only applied to 16-bpp raw bitmaps.</param>
+		/// <param name="topdown">If true, the raw bitmap is stored in top-down order (top-left pixel first)
+		/// and in bottom-up order (bottom-left pixel first) otherwise.</param>
+		/// <returns>Handle to a FreeImage bitmap.</returns>
+		public static unsafe FIBITMAP ConvertFromRawBits(
+			IntPtr bits,
+			FREE_IMAGE_TYPE type,
+			int width,
+			int height,
+			int pitch,
+			uint bpp,
+			uint red_mask,
+			uint green_mask,
+			uint blue_mask,
+			bool topdown)
+		{
+			byte* addr = (byte*)bits;
+			if ((addr == null) || (width <= 0) || (height <= 0))
+			{
+				return FIBITMAP.Zero;
+			}
+
+			FIBITMAP dib = AllocateT(type, width, height, (int)bpp, red_mask, green_mask, blue_mask);
+			if (dib != FIBITMAP.Zero)
+			{
+				if (topdown)
+				{
+					for (int i = height - 1; i >= 0; --i)
+					{
+						CopyMemory((byte*)GetScanLine(dib, i), addr, (int)GetLine(dib));
+						addr += pitch;
+					}
+				}
+				else
+				{
+					for (int i = 0; i < height; ++i)
+					{
+						CopyMemory((byte*)GetScanLine(dib, i), addr, (int)GetLine(dib));
+						addr += pitch;
+					}
+				}
+			}
+			return dib;
 		}
 
 		/// <summary>
@@ -541,7 +630,7 @@ namespace FreeImageAPI
 			{
 				throw new FileNotFoundException(filename + " could not be found.");
 			}
-			FIBITMAP dib = 0;
+			FIBITMAP dib = new FIBITMAP();
 			if (format == FREE_IMAGE_FORMAT.FIF_UNKNOWN)
 			{
 				// query all plugins to see if one can read the file
@@ -584,7 +673,7 @@ namespace FreeImageAPI
 			if (!dib.IsNull)
 			{
 				Unload(dib);
-				dib = 0;
+				dib.SetNull();
 			}
 		}
 
@@ -852,33 +941,27 @@ namespace FreeImageAPI
 					// Check valid filename and correct it if needed
 					if (!IsFilenameValidForFIF(format, filename))
 					{
-						int index = filename.LastIndexOf('.');
 						string extension = GetPrimaryExtensionFromFIF(format);
-
-						if (index == -1)
-						{
-							// We have no '.' (dot) so just add the extension
-							filename += "." + extension;
-						}
-						else
-						{
-							// Overwrite the old extension
-							filename = filename.Substring(0, filename.LastIndexOf('.')) + extension;
-						}
+						filename = Path.ChangeExtension(filename, extension);
 					}
 
 					FIBITMAP dibToSave = PrepareBitmapColorDepth(dib, format, colorDepth);
-					result = Save(format, dibToSave, filename, flags);
-
-					// Always unload a temporary created bitmap.
-					if (dibToSave != dib)
+					try
 					{
-						UnloadEx(ref dibToSave);
+						result = Save(format, dibToSave, filename, flags);
 					}
-					// On success unload the bitmap
-					if (result && unloadSource)
+					finally
 					{
-						UnloadEx(ref dib);
+						// Always unload a temporary created bitmap.
+						if (dibToSave != dib)
+						{
+							UnloadEx(ref dibToSave);
+						}
+						// On success unload the bitmap
+						if (result && unloadSource)
+						{
+							UnloadEx(ref dib);
+						}
 					}
 				}
 			}
@@ -985,7 +1068,7 @@ namespace FreeImageAPI
 			}
 			if (!FIFSupportsReading(format))
 			{
-				return 0;
+				return FIBITMAP.Zero;
 			}
 			// Create a 'FreeImageIO' structure for calling 'LoadFromHandle'
 			// using the internal structure 'FreeImageStreamIO'.
@@ -1180,7 +1263,7 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentException("stream is not capable of writing.");
 			}
-			if ((!FIFSupportsWriting(format)) || (!FIFSupportsExportType(format, FREE_IMAGE_TYPE.FIT_BITMAP)))
+			if ((!FIFSupportsWriting(format)) || (!FIFSupportsExportType(format, GetImageType(dib))))
 			{
 				return false;
 			}
@@ -1198,7 +1281,7 @@ namespace FreeImageAPI
 					result = SaveToHandle(format, dibToSave, ref io, handle, flags);
 				}
 			}
-			catch
+			finally
 			{
 				// Always unload a temporary created bitmap.
 				if (dibToSave != dib)
@@ -1229,7 +1312,7 @@ namespace FreeImageAPI
 		/// <paramref name="extension"/> is null.</exception>
 		public static bool IsExtensionValidForFIF(FREE_IMAGE_FORMAT fif, string extension)
 		{
-			return IsExtensionValidForFIF(fif, extension, StringComparison.CurrentCulture);
+			return IsExtensionValidForFIF(fif, extension, StringComparison.CurrentCultureIgnoreCase);
 		}
 
 		/// <summary>
@@ -1275,7 +1358,7 @@ namespace FreeImageAPI
 		/// <paramref name="filename"/> is null.</exception>
 		public static bool IsFilenameValidForFIF(FREE_IMAGE_FORMAT fif, string filename)
 		{
-			return IsFilenameValidForFIF(fif, filename, StringComparison.CurrentCulture);
+			return IsFilenameValidForFIF(fif, filename, StringComparison.CurrentCultureIgnoreCase);
 		}
 
 		/// <summary>
@@ -1295,10 +1378,11 @@ namespace FreeImageAPI
 			}
 			bool result = false;
 			// Extract the filenames extension if it exists
-			int position = filename.LastIndexOf('.');
-			if (position >= 0)
+			string extension = Path.GetExtension(filename);
+			if (extension.Length != 0)
 			{
-				result = IsExtensionValidForFIF(fif, filename.Substring(position + 1), comparisonType);
+				extension = extension.Remove(0, 1);
+				result = IsExtensionValidForFIF(fif, extension, comparisonType);
 			}
 			return result;
 		}
@@ -1492,7 +1576,7 @@ namespace FreeImageAPI
 				// Check if a plugin can read the data
 				format = GetFileType(filename, 0);
 			}
-			FIMULTIBITMAP dib = 0;
+			FIMULTIBITMAP dib = new FIMULTIBITMAP();
 			if (FIFSupportsReading(format))
 			{
 				dib = OpenMultiBitmap(format, filename, create_new, read_only, keep_cache_in_memory, flags);
@@ -1527,7 +1611,7 @@ namespace FreeImageAPI
 			{
 				if (CloseMultiBitmap(dib, flags))
 				{
-					dib = 0;
+					dib.SetNull();
 					result = true;
 				}
 			}
@@ -1786,7 +1870,7 @@ namespace FreeImageAPI
 				throw new ArgumentNullException("hbitmap");
 			}
 
-			FIBITMAP dib = 0;
+			FIBITMAP dib = new FIBITMAP();
 			BITMAP bm;
 			uint colors;
 			bool release;
@@ -2073,20 +2157,23 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="format">The <see cref="System.Drawing.Imaging.PixelFormat"/>
 		/// of the .NET <see cref="System.Drawing.Image"/>.</param>
+		/// <param name="type">Returns the type used for the new bitmap.</param>
 		/// <param name="bpp">Returns the color depth for the new bitmap.</param>
 		/// <param name="red_mask">Returns the red_mask for the new bitmap.</param>
 		/// <param name="green_mask">Returns the green_mask for the new bitmap.</param>
 		/// <param name="blue_mask">Returns the blue_mask for the new bitmap.</param>
-		/// <returns>True in case <paramref name="format"/> is
-		/// <see cref="FREE_IMAGE_TYPE.FIT_BITMAP"/>, else false.</returns>
+		/// <returns>True in case a matching conversion exists; else false.
+		/// </returns>
 		public static bool GetFormatParameters(
 			PixelFormat format,
+			out FREE_IMAGE_TYPE type,
 			out uint bpp,
 			out uint red_mask,
 			out uint green_mask,
 			out uint blue_mask)
 		{
 			bool result = false;
+			type = FREE_IMAGE_TYPE.FIT_UNKNOWN;
 			bpp = 0;
 			red_mask = 0;
 			green_mask = 0;
@@ -2094,18 +2181,22 @@ namespace FreeImageAPI
 			switch (format)
 			{
 				case PixelFormat.Format1bppIndexed:
+					type = FREE_IMAGE_TYPE.FIT_BITMAP;
 					bpp = 1;
 					result = true;
 					break;
 				case PixelFormat.Format4bppIndexed:
+					type = FREE_IMAGE_TYPE.FIT_BITMAP;
 					bpp = 4;
 					result = true;
 					break;
 				case PixelFormat.Format8bppIndexed:
+					type = FREE_IMAGE_TYPE.FIT_BITMAP;
 					bpp = 8;
 					result = true;
 					break;
 				case PixelFormat.Format16bppRgb565:
+					type = FREE_IMAGE_TYPE.FIT_BITMAP;
 					bpp = 16;
 					red_mask = FI16_565_RED_MASK;
 					green_mask = FI16_565_GREEN_MASK;
@@ -2113,6 +2204,8 @@ namespace FreeImageAPI
 					result = true;
 					break;
 				case PixelFormat.Format16bppRgb555:
+				case PixelFormat.Format16bppArgb1555:
+					type = FREE_IMAGE_TYPE.FIT_BITMAP;
 					bpp = 16;
 					red_mask = FI16_555_RED_MASK;
 					green_mask = FI16_555_GREEN_MASK;
@@ -2120,6 +2213,7 @@ namespace FreeImageAPI
 					result = true;
 					break;
 				case PixelFormat.Format24bppRgb:
+					type = FREE_IMAGE_TYPE.FIT_BITMAP;
 					bpp = 24;
 					red_mask = FI_RGBA_RED_MASK;
 					green_mask = FI_RGBA_GREEN_MASK;
@@ -2128,10 +2222,85 @@ namespace FreeImageAPI
 					break;
 				case PixelFormat.Format32bppRgb:
 				case PixelFormat.Format32bppArgb:
+				case PixelFormat.Format32bppPArgb:
+					type = FREE_IMAGE_TYPE.FIT_BITMAP;
 					bpp = 32;
 					red_mask = FI_RGBA_RED_MASK;
 					green_mask = FI_RGBA_GREEN_MASK;
 					blue_mask = FI_RGBA_BLUE_MASK;
+					result = true;
+					break;
+				case PixelFormat.Format16bppGrayScale:
+					type = FREE_IMAGE_TYPE.FIT_UINT16;
+					bpp = 16;
+					result = true;
+					break;
+				case PixelFormat.Format48bppRgb:
+					type = FREE_IMAGE_TYPE.FIT_RGB16;
+					bpp = 48;
+					result = true;
+					break;
+				case PixelFormat.Format64bppArgb:
+				case PixelFormat.Format64bppPArgb:
+					type = FREE_IMAGE_TYPE.FIT_RGBA16;
+					bpp = 64;
+					result = true;
+					break;
+			}
+			return result;
+		}
+
+		/// <summary>
+		/// Retrieves all parameters needed to create a new FreeImage bitmap from
+		/// raw bits <see cref="System.Drawing.Image"/>.
+		/// </summary>
+		/// <param name="type">The <see cref="FREE_IMAGE_TYPE"/>
+		/// of the data in memory.</param>
+		/// <param name="bpp">The color depth for the data.</param>
+		/// <param name="red_mask">Returns the red_mask for the data.</param>
+		/// <param name="green_mask">Returns the green_mask for the data.</param>
+		/// <param name="blue_mask">Returns the blue_mask for the data.</param>
+		/// <returns>True in case a matching conversion exists; else false.
+		/// </returns>
+		public static bool GetTypeParameters(
+			FREE_IMAGE_TYPE type,
+			int bpp,
+			out uint red_mask,
+			out uint green_mask,
+			out uint blue_mask)
+		{
+			bool result = false;
+			red_mask = 0;
+			green_mask = 0;
+			blue_mask = 0;
+			switch (type)
+			{
+				case FREE_IMAGE_TYPE.FIT_BITMAP:
+					switch (bpp)
+					{
+						case 1:
+						case 4:
+						case 8:
+							result = true;
+							break;
+						case 16:
+							result = true;
+							red_mask = FI16_555_RED_MASK;
+							green_mask = FI16_555_GREEN_MASK;
+							blue_mask = FI16_555_BLUE_MASK;
+							break;
+						case 24:
+						case 32:
+							result = true;
+							red_mask = FI_RGBA_RED_MASK;
+							green_mask = FI_RGBA_GREEN_MASK;
+							blue_mask = FI_RGBA_BLUE_MASK;
+							break;
+					}
+					break;
+				case FREE_IMAGE_TYPE.FIT_UNKNOWN:
+					break;
+				default:
 					result = true;
 					break;
 			}
@@ -2230,6 +2399,18 @@ namespace FreeImageAPI
 			{
 				return false;
 			}
+			if (GetRedMask(dib1) != GetRedMask(dib2))
+			{
+				return false;
+			}
+			if (GetGreenMask(dib1) != GetGreenMask(dib2))
+			{
+				return false;
+			}
+			if (GetBlueMask(dib1) != GetBlueMask(dib2))
+			{
+				return false;
+			}
 
 			byte* ptr1, ptr2;
 			int fullBytes;
@@ -2264,15 +2445,31 @@ namespace FreeImageAPI
 						break;
 					case 16:
 						short* sPtr1, sPtr2;
-						for (int i = 0; i < height; i++)
+						short mask = (short)(GetRedMask(dib1) | GetGreenMask(dib1) | GetBlueMask(dib1));
+						if (mask == -1)
 						{
-							sPtr1 = (short*)GetScanLine(dib1, i);
-							sPtr2 = (short*)GetScanLine(dib2, i);
-							for (int x = 0; x < width; x++)
+							for (int i = 0; i < height; i++)
 							{
-								if ((sPtr1[x] << 1) != (sPtr2[x] << 1))
+								sPtr1 = (short*)GetScanLine(dib1, i);
+								sPtr2 = (short*)GetScanLine(dib2, i);
+								if (!CompareMemory(sPtr1, sPtr1, line))
 								{
 									return false;
+								}
+							}
+						}
+						else
+						{
+							for (int i = 0; i < height; i++)
+							{
+								sPtr1 = (short*)GetScanLine(dib1, i);
+								sPtr2 = (short*)GetScanLine(dib2, i);
+								for (int x = 0; x < width; x++)
+								{
+									if ((sPtr1[x] & mask) != (sPtr2[x] & mask))
+									{
+										return false;
+									}
 								}
 							}
 						}
@@ -2339,7 +2536,7 @@ namespace FreeImageAPI
 						}
 						break;
 					default:
-						throw new NotSupportedException();
+						throw new NotSupportedException("Only 1, 4, 8, 16, 24 and 32 bpp bitmaps are supported.");
 				}
 			}
 			else
@@ -2413,7 +2610,7 @@ namespace FreeImageAPI
 			byte* ptr = (byte*)GetTransparencyTable(dib);
 			fixed (byte* dst = result)
 			{
-				MoveMemory(dst, ptr, count);
+				CopyMemory(dst, ptr, count);
 			}
 			return result;
 		}
@@ -2435,7 +2632,7 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentNullException("table");
 			}
-			SetTransparencyTable_(dib, table, table.Length);
+			SetTransparencyTable(dib, table, table.Length);
 		}
 
 		/// <summary>
@@ -2922,159 +3119,182 @@ namespace FreeImageAPI
 				throw new ArgumentNullException("dib");
 			}
 
-			FIBITMAP result = 0;
-			FIBITMAP dibTemp = 0;
+			FIBITMAP result = new FIBITMAP();
+			FIBITMAP dibTemp = new FIBITMAP();
 			uint bpp = GetBPP(dib);
 			bool reorderPalette = ((conversion & FREE_IMAGE_COLOR_DEPTH.FICD_REORDER_PALETTE) > 0);
 			bool forceGreyscale = ((conversion & FREE_IMAGE_COLOR_DEPTH.FICD_FORCE_GREYSCALE) > 0);
 
-			switch (conversion & (FREE_IMAGE_COLOR_DEPTH)0xFF)
+			if (GetImageType(dib) == FREE_IMAGE_TYPE.FIT_BITMAP)
 			{
-				case FREE_IMAGE_COLOR_DEPTH.FICD_01_BPP_THRESHOLD:
+				switch (conversion & (FREE_IMAGE_COLOR_DEPTH)0xFF)
+				{
+					case FREE_IMAGE_COLOR_DEPTH.FICD_01_BPP_THRESHOLD:
 
-					if (bpp != 1)
-					{
-						result = Threshold(dib, threshold);
-					}
-					else
-					{
-						bool isGreyscale = IsGreyscaleImage(dib);
-						if ((forceGreyscale && (!isGreyscale)) ||
-						(reorderPalette && isGreyscale))
+						if (bpp != 1)
 						{
-							result = Threshold(dib, threshold);
+							if (forceGreyscale)
+							{
+								result = Threshold(dib, threshold);
+							}
+							else
+							{
+								dibTemp = ConvertTo24Bits(dib);
+								result = ColorQuantizeEx(dibTemp, quantizationMethod, 2, null, 1);
+								Unload(dibTemp);
+							}
 						}
-					}
-					break;
-
-				case FREE_IMAGE_COLOR_DEPTH.FICD_01_BPP_DITHER:
-
-					if (bpp != 1)
-					{
-						result = Dither(dib, ditherMethod);
-					}
-					else
-					{
-						bool isGreyscale = IsGreyscaleImage(dib);
-						if ((forceGreyscale && (!isGreyscale)) ||
-						(reorderPalette && isGreyscale))
-						{
-							result = Dither(dib, ditherMethod);
-						}
-					}
-					break;
-
-				case FREE_IMAGE_COLOR_DEPTH.FICD_04_BPP:
-
-					if (bpp != 4)
-					{
-						// Special case when 1bpp and FIC_PALETTE
-						if (forceGreyscale && (bpp == 1) && (GetColorType(dib) == FREE_IMAGE_COLOR_TYPE.FIC_PALETTE))
-						{
-							dibTemp = ConvertToGreyscale(dib);
-							result = ConvertTo4Bits(dibTemp);
-							Unload(dibTemp);
-						}
-						// All other cases are converted directly
 						else
 						{
-							result = ConvertTo4Bits(dib);
-						}
-					}
-					else
-					{
-						bool isGreyscale = IsGreyscaleImage(dib);
-						if ((forceGreyscale && (!isGreyscale)) ||
+							bool isGreyscale = IsGreyscaleImage(dib);
+							if ((forceGreyscale && (!isGreyscale)) ||
 							(reorderPalette && isGreyscale))
-						{
-							dibTemp = ConvertToGreyscale(dib);
-							result = ConvertTo4Bits(dibTemp);
-							Unload(dibTemp);
+							{
+								result = Threshold(dib, threshold);
+							}
 						}
-					}
+						break;
 
-					break;
+					case FREE_IMAGE_COLOR_DEPTH.FICD_01_BPP_DITHER:
 
-				case FREE_IMAGE_COLOR_DEPTH.FICD_08_BPP:
+						if (bpp != 1)
+						{
+							if (forceGreyscale)
+							{
+								result = Dither(dib, ditherMethod);
+							}
+							else
+							{
+								dibTemp = ConvertTo24Bits(dib);
+								result = ColorQuantizeEx(dibTemp, quantizationMethod, 2, null, 1);
+								Unload(dibTemp);
+							}
+						}
+						else
+						{
+							bool isGreyscale = IsGreyscaleImage(dib);
+							if ((forceGreyscale && (!isGreyscale)) ||
+							(reorderPalette && isGreyscale))
+							{
+								result = Dither(dib, ditherMethod);
+							}
+						}
+						break;
 
-					if (bpp != 8)
-					{
+					case FREE_IMAGE_COLOR_DEPTH.FICD_04_BPP:
+
+						if (bpp != 4)
+						{
+							// Special case when 1bpp and FIC_PALETTE
+							if (forceGreyscale ||
+								((bpp == 1) && (GetColorType(dib) == FREE_IMAGE_COLOR_TYPE.FIC_PALETTE)))
+							{
+								dibTemp = ConvertToGreyscale(dib);
+								result = ConvertTo4Bits(dibTemp);
+								Unload(dibTemp);
+							}
+							else
+							{
+								dibTemp = ConvertTo24Bits(dib);
+								result = ColorQuantizeEx(dibTemp, quantizationMethod, 16, null, 4);
+								Unload(dibTemp);
+							}
+						}
+						else
+						{
+							bool isGreyscale = IsGreyscaleImage(dib);
+							if ((forceGreyscale && (!isGreyscale)) ||
+								(reorderPalette && isGreyscale))
+							{
+								dibTemp = ConvertToGreyscale(dib);
+								result = ConvertTo4Bits(dibTemp);
+								Unload(dibTemp);
+							}
+						}
+
+						break;
+
+					case FREE_IMAGE_COLOR_DEPTH.FICD_08_BPP:
+
+						if (bpp != 8)
+						{
+							if (forceGreyscale)
+							{
+								result = ConvertToGreyscale(dib);
+							}
+							else
+							{
+								dibTemp = ConvertTo24Bits(dib);
+								result = ColorQuantize(dibTemp, quantizationMethod);
+								Unload(dibTemp);
+							}
+						}
+						else
+						{
+							bool isGreyscale = IsGreyscaleImage(dib);
+							if ((forceGreyscale && (!isGreyscale)) || (reorderPalette && isGreyscale))
+							{
+								result = ConvertToGreyscale(dib);
+							}
+						}
+						break;
+
+					case FREE_IMAGE_COLOR_DEPTH.FICD_16_BPP_555:
+
 						if (forceGreyscale)
 						{
-							result = ConvertToGreyscale(dib);
-						}
-						else
-						{
-							dibTemp = ConvertTo24Bits(dib);
-							result = ColorQuantize(dibTemp, quantizationMethod);
+							dibTemp = ConvertToGreyscale(dib);
+							result = ConvertTo16Bits555(dibTemp);
 							Unload(dibTemp);
 						}
-					}
-					else
-					{
-						bool isGreyscale = IsGreyscaleImage(dib);
-						if ((forceGreyscale && (!isGreyscale)) || (reorderPalette && isGreyscale))
+						else if (bpp != 16 || GetRedMask(dib) != FI16_555_RED_MASK || GetGreenMask(dib) != FI16_555_GREEN_MASK || GetBlueMask(dib) != FI16_555_BLUE_MASK)
 						{
-							result = ConvertToGreyscale(dib);
+							result = ConvertTo16Bits555(dib);
 						}
-					}
-					break;
+						break;
 
-				case FREE_IMAGE_COLOR_DEPTH.FICD_16_BPP_555:
+					case FREE_IMAGE_COLOR_DEPTH.FICD_16_BPP:
 
-					if (forceGreyscale)
-					{
-						dibTemp = ConvertToGreyscale(dib);
-						result = ConvertTo16Bits555(dibTemp);
-						Unload(dibTemp);
-					}
-					else if (bpp != 16 || GetRedMask(dib) != FI16_555_RED_MASK || GetGreenMask(dib) != FI16_555_GREEN_MASK || GetBlueMask(dib) != FI16_555_BLUE_MASK)
-					{
-						result = ConvertTo16Bits555(dib);
-					}
-					break;
+						if (forceGreyscale)
+						{
+							dibTemp = ConvertToGreyscale(dib);
+							result = ConvertTo16Bits565(dibTemp);
+							Unload(dibTemp);
+						}
+						else if (bpp != 16 || GetRedMask(dib) != FI16_565_RED_MASK || GetGreenMask(dib) != FI16_565_GREEN_MASK || GetBlueMask(dib) != FI16_565_BLUE_MASK)
+						{
+							result = ConvertTo16Bits565(dib);
+						}
+						break;
 
-				case FREE_IMAGE_COLOR_DEPTH.FICD_16_BPP:
+					case FREE_IMAGE_COLOR_DEPTH.FICD_24_BPP:
 
-					if (forceGreyscale)
-					{
-						dibTemp = ConvertToGreyscale(dib);
-						result = ConvertTo16Bits565(dibTemp);
-						Unload(dibTemp);
-					}
-					else if (bpp != 16 || GetRedMask(dib) != FI16_565_RED_MASK || GetGreenMask(dib) != FI16_565_GREEN_MASK || GetBlueMask(dib) != FI16_565_BLUE_MASK)
-					{
-						result = ConvertTo16Bits565(dib);
-					}
-					break;
+						if (forceGreyscale)
+						{
+							dibTemp = ConvertToGreyscale(dib);
+							result = ConvertTo24Bits(dibTemp);
+							Unload(dibTemp);
+						}
+						else if (bpp != 24)
+						{
+							result = ConvertTo24Bits(dib);
+						}
+						break;
 
-				case FREE_IMAGE_COLOR_DEPTH.FICD_24_BPP:
+					case FREE_IMAGE_COLOR_DEPTH.FICD_32_BPP:
 
-					if (forceGreyscale)
-					{
-						dibTemp = ConvertToGreyscale(dib);
-						result = ConvertTo24Bits(dibTemp);
-						Unload(dibTemp);
-					}
-					else if (bpp != 24)
-					{
-						result = ConvertTo24Bits(dib);
-					}
-					break;
-
-				case FREE_IMAGE_COLOR_DEPTH.FICD_32_BPP:
-
-					if (forceGreyscale)
-					{
-						dibTemp = ConvertToGreyscale(dib);
-						result = ConvertTo32Bits(dibTemp);
-						Unload(dibTemp);
-					}
-					else if (bpp != 32)
-					{
-						result = ConvertTo32Bits(dib);
-					}
-					break;
+						if (forceGreyscale)
+						{
+							dibTemp = ConvertToGreyscale(dib);
+							result = ConvertTo32Bits(dibTemp);
+							Unload(dibTemp);
+						}
+						else if (bpp != 32)
+						{
+							result = ConvertTo32Bits(dib);
+						}
+						break;
+				}
 			}
 
 			if (result.IsNull)
@@ -3087,6 +3307,112 @@ namespace FreeImageAPI
 			}
 
 			return result;
+		}
+
+		/// <summary>
+		/// ColorQuantizeEx is an extension to the <see cref="ColorQuantize(FIBITMAP, FREE_IMAGE_QUANTIZE)"/>
+		/// method that provides additional options used to quantize a 24-bit image to any
+		/// number of colors (up to 256), as well as quantize a 24-bit image using a
+		/// provided palette.
+		/// </summary>
+		/// <param name="dib">Handle to a FreeImage bitmap.</param>
+		/// <param name="quantize">Specifies the color reduction algorithm to be used.</param>
+		/// <param name="PaletteSize">Size of the desired output palette.</param>
+		/// <param name="ReservePalette">The provided palette.</param>
+		/// <param name="minColorDepth"><b>true</b> to create a bitmap with the smallest possible
+		/// color depth for the specified <paramref name="PaletteSize"/>.</param>
+		/// <returns>Handle to a FreeImage bitmap.</returns>
+		public static FIBITMAP ColorQuantizeEx(FIBITMAP dib, FREE_IMAGE_QUANTIZE quantize, int PaletteSize, RGBQUAD[] ReservePalette, bool minColorDepth)
+		{
+			FIBITMAP result;
+			if (minColorDepth)
+			{
+				int bpp;
+				if (PaletteSize >= 256)
+					bpp = 8;
+				else if (PaletteSize > 2)
+					bpp = 4;
+				else
+					bpp = 1;
+				result = ColorQuantizeEx(dib, quantize, PaletteSize, ReservePalette, bpp);
+			}
+			else
+			{
+				result = ColorQuantizeEx(dib, quantize, PaletteSize, ReservePalette, 8);
+			}
+			return result;
+		}
+
+		/// <summary>
+		/// ColorQuantizeEx is an extension to the <see cref="ColorQuantize(FIBITMAP, FREE_IMAGE_QUANTIZE)"/>
+		/// method that provides additional options used to quantize a 24-bit image to any
+		/// number of colors (up to 256), as well as quantize a 24-bit image using a
+		/// partial or full provided palette.
+		/// </summary>
+		/// <param name="dib">Handle to a FreeImage bitmap.</param>
+		/// <param name="quantize">Specifies the color reduction algorithm to be used.</param>
+		/// <param name="PaletteSize">Size of the desired output palette.</param>
+		/// <param name="ReservePalette">The provided palette.</param>
+		/// <param name="bpp">The desired color depth of the created image.</param>
+		/// <returns>Handle to a FreeImage bitmap.</returns>
+		public static FIBITMAP ColorQuantizeEx(FIBITMAP dib, FREE_IMAGE_QUANTIZE quantize, int PaletteSize, RGBQUAD[] ReservePalette, int bpp)
+		{
+			unsafe
+			{
+				FIBITMAP result = FIBITMAP.Zero;
+				FIBITMAP temp = FIBITMAP.Zero;
+				int reservedSize = (ReservePalette == null) ? 0 : ReservePalette.Length;
+
+				if (bpp == 8)
+				{
+					result = ColorQuantizeEx(dib, quantize, PaletteSize, reservedSize, ReservePalette);
+				}
+				else if (bpp == 4)
+				{
+					temp = ColorQuantizeEx(dib, quantize, Math.Min(16, PaletteSize), reservedSize, ReservePalette);
+					if (!temp.IsNull)
+					{
+						result = Allocate((int)GetWidth(temp), (int)GetHeight(temp), 4, 0, 0, 0);
+						CloneMetadata(result, temp);
+						CopyMemory(GetPalette(result), GetPalette(temp), sizeof(RGBQUAD) * 16);
+
+						for (int y = (int)GetHeight(temp) - 1; y >= 0; y--)
+						{
+							Scanline<byte> srcScanline = new Scanline<byte>(temp, y);
+							Scanline<FI4BIT> dstScanline = new Scanline<FI4BIT>(result, y);
+
+							for (int x = (int)GetWidth(temp) - 1; x >= 0; x--)
+							{
+								dstScanline[x] = srcScanline[x];
+							}
+						}
+					}
+				}
+				else if (bpp == 1)
+				{
+					temp = ColorQuantizeEx(dib, quantize, 2, reservedSize, ReservePalette);
+					if (!temp.IsNull)
+					{
+						result = Allocate((int)GetWidth(temp), (int)GetHeight(temp), 1, 0, 0, 0);
+						CloneMetadata(result, temp);
+						CopyMemory(GetPalette(result), GetPalette(temp), sizeof(RGBQUAD) * 2);
+
+						for (int y = (int)GetHeight(temp) - 1; y >= 0; y--)
+						{
+							Scanline<byte> srcScanline = new Scanline<byte>(temp, y);
+							Scanline<FI1BIT> dstScanline = new Scanline<FI1BIT>(result, y);
+
+							for (int x = (int)GetWidth(temp) - 1; x >= 0; x--)
+							{
+								dstScanline[x] = srcScanline[x];
+							}
+						}
+					}
+				}
+
+				UnloadEx(ref temp);
+				return result;
+			}
 		}
 
 		#endregion
@@ -3113,7 +3439,7 @@ namespace FreeImageAPI
 				throw new ArgumentNullException("dst");
 			}
 
-			FITAG tag = 0, tag2 = 0;
+			FITAG tag = new FITAG(), tag2 = new FITAG();
 			int copied = 0;
 
 			// Clear all existing metadata
@@ -3201,7 +3527,7 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				result = SetMetadata(FREE_IMAGE_MDMODEL.FIMD_COMMENTS, dib, "Comment", 0);
+				result = SetMetadata(FREE_IMAGE_MDMODEL.FIMD_COMMENTS, dib, "Comment", FITAG.Zero);
 			}
 			return result;
 		}
@@ -3348,7 +3674,7 @@ namespace FreeImageAPI
 
 		#endregion
 
-		#region Rotation and flipping
+		#region Rotation and Flipping
 
 		/// <summary>
 		/// Rotates a 4-bit color FreeImage bitmap.
@@ -3374,7 +3700,7 @@ namespace FreeImageAPI
 				throw new ArgumentNullException("dib");
 			}
 
-			FIBITMAP result = 0;
+			FIBITMAP result = new FIBITMAP();
 			int ang = (int)angle;
 
 			if ((GetImageType(dib) == FREE_IMAGE_TYPE.FIT_BITMAP) &&
@@ -3577,15 +3903,7 @@ namespace FreeImageAPI
 
 		internal static PropertyItem CreatePropertyItem()
 		{
-			PropertyItem result = null;
-			try
-			{
-				result = (PropertyItem)PropertyItemConstructor.Invoke(null);
-			}
-			catch
-			{
-			}
-			return result;
+			return (PropertyItem)Activator.CreateInstance(typeof(PropertyItem), true);
 		}
 
 		private static unsafe void CopyPalette(FIBITMAP src, FIBITMAP dst)
@@ -3593,7 +3911,7 @@ namespace FreeImageAPI
 			RGBQUAD* orgPal = (RGBQUAD*)GetPalette(src);
 			RGBQUAD* newPal = (RGBQUAD*)GetPalette(dst);
 			uint size = (uint)(sizeof(RGBQUAD) * GetColorsUsed(src));
-			MoveMemory(newPal, orgPal, size);
+			CopyMemory(newPal, orgPal, size);
 		}
 
 		private static unsafe Scanline<FI4BIT>[] Get04BitScanlines(FIBITMAP dib)
@@ -3609,51 +3927,55 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// Changes a bitmaps color depth.
-		/// Used by SaveEx and SaveToStream
+		/// Used by SaveEx and SaveToStream.
 		/// </summary>
 		private static FIBITMAP PrepareBitmapColorDepth(FIBITMAP dibToSave, FREE_IMAGE_FORMAT format, FREE_IMAGE_COLOR_DEPTH colorDepth)
 		{
-			int bpp = (int)GetBPP(dibToSave);
-			int targetBpp = (int)(colorDepth & FREE_IMAGE_COLOR_DEPTH.FICD_COLOR_MASK);
-
-			if (colorDepth != FREE_IMAGE_COLOR_DEPTH.FICD_AUTO)
+			FREE_IMAGE_TYPE type = GetImageType(dibToSave);
+			if (type == FREE_IMAGE_TYPE.FIT_BITMAP)
 			{
-				// A fix colordepth was chosen
-				if (FIFSupportsExportBPP(format, targetBpp))
+				int bpp = (int)GetBPP(dibToSave);
+				int targetBpp = (int)(colorDepth & FREE_IMAGE_COLOR_DEPTH.FICD_COLOR_MASK);
+
+				if (colorDepth != FREE_IMAGE_COLOR_DEPTH.FICD_AUTO)
 				{
-					dibToSave = ConvertColorDepth(dibToSave, colorDepth, false);
+					// A fix colordepth was chosen
+					if (FIFSupportsExportBPP(format, targetBpp))
+					{
+						dibToSave = ConvertColorDepth(dibToSave, colorDepth, false);
+					}
+					else
+					{
+						throw new ArgumentException("FreeImage\n\nFreeImage Library plugin " +
+							GetFormatFromFIF(format) + " is unable to write images with a color depth of " +
+							targetBpp + " bpp.");
+					}
 				}
 				else
 				{
-					throw new ArgumentException("FreeImage\n\nFreeImage Library plugin " +
-						GetFormatFromFIF(format) + " is unable to write images with a color depth of " +
-						targetBpp + " bpp.");
-				}
-			}
-			else
-			{
-				// Auto selection was chosen
-				if (!FIFSupportsExportBPP(format, bpp))
-				{
-					// The color depth is not supported
-					int bppUpper = bpp;
-					int bppLower = bpp;
-					// Check from the bitmaps current color depth in both directions
-					do
+					// Auto selection was chosen
+					if (!FIFSupportsExportBPP(format, bpp))
 					{
-						bppUpper = GetNextColorDepth(bppUpper);
-						if (FIFSupportsExportBPP(format, bppUpper))
+						// The color depth is not supported
+						int bppUpper = bpp;
+						int bppLower = bpp;
+						// Check from the bitmaps current color depth in both directions
+						do
 						{
-							dibToSave = ConvertColorDepth(dibToSave, (FREE_IMAGE_COLOR_DEPTH)bppUpper, false);
-							break;
-						}
-						bppLower = GetPrevousColorDepth(bppLower);
-						if (FIFSupportsExportBPP(format, bppLower))
-						{
-							dibToSave = ConvertColorDepth(dibToSave, (FREE_IMAGE_COLOR_DEPTH)bppLower, false);
-							break;
-						}
-					} while (!((bppLower == 0) && (bppUpper == 0)));
+							bppUpper = GetNextColorDepth(bppUpper);
+							if (FIFSupportsExportBPP(format, bppUpper))
+							{
+								dibToSave = ConvertColorDepth(dibToSave, (FREE_IMAGE_COLOR_DEPTH)bppUpper, false);
+								break;
+							}
+							bppLower = GetPrevousColorDepth(bppLower);
+							if (FIFSupportsExportBPP(format, bppLower))
+							{
+								dibToSave = ConvertColorDepth(dibToSave, (FREE_IMAGE_COLOR_DEPTH)bppLower, false);
+								break;
+							}
+						} while (!((bppLower == 0) && (bppUpper == 0)));
+					}
 				}
 			}
 			return dibToSave;
@@ -3662,10 +3984,10 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Compares blocks of memory.
 		/// </summary>
-		/// <param name="buf1">Pointer to a block of memory to compare.</param>
-		/// <param name="buf2">Pointer to a block of memory to compare.</param>
+		/// <param name="buf1">A pointer to a block of memory to compare.</param>
+		/// <param name="buf2">A pointer to a block of memory to compare.</param>
 		/// <param name="length">Specifies the number of bytes to be compared.</param>
-		/// <returns>If all bytes compare as equal, true is returned.</returns>
+		/// <returns>true, if all bytes compare as equal, false otherwise.</returns>
 		public static unsafe bool CompareMemory(void* buf1, void* buf2, uint length)
 		{
 			return (length == RtlCompareMemory(buf1, buf2, length));
@@ -3674,10 +3996,10 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Compares blocks of memory.
 		/// </summary>
-		/// <param name="buf1">Pointer to a block of memory to compare.</param>
-		/// <param name="buf2">Pointer to a block of memory to compare.</param>
+		/// <param name="buf1">A pointer to a block of memory to compare.</param>
+		/// <param name="buf2">A pointer to a block of memory to compare.</param>
 		/// <param name="length">Specifies the number of bytes to be compared.</param>
-		/// <returns>If all bytes compare as equal, true is returned.</returns>
+		/// <returns>true, if all bytes compare as equal, false otherwise.</returns>
 		public static unsafe bool CompareMemory(void* buf1, void* buf2, long length)
 		{
 			return (length == RtlCompareMemory(buf1, buf2, checked((uint)length)));
@@ -3686,10 +4008,10 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Compares blocks of memory.
 		/// </summary>
-		/// <param name="buf1">Pointer to a block of memory to compare.</param>
-		/// <param name="buf2">Pointer to a block of memory to compare.</param>
+		/// <param name="buf1">A pointer to a block of memory to compare.</param>
+		/// <param name="buf2">A pointer to a block of memory to compare.</param>
 		/// <param name="length">Specifies the number of bytes to be compared.</param>
-		/// <returns>If all bytes compare as equal, true is returned.</returns>
+		/// <returns>true, if all bytes compare as equal, false otherwise.</returns>
 		public static unsafe bool CompareMemory(IntPtr buf1, IntPtr buf2, uint length)
 		{
 			return (length == RtlCompareMemory(buf1.ToPointer(), buf2.ToPointer(), length));
@@ -3698,10 +4020,10 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Compares blocks of memory.
 		/// </summary>
-		/// <param name="buf1">Pointer to a block of memory to compare.</param>
-		/// <param name="buf2">Pointer to a block of memory to compare.</param>
+		/// <param name="buf1">A pointer to a block of memory to compare.</param>
+		/// <param name="buf2">A pointer to a block of memory to compare.</param>
 		/// <param name="length">Specifies the number of bytes to be compared.</param>
-		/// <returns>If all bytes compare as equal, true is returned.</returns>
+		/// <returns>true, if all bytes compare as equal, false otherwise.</returns>
 		public static unsafe bool CompareMemory(IntPtr buf1, IntPtr buf2, long length)
 		{
 			return (length == RtlCompareMemory(buf1.ToPointer(), buf2.ToPointer(), checked((uint)length)));
@@ -3710,9 +4032,9 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Moves a block of memory from one location to another.
 		/// </summary>
-		/// <param name="dst">Pointer to the starting address of the move destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be moved.</param>
-		/// <param name="size">Size of the block of memory to move, in bytes.</param>
+		/// <param name="dst">A pointer to the starting address of the move destination.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to be moved.</param>
+		/// <param name="size">The size of the block of memory to move, in bytes.</param>
 		public static unsafe void MoveMemory(void* dst, void* src, long size)
 		{
 			MoveMemory(dst, src, checked((uint)size));
@@ -3721,9 +4043,9 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Moves a block of memory from one location to another.
 		/// </summary>
-		/// <param name="dst">Pointer to the starting address of the move destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be moved.</param>
-		/// <param name="size">Size of the block of memory to move, in bytes.</param>
+		/// <param name="dst">A pointer to the starting address of the move destination.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to be moved.</param>
+		/// <param name="size">The size of the block of memory to move, in bytes.</param>
 		public static unsafe void MoveMemory(IntPtr dst, IntPtr src, uint size)
 		{
 			MoveMemory(dst.ToPointer(), src.ToPointer(), size);
@@ -3732,9 +4054,9 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Moves a block of memory from one location to another.
 		/// </summary>
-		/// <param name="dst">Pointer to the starting address of the move destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be moved.</param>
-		/// <param name="size">Size of the block of memory to move, in bytes.</param>
+		/// <param name="dst">A pointer to the starting address of the move destination.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to be moved.</param>
+		/// <param name="size">The size of the block of memory to move, in bytes.</param>
 		public static unsafe void MoveMemory(IntPtr dst, IntPtr src, long size)
 		{
 			MoveMemory(dst.ToPointer(), src.ToPointer(), checked((uint)size));
@@ -3743,9 +4065,9 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Copies a block of memory from one location to another.
 		/// </summary>
-		/// <param name="dest">Pointer to the starting address of the copy destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be copied.</param>
-		/// <param name="len">Size of the block of memory to copy, in bytes.</param>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
 		/// <remarks>
 		/// <b>CopyMemory</b> runs faster than <see cref="MoveMemory(void*, void*, uint)"/>.
 		/// However, if both blocks overlap the result is undefined.
@@ -3796,61 +4118,218 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Copies a block of memory from one location to another.
 		/// </summary>
-		/// <param name="dest">Pointer to the starting address of the copy destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be copied.</param>
-		/// <param name="size">Size of the block of memory to copy, in bytes.</param>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
 		/// <remarks>
 		/// <b>CopyMemory</b> runs faster than <see cref="MoveMemory(void*, void*, long)"/>.
 		/// However, if both blocks overlap the result is undefined.
 		/// </remarks>
-		public static unsafe void CopyMemory(void* dest, void* src, long size)
+		public static unsafe void CopyMemory(byte* dest, byte* src, long len)
 		{
-			CopyMemory((byte*)dest, (byte*)src, checked((int)size));
+			CopyMemory(dest, src, checked((int)len));
 		}
 
 		/// <summary>
 		/// Copies a block of memory from one location to another.
 		/// </summary>
-		/// <param name="dest">Pointer to the starting address of the copy destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be copied.</param>
-		/// <param name="size">Size of the block of memory to copy, in bytes.</param>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
 		/// <remarks>
 		/// <b>CopyMemory</b> runs faster than <see cref="MoveMemory(void*, void*, long)"/>.
 		/// However, if both blocks overlap the result is undefined.
 		/// </remarks>
-		public static unsafe void CopyMemory(void* dest, void* src, int size)
+		public static unsafe void CopyMemory(void* dest, void* src, long len)
 		{
-			CopyMemory((byte*)dest, (byte*)src, size);
+			CopyMemory((byte*)dest, (byte*)src, checked((int)len));
 		}
 
 		/// <summary>
 		/// Copies a block of memory from one location to another.
 		/// </summary>
-		/// <param name="dest">Pointer to the starting address of the copy destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be copied.</param>
-		/// <param name="size">Size of the block of memory to copy, in bytes.</param>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
+		/// <remarks>
+		/// <b>CopyMemory</b> runs faster than <see cref="MoveMemory(void*, void*, uint)"/>.
+		/// However, if both blocks overlap the result is undefined.
+		/// </remarks>
+		public static unsafe void CopyMemory(void* dest, void* src, int len)
+		{
+			CopyMemory((byte*)dest, (byte*)src, len);
+		}
+
+		/// <summary>
+		/// Copies a block of memory from one location to another.
+		/// </summary>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
 		/// <remarks>
 		/// <b>CopyMemory</b> runs faster than <see cref="MoveMemory(IntPtr, IntPtr, uint)"/>.
 		/// However, if both blocks overlap the result is undefined.
 		/// </remarks>
-		public static unsafe void CopyMemory(IntPtr dest, IntPtr src, int size)
+		public static unsafe void CopyMemory(IntPtr dest, IntPtr src, int len)
 		{
-			CopyMemory((byte*)dest, (byte*)src, size);
+			CopyMemory((byte*)dest, (byte*)src, len);
 		}
 
 		/// <summary>
 		/// Copies a block of memory from one location to another.
 		/// </summary>
-		/// <param name="dest">Pointer to the starting address of the copy destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be copied.</param>
-		/// <param name="size">Size of the block of memory to copy, in bytes.</param>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
 		/// <remarks>
 		/// <b>CopyMemory</b> runs faster than <see cref="MoveMemory(IntPtr, IntPtr, long)"/>.
 		/// However, if both blocks overlap the result is undefined.
 		/// </remarks>
-		public static unsafe void CopyMemory(IntPtr dest, IntPtr src, long size)
+		public static unsafe void CopyMemory(IntPtr dest, IntPtr src, long len)
 		{
-			CopyMemory((byte*)dest, (byte*)src, checked((int)size));
+			CopyMemory((byte*)dest, (byte*)src, checked((int)len));
+		}
+
+		/// <summary>
+		/// Copies a block of memory into an array.
+		/// </summary>
+		/// <param name="dest">An array used as the destination of the copy process.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
+		public static unsafe void CopyMemory(Array dest, void* src, int len)
+		{
+			GCHandle handle = GCHandle.Alloc(dest, GCHandleType.Pinned);
+			try
+			{
+				CopyMemory((byte*)handle.AddrOfPinnedObject(), (byte*)src, len);
+			}
+			finally
+			{
+				handle.Free();
+			}
+		}
+
+		/// <summary>
+		/// Copies a block of memory into an array.
+		/// </summary>
+		/// <param name="dest">An array used as the destination of the copy process.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
+		public static unsafe void CopyMemory(Array dest, void* src, long len)
+		{
+			CopyMemory(dest, (byte*)src, checked((int)len));
+		}
+
+		/// <summary>
+		/// Copies a block of memory into an array.
+		/// </summary>
+		/// <param name="dest">An array used as the destination of the copy process.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
+		public static unsafe void CopyMemory(Array dest, IntPtr src, int len)
+		{
+			CopyMemory(dest, (byte*)src, len);
+		}
+
+		/// <summary>
+		/// Copies a block of memory into an array.
+		/// </summary>
+		/// <param name="dest">An array used as the destination of the copy process.</param>
+		/// <param name="src">A pointer to the starting address of the block of memory to copy.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
+		public static unsafe void CopyMemory(Array dest, IntPtr src, long len)
+		{
+			CopyMemory(dest, (byte*)src, checked((int)len));
+		}
+
+		/// <summary>
+		/// Copies the content of an array to a memory location.
+		/// </summary>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">An array used as the source of the copy process.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
+		public static unsafe void CopyMemory(void* dest, Array src, int len)
+		{
+			GCHandle handle = GCHandle.Alloc(src, GCHandleType.Pinned);
+			try
+			{
+				CopyMemory((byte*)dest, (byte*)handle.AddrOfPinnedObject(), len);
+			}
+			finally
+			{
+				handle.Free();
+			}
+		}
+
+		/// <summary>
+		/// Copies the content of an array to a memory location.
+		/// </summary>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">An array used as the source of the copy process.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
+		public static unsafe void CopyMemory(void* dest, Array src, long len)
+		{
+			CopyMemory((byte*)dest, src, checked((int)len));
+		}
+
+		/// <summary>
+		/// Copies the content of an array to a memory location.
+		/// </summary>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">An array used as the source of the copy process.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
+		public static unsafe void CopyMemory(IntPtr dest, Array src, int len)
+		{
+			CopyMemory((byte*)dest, src, len);
+		}
+
+		/// <summary>
+		/// Copies the content of an array to a memory location.
+		/// </summary>
+		/// <param name="dest">A pointer to the starting address of the copied block's destination.</param>
+		/// <param name="src">An array used as the source of the copy process.</param>
+		/// <param name="len">The size of the block of memory to copy, in bytes.</param>
+		public static unsafe void CopyMemory(IntPtr dest, Array src, long len)
+		{
+			CopyMemory((byte*)dest, src, checked((int)len));
+		}
+
+		/// <summary>
+		/// Copies the content of one array into another array.
+		/// </summary>
+		/// <param name="dest">An array used as the destination of the copy process.</param>
+		/// <param name="src">An array used as the source of the copy process.</param>
+		/// <param name="len">The size of the content to copy, in bytes.</param>
+		public static unsafe void CopyMemory(Array dest, Array src, int len)
+		{
+			GCHandle dHandle = GCHandle.Alloc(dest, GCHandleType.Pinned);
+			try
+			{
+				GCHandle sHandle = GCHandle.Alloc(src, GCHandleType.Pinned);
+				try
+				{
+					CopyMemory((byte*)dHandle.AddrOfPinnedObject(), (byte*)sHandle.AddrOfPinnedObject(), len);
+				}
+				finally
+				{
+					sHandle.Free();
+				}
+			}
+			finally
+			{
+				dHandle.Free();
+			}
+		}
+
+		/// <summary>
+		/// Copies the content of one array into another array.
+		/// </summary>
+		/// <param name="dest">An array used as the destination of the copy process.</param>
+		/// <param name="src">An array used as the source of the copy process.</param>
+		/// <param name="len">The size of the content to copy, in bytes.</param>
+		public static unsafe void CopyMemory(Array dest, Array src, long len)
+		{
+			CopyMemory(dest, src, checked((int)len));
 		}
 
 		internal static string ColorToString(Color color)
@@ -3859,6 +4338,58 @@ namespace FreeImageAPI
 				System.Globalization.CultureInfo.CurrentCulture,
 				"{{Name={0}, ARGB=({1}, {2}, {3}, {4})}}",
 				new object[] { color.Name, color.A, color.R, color.G, color.B });
+		}
+
+		internal static void Resize(ref string str, int length)
+		{
+			if ((str != null) && (length >= 0) && (str.Length != length))
+			{
+				char[] chars = str.ToCharArray();
+				Array.Resize(ref chars, length);
+				str = new string(chars);
+			}
+		}
+
+		internal static void Resize(ref string str, int min, int max)
+		{
+			if ((str != null) && (min >= 0) && (max >= 0) && (min <= max))
+			{
+				if (str.Length < min)
+				{
+					char[] chars = str.ToCharArray();
+					Array.Resize(ref chars, min);
+					str = new string(chars);
+				}
+				else if (str.Length > max)
+				{
+					char[] chars = str.ToCharArray();
+					Array.Resize(ref chars, max);
+					str = new string(chars);
+				}
+			}
+		}
+
+		internal static void Resize<T>(ref T[] array, int length)
+		{
+			if ((array != null) && (length >= 0) && (array.Length != length))
+			{
+				Array.Resize(ref array, length);
+			}
+		}
+
+		internal static void Resize<T>(ref T[] array, int min, int max)
+		{
+			if ((array != null) && (min >= 0) && (max >= 0) && (min <= max))
+			{
+				if (array.Length < min)
+				{
+					Array.Resize(ref array, min);
+				}
+				else if (array.Length > max)
+				{
+					Array.Resize(ref array, max);
+				}
+			}
 		}
 
 		#endregion
@@ -3993,8 +4524,8 @@ namespace FreeImageAPI
 		/// The RtlCompareMemory routine compares blocks of memory
 		/// and returns the number of bytes that are equivalent.
 		/// </summary>
-		/// <param name="buf1">Pointer to a block of memory to compare.</param>
-		/// <param name="buf2">Pointer to a block of memory to compare.</param>
+		/// <param name="buf1">A pointer to a block of memory to compare.</param>
+		/// <param name="buf2">A pointer to a block of memory to compare.</param>
 		/// <param name="count">Specifies the number of bytes to be compared.</param>
 		/// <returns>RtlCompareMemory returns the number of bytes that compare as equal.
 		/// If all bytes compare as equal, the input Length is returned.</returns>

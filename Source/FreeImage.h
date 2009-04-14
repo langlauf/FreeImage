@@ -47,7 +47,7 @@
 // Version information ------------------------------------------------------
 
 #define FREEIMAGE_MAJOR_VERSION   3
-#define FREEIMAGE_MINOR_VERSION   11
+#define FREEIMAGE_MINOR_VERSION   12
 #define FREEIMAGE_RELEASE_SERIAL  0
 
 // Compiler options ---------------------------------------------------------
@@ -410,7 +410,8 @@ FI_ENUM(FREE_IMAGE_FORMAT) {
 	FIF_SGI		= 28,
 	FIF_EXR		= 29,
 	FIF_J2K		= 30,
-	FIF_JP2		= 31
+	FIF_JP2		= 31,
+	FIF_PFM		= 32
 };
 
 /** Image type used in FreeImage.
@@ -676,6 +677,7 @@ typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
 #define JPEG_FAST           0x0001	// load the file as fast as possible, sacrificing some quality
 #define JPEG_ACCURATE       0x0002	// load the file with the best quality, sacrificing some speed
 #define JPEG_CMYK			0x0004	// load separated CMYK "as is" (use | to combine with other load flags)
+#define JPEG_EXIFROTATE		0x0008	// load and rotate according to Exif 'Orientation' tag if available
 #define JPEG_QUALITYSUPERB  0x80	// save with superb quality (100:1)
 #define JPEG_QUALITYGOOD    0x0100	// save with good quality (75:1)
 #define JPEG_QUALITYNORMAL  0x0200	// save with normal quality (50:1)
@@ -694,6 +696,7 @@ typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
 #define PCD_BASEDIV4        2		// load the bitmap sized 384 x 256
 #define PCD_BASEDIV16       3		// load the bitmap sized 192 x 128
 #define PCX_DEFAULT         0
+#define PFM_DEFAULT         0
 #define PNG_DEFAULT         0
 #define PNG_IGNOREGAMMA		1		// loading: avoid gamma correction
 #define PNG_Z_BEST_SPEED			0x0001	// save using ZLib level 1 compression flag (default value is 6)
