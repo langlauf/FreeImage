@@ -26,13 +26,6 @@
 #include "Utilities.h"
 
 // ----------------------------------------------------------
-//   Macros + structures
-// ----------------------------------------------------------
-
-#define RGB555(r, g, b) ((r >> 3) | ((g >> 3) << 5) | ((b >> 3) << 10))
-#define RGB565(r, g, b) ((r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11))
-
-// ----------------------------------------------------------
 //   Helpers
 // ----------------------------------------------------------
 
@@ -610,16 +603,13 @@ FreeImage_Copy(FIBITMAP *src, int left, int top, int right, int bottom) {
 	// copy metadata from src to dst
 	FreeImage_CloneMetadata(dst, src);
 	
-	// clone IsTransparent member 
-	FreeImage_SetTransparent(dst, FreeImage_IsTransparent(src)); 
-	
 	// copy transparency table 
-	memcpy(FreeImage_GetTransparencyTable(dst), FreeImage_GetTransparencyTable(src), FreeImage_GetTransparencyCount(src) * sizeof(BYTE)); 
+	FreeImage_SetTransparencyTable(dst, FreeImage_GetTransparencyTable(src), FreeImage_GetTransparencyCount(src));
 	
-	// clone background color 
-	RGBQUAD *bkcolor = NULL; 
-	if( FreeImage_GetBackgroundColor(src, bkcolor) ) {
-		FreeImage_SetBackgroundColor(dst, bkcolor); 
+	// copy background color 
+	RGBQUAD bkcolor; 
+	if( FreeImage_GetBackgroundColor(src, &bkcolor) ) {
+		FreeImage_SetBackgroundColor(dst, &bkcolor); 
 	}
 	
 	// clone resolution 

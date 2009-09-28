@@ -27,15 +27,15 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				TreatWChar_tAsBuiltInType="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Debug/FreeImageLib.pch"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=""
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
-				CompileAs="0"/>
+				CompileAs="2"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -96,7 +96,7 @@ copy ..\FreeImage.h ..\..\Dist
 				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
-				CompileAs="0"/>
+				CompileAs="2"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -275,6 +275,9 @@ copy ..\FreeImage.h ..\..\Dist
 					RelativePath="..\FreeImage\PluginPFM.cpp">
 				</File>
 				<File
+					RelativePath="..\FreeImage\PluginPICT.cpp">
+				</File>
+				<File
 					RelativePath="..\FreeImage\PluginPNG.cpp">
 				</File>
 				<File
@@ -285,6 +288,9 @@ copy ..\FreeImage.h ..\..\Dist
 				</File>
 				<File
 					RelativePath="..\FreeImage\PluginRAS.cpp">
+				</File>
+				<File
+					RelativePath="..\FreeImage\PluginRAW.cpp">
 				</File>
 				<File
 					RelativePath="..\FreeImage\PluginSGI.cpp">
@@ -305,12 +311,18 @@ copy ..\FreeImage.h ..\..\Dist
 					RelativePath="..\FreeImage\PluginXPM.cpp">
 				</File>
 				<File
+					RelativePath="..\FreeImage\PSDParser.cpp">
+				</File>
+				<File
 					RelativePath="..\FreeImage\TIFFLogLuv.cpp">
 				</File>
 			</Filter>
 			<Filter
 				Name="DeprecationMgr"
 				Filter="">
+				<File
+					RelativePath="..\DeprecationManager\Deprecated.cpp">
+				</File>
 				<File
 					RelativePath="..\DeprecationManager\DeprecationMgr.cpp">
 				</File>
@@ -382,6 +394,9 @@ copy ..\FreeImage.h ..\..\Dist
 				RelativePath="..\PoissonSolver.h">
 			</File>
 			<File
+				RelativePath="..\FreeImage\PSDParser.h">
+			</File>
+			<File
 				RelativePath="..\Quantizers.h">
 			</File>
 			<File
@@ -394,6 +409,9 @@ copy ..\FreeImage.h ..\..\Dist
 		<Filter
 			Name="Toolkit Files"
 			Filter="">
+			<File
+				RelativePath="..\FreeImageToolkit\Background.cpp">
+			</File>
 			<File
 				RelativePath="..\FreeImageToolkit\BSplineRotate.cpp">
 			</File>

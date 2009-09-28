@@ -869,38 +869,36 @@ rotate_exif(FIBITMAP **dib) {
 				switch (orientation) {
 					case 1:		// "top, left side" => 0°
 						break;
-					case 2:		// "top, right side" => +180°
-						rotated = FreeImage_RotateClassic(*dib, 180);
-						FreeImage_Unload(*dib);
-						*dib = rotated;
-						break;
-					case 3:		// "bottom, right side"; => -180°
-						rotated = FreeImage_RotateClassic(*dib, 180);
-						FreeImage_Unload(*dib);
-						*dib = rotated;
-						break;
-					case 4:		// "bottom, left side" => flip left-right
+					case 2:		// "top, right side" => flip left-right
 						FreeImage_FlipHorizontal(*dib);
 						break;
+					case 3:		// "bottom, right side"; => -180°
+						rotated = FreeImage_Rotate(*dib, 180);
+						FreeImage_Unload(*dib);
+						*dib = rotated;
+						break;
+					case 4:		// "bottom, left side" => flip up-down
+						FreeImage_FlipVertical(*dib);
+						break;
 					case 5:		// "left side, top" => +90° + flip up-down
-						rotated = FreeImage_RotateClassic(*dib, 90);
+						rotated = FreeImage_Rotate(*dib, 90);
 						FreeImage_Unload(*dib);
 						*dib = rotated;
 						FreeImage_FlipVertical(*dib);
 						break;
 					case 6:		// "right side, top" => -90°
-						rotated = FreeImage_RotateClassic(*dib, -90);
+						rotated = FreeImage_Rotate(*dib, -90);
 						FreeImage_Unload(*dib);
 						*dib = rotated;
 						break;
 					case 7:		// "right side, bottom" => -90° + flip up-down
-						rotated = FreeImage_RotateClassic(*dib, -90);
+						rotated = FreeImage_Rotate(*dib, -90);
 						FreeImage_Unload(*dib);
 						*dib = rotated;
 						FreeImage_FlipVertical(*dib);
 						break;
 					case 8:		// "left side, bottom" => +90°
-						rotated = FreeImage_RotateClassic(*dib, 90);
+						rotated = FreeImage_Rotate(*dib, 90);
 						FreeImage_Unload(*dib);
 						*dib = rotated;
 						break;
@@ -1026,6 +1024,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					scale_denom = 2;
 				}
 			}
+			cinfo.scale_num = 1;
 			cinfo.scale_denom = scale_denom;
 
 			if ((flags & JPEG_ACCURATE) != JPEG_ACCURATE) {
@@ -1323,8 +1322,9 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				// 24-bit RGB image : need to swap red and blue channels
 				unsigned pitch = FreeImage_GetPitch(dib);
 				BYTE *target = (BYTE*)malloc(pitch * sizeof(BYTE));
-				if (target == NULL) 
-					throw "no memory to allocate intermediate scanline buffer";
+				if (target == NULL) {
+					throw FI_MSG_ERROR_MEMORY;
+				}
 
 				while (cinfo.next_scanline < cinfo.image_height) {
 					// get a copy of the scanline
@@ -1354,8 +1354,9 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				// 8-bit palettized images are converted to 24-bit images
 				RGBQUAD *palette = FreeImage_GetPalette(dib);
 				BYTE *target = (BYTE*)malloc(cinfo.image_width * 3);
-				if (target == NULL)
-					throw "no memory to allocate intermediate scanline buffer";
+				if (target == NULL) {
+					throw FI_MSG_ERROR_MEMORY;
+				}
 
 				while (cinfo.next_scanline < cinfo.image_height) {
 					BYTE *source = FreeImage_GetScanLine(dib, FreeImage_GetHeight(dib) - cinfo.next_scanline - 1);
@@ -1381,8 +1382,9 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				unsigned i;
 				BYTE reverse[256];
 				BYTE *target = (BYTE *)malloc(cinfo.image_width);
-				if (target == NULL)
-					throw "no memory to allocate intermediate scanline buffer";
+				if (target == NULL) {
+					throw FI_MSG_ERROR_MEMORY;
+				}
 
 				for(i = 0; i < 256; i++) {
 					reverse[i] = (BYTE)(255 - i);

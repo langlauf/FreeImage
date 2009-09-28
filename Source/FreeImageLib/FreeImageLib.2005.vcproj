@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="FreeImageLib"
 	ProjectGUID="{9E219DF2-315D-478E-8A07-8960C377CE1E}"
 	RootNamespace="FreeImageLib"
@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\;..\ZLib;..\DeprecationManager;..\OpenEXR\Half;..\OpenEXR\Iex;..\OpenEXR\IlmImf;..\OpenEXR\Imath;..\OpenEXR\IlmThread"
-				PreprocessorDefinitions="WIN32;_DEBUG;OPJ_STATIC;FREEIMAGE_LIB;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;_DEBUG;OPJ_STATIC;FREEIMAGE_LIB;_CRT_SECURE_NO_DEPRECATE;LIBRAW_NODLL"
 				StringPooling="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -124,7 +124,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="..\;..\ZLib;..\DeprecationManager;..\OpenEXR\Half;..\OpenEXR\Iex;..\OpenEXR\IlmImf;..\OpenEXR\Imath;..\OpenEXR\IlmThread"
-				PreprocessorDefinitions="WIN32;NDEBUG;OPJ_STATIC;FREEIMAGE_LIB;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;NDEBUG;OPJ_STATIC;FREEIMAGE_LIB;_CRT_SECURE_NO_DEPRECATE;LIBRAW_NODLL"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -363,6 +363,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\FreeImage\PluginPICT.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\FreeImage\PluginPNG.cpp"
 					>
 				</File>
@@ -376,6 +380,10 @@
 				</File>
 				<File
 					RelativePath="..\FreeImage\PluginRAS.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\FreeImage\PluginRAW.cpp"
 					>
 				</File>
 				<File
@@ -403,6 +411,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\FreeImage\PSDParser.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\FreeImage\TIFFLogLuv.cpp"
 					>
 				</File>
@@ -410,6 +422,10 @@
 			<Filter
 				Name="DeprecationMgr"
 				>
+				<File
+					RelativePath="..\DeprecationManager\Deprecated.cpp"
+					>
+				</File>
 				<File
 					RelativePath="..\DeprecationManager\DeprecationMgr.cpp"
 					>
@@ -497,6 +513,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\FreeImage\PSDParser.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Quantizers.h"
 				>
 			</File>
@@ -512,6 +532,10 @@
 		<Filter
 			Name="Toolkit Files"
 			>
+			<File
+				RelativePath="..\FreeImageToolkit\Background.cpp"
+				>
+			</File>
 			<File
 				RelativePath="..\FreeImageToolkit\BSplineRotate.cpp"
 				>
