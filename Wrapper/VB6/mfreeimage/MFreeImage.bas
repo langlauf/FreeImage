@@ -26,9 +26,9 @@ Attribute VB_Name = "MFreeImage"
 
 '// ==========================================================
 '// CVS
-'// $Revision: 2.5 $
-'// $Date: 2009/09/08 17:02:32 $
-'// $Id: MFreeImage.bas,v 2.5 2009/09/08 17:02:32 cklein05 Exp $
+'// $Revision: 2.7 $
+'// $Date: 2009/12/21 08:45:53 $
+'// $Id: MFreeImage.bas,v 2.7 2009/12/21 08:45:53 cklein05 Exp $
 '// ==========================================================
 
 
@@ -151,6 +151,14 @@ Option Explicit
 '- : removed
 '! : changed
 '+ : added
+'
+'December 21, 2009 - 2.7
+'! [Carsten Klein] changed constant FREEIMAGE_RELEASE_SERIAL: set to 1 to match current version 3.10.1
+'
+'! now FreeImage version 3.13.1
+'
+'December 18, 2009 - 2.6
+'- [Carsten Klein] removed usage of constants vbPicTypeBitmap and vbPicTypeIcon: these are not available in VBA environments like Excel, Access or Outlook.
 '
 'September 08, 2009 - 2.5
 '! [Carsten Klein] changed constant FREEIMAGE_MINOR_VERSION: set to 13 to match current version 3.13.0
@@ -1054,7 +1062,7 @@ End Enum
 ' Version information
 Public Const FREEIMAGE_MAJOR_VERSION As Long = 3
 Public Const FREEIMAGE_MINOR_VERSION As Long = 13
-Public Const FREEIMAGE_RELEASE_SERIAL As Long = 0
+Public Const FREEIMAGE_RELEASE_SERIAL As Long = 1
 
 ' Memory stream pointer operation flags
 Public Const SEEK_SET As Long = 0
@@ -7633,7 +7641,8 @@ Dim cPictureDisp As IPictureDisp
          ' fill tPictDesc structure with necessary parts
          With tPicDesc
             .cbSizeofStruct = Len(tPicDesc)
-            .picType = vbPicTypeBitmap
+            ' the vbPicTypeBitmap constant is not available in VBA environemnts
+            .picType = 1  'vbPicTypeBitmap
             .hImage = hBmp
          End With
    
@@ -7671,7 +7680,8 @@ Dim cPictureDisp As IPictureDisp
       ' fill tPictDesc structure with necessary parts
       With tPicDesc
          .cbSizeofStruct = 12
-         .picType = vbPicTypeIcon
+         ' the vbPicTypeIcon constant is not available in VBA environemnts
+         .picType = 3  'vbPicTypeIcon
          .hImage = hIcon
       End With
 
