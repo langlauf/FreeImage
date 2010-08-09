@@ -4,20 +4,18 @@
  * Created: Sat Mar  8, 2008
  *
  * LibRaw redefinitions of dcraw internal variables
- *
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+LibRaw is free software; you can redistribute it and/or modify
+it under the terms of the one of three licenses as you choose:
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+1. GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+   (See file LICENSE.LGPL provided in LibRaw distribution archive for details).
+
+2. COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
+   (See file LICENSE.CDDL provided in LibRaw distribution archive for details).
+
+3. LibRaw Software License 27032010
+   (See file LICENSE.LibRaw.pdf provided in LibRaw distribution archive for details).
  */
 
 #ifndef VAR_DEFINES_H
@@ -28,7 +26,6 @@
 #define model           (imgdata.idata.model)
 #define is_raw          (imgdata.idata.raw_count)
 #define dng_version     (imgdata.idata.dng_version)
-#define is_foveon       (imgdata.idata.is_foveon)
 #define colors          (imgdata.idata.colors)
 #define cdesc           (imgdata.idata.cdesc)
 #define filters         (imgdata.idata.filters)
@@ -61,8 +58,10 @@
 #endif
 #ifndef SRC_USES_BLACK
 #define black           (imgdata.color.black)
+#define cblack           (imgdata.color.cblack)
 #endif
 #define maximum         (imgdata.color.maximum)
+#define channel_maximum         (imgdata.color.channel_maximum)
 #define profile_length  (imgdata.color.profile_length)
 #define color_flags     (imgdata.color.color_flags)
 #define ph1             (imgdata.color.phase_one_data)
@@ -111,6 +110,7 @@
 #define med_passes      (imgdata.params.med_passes)
 #define no_auto_bright  (imgdata.params.no_auto_bright)
 #define use_fuji_rotate (imgdata.params.use_fuji_rotate)
+#define filtering_mode (imgdata.params.filtering_mode)
 
 //rgb_constants
 #define xyz_rgb         (rgb_constants.xyz_rgb)
@@ -120,6 +120,7 @@
 #define meta_data       (libraw_internal_data.internal_data.meta_data)
 #define ifp             libraw_internal_data.internal_data.input
 #define ifname          ((char*)libraw_internal_data.internal_data.input->fname())
+#define ofp             libraw_internal_data.internal_data.output
 #define profile_offset  (libraw_internal_data.internal_data.profile_offset)
 #define thumb_offset    (libraw_internal_data.internal_data.toffset)
 
@@ -170,6 +171,9 @@
 #define fseeko(stream,o,w)	 stream->seek(o,w)
 #define ftell(stream)		 stream->tell()
 #define ftello(stream)		 stream->tell()
+#ifdef getc
+#undef getc
+#endif
 #define getc(stream)		 stream->get_char()
 #define fgetc(stream)		 stream->get_char()
 #define fgets(str,n,stream)	 stream->gets(str,n)

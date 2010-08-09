@@ -1,36 +1,49 @@
 /* 
-   GENERATED FILE, DO NOT EDIT
-   Generated from dcraw/dcraw.c at Mon May  4 22:14:58 2009
+  Copyright 2008-2010 LibRaw LLC (info@libraw.org)
+
+LibRaw is free software; you can redistribute it and/or modify
+it under the terms of the one of three licenses as you choose:
+
+1. GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+   (See file LICENSE.LGPL provided in LibRaw distribution archive for details).
+
+2. COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
+   (See file LICENSE.CDDL provided in LibRaw distribution archive for details).
+
+3. LibRaw Software License 27032010
+   (See file LICENSE.LibRaw.pdf provided in LibRaw distribution archive for details).
+
+   This file is generated from Dave Coffin's dcraw.c
    Look into original file (probably http://cybercom.net/~dcoffin/dcraw/dcraw.c)
    for copyright information.
 */
 
-#line 3621 "dcraw/dcraw.c"
+#line 3954 "dcraw/dcraw.c"
 #define CLASS LibRaw::
 #include "libraw/libraw_types.h"
 #define LIBRAW_LIBRARY_BUILD
 #include "libraw/libraw.h"
 #include "internal/defines.h"
 #include "internal/var_defines.h"
-#line 3631 "dcraw/dcraw.c"
+#line 3964 "dcraw/dcraw.c"
 
 /*
    Seach from the current directory up to the root looking for
    a ".badpixels" file, and fix those pixels now.
  */
-void CLASS bad_pixels (char *fname)
+void CLASS bad_pixels (const char *cfname)
 {
   FILE *fp=0;
-  char *cp, line[128];
+  char *fname, *cp, line[128];
   int len, time, row, col, r, c, rad, tot, n, fixed=0;
 
   if (!filters) return;
 #ifdef LIBRAW_LIBRARY_BUILD
   RUN_CALLBACK(LIBRAW_PROGRESS_BAD_PIXELS,0,2);
 #endif
-  if (fname)
-    fp = fopen (fname, "r");
-#line 3674 "dcraw/dcraw.c"
+  if (cfname)
+    fp = fopen (cfname, "r");
+#line 4007 "dcraw/dcraw.c"
   if (!fp) 
       {
 #ifdef LIBRAW_LIBRARY_BUILD
@@ -70,7 +83,7 @@ void CLASS bad_pixels (char *fname)
 #endif
 }
 
-void CLASS subtract (char *fname)
+void CLASS subtract (const char *fname)
 {
   FILE *fp;
   int dim[3]={0,0,0}, comment=0, number=0, error=0, nd=0, c, row, col;
@@ -121,15 +134,17 @@ void CLASS subtract (char *fname)
       BAYER(row,col) = MAX (BAYER(row,col) - ntohs(pixel[col]), 0);
   }
   free (pixel);
+  fclose (fp);
+  memset (cblack, 0, sizeof cblack);
   black = 0;
 #ifdef LIBRAW_LIBRARY_BUILD
   RUN_CALLBACK(LIBRAW_PROGRESS_DARK_FRAME,1,2);
 #endif
 }
-#line 8283 "dcraw/dcraw.c"
+#line 9708 "dcraw/dcraw.c"
 
 #ifndef NO_LCMS
-void CLASS apply_profile (char *input, char *output)
+void CLASS apply_profile (const char *input, const char *output)
 {
   char *prof;
   cmsHPROFILE hInProfile=0, hOutProfile=0;
