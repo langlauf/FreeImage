@@ -5,6 +5,39 @@ What's New for FreeImage
 ! : changed
 + : added
 
+January 24th, 2011 - 3.15.0
+! FreeImage now uses LibRaw 0.13-Beta3
+! FreeImage now uses LibPNG 1.4.5
+! FreeImage now uses LibTIFF 3.9.4 (CVS patch 2011-01-03)
+! FreeImage now uses LibJPEG 8c
+! FreeImage now uses OpenJPEG 1.4.0 (SVN patch 2011-01-18)
+! [Herve Drolon] FreeImage_CloneMetadata now clone resolution info returned by FreeImage_GetDotsPerMeter(X / Y)
++ [Herve Drolon] added loading support for "half float" format to TIF plugin
++ [Herve Drolon] FreeImage_IsTransparent is now independant of FREE_IMAGE_TYPE
++ [Herve Drolon] added FIT_UINT16 to FIT_RGBF conversion to FreeImage_ConvertToRGBF & FreeImage_ConvertToType
++ [Herve Drolon] added FreeImage_ConvertToUINT16 and updated FreeImage_ConvertToType
++ [Mihail Naydenov] added FreeImage_GetThumbnail / FreeImage_SetThumbnail
++ [Mihail Naydenov] added thumbnail support to Exif, JPEG, EXR, PSD, TGA, TIF formats
++ [Mihail Naydenov] added JPEG_BASELINE save flag to the JPEG plugin
++ [Herve Drolon] added new Exif-TIFF tags (PageName, PageNumber, XPosition, YPosition) and Exif WinXP tags
++ [Herve Drolon] added support for 256x256 icon size to PluginICO:Save
+* [Domingo Stephan] fixed a compilation error in TARGA plugin when using a big endian OS (OS X 10.6)
+* [Christian Heimes] fixed a compilation error with gcc 4.3.x and OpenEXR
+* [Eric Fruhinsholz] fixed a crash in JPEG plugin when reading a JPEG with corrupted XMP data
+* [Herve Drolon] improved FreeImage_MultigridPoissonSolver for images whose size is a power-of-two
+* [Herve Drolon] fixed a crash in PSD plugin when loading a PSD with a CMYK embedded thumbnail
+* [Herve Drolon] fixed loading of JPEG images with a not null but zero length IPTC segment (bad files produced by Picasa)
+* [Carsten Klein] fixed a bug in FreeImage_ColorQuantizeEx when using FIQ_WUQUANT quantizer
+* [Herve Drolon] added support for RGBA[16][F] to FreeImage_IsTransparent
+* [Herve Drolon] fixed loading of resolution info in TIFF CMYK images (bug introduced with 3.14.0)
+* [Tom May] fixed JPEG plugin crashing on some Exif files containing tags with an invalid tag length
+* [Herve Drolon] fixed a crash when loading TIFF images with a TIFFTAG_TRANSFERFUNCTION Exif tag
+* [Tom May] removed assertions in PSD plugin, causing crashes on some malformed images in debug mode
+* [Mihail Naydenov] fixed a crash in TIFF plugin when reading an uncommon 24-bit palettized file
+* [Carsten Klein] fixed a bug in FreeImage_EnlargeCanvas when using the function as a FreeImage_Copy function
+* [Herve Drolon] fixed a bug in PluginBMP with loading of OS/2 2.x palettized BMP
+* [luispedro] fixed a bug in PluginBMP when reading malformed 16-bit RGB-555 BMP
+
 August 12th, 2010 - 3.14.1
 + [Mihail Naydenov] added support for FIF_LOAD_NOPIXELS flag to EXR plugin
 + [Herve Drolon] added support for FIF_LOAD_NOPIXELS flag to CUT, HDR, RAS, ICO, PNM, RAW, BMP, PFM, XPM plugins

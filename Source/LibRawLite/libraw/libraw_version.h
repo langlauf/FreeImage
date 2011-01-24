@@ -24,7 +24,7 @@ it under the terms of the one of three licenses as you choose:
 #define __VERSION_H
 
 #define LIBRAW_MAJOR_VERSION  0
-#define LIBRAW_MINOR_VERSION  10
+#define LIBRAW_MINOR_VERSION  13
 #define LIBRAW_PATCH_VERSION  0
 #define LIBRAW_VERSION_TAIL   Beta3
 

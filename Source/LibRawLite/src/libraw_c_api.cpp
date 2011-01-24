@@ -17,21 +17,28 @@ it under the terms of the one of three licenses as you choose:
 
 3. LibRaw Software License 27032010
    (See file LICENSE.LibRaw.pdf provided in LibRaw distribution archive for details).
-
-
-
  */
+
+#include <math.h>
 #include <errno.h>
 #include "libraw/libraw.h"
 
 #ifdef __cplusplus
+#include <new>
 extern "C" 
 {
 #endif
 
     libraw_data_t *libraw_init(unsigned int flags)
     {
-        LibRaw *ret = new LibRaw(flags);
+        LibRaw *ret;
+        try {
+            ret = new LibRaw(flags);
+        }
+        catch (std::bad_alloc)
+            {
+                return NULL;
+            }
         return &(ret->imgdata);
     }
 
@@ -53,6 +60,14 @@ extern "C"
         return ip->rotate_fuji_raw();
     }
 
+    void libraw_subtract_black(libraw_data_t* lr)
+    {
+        if(!lr) return;
+        LibRaw *ip = (LibRaw*) lr->parent_class;
+        ip->subtract_black();
+    }
+
+
     int libraw_add_masked_borders_to_bitmap(libraw_data_t* lr)
     {
         if(!lr) return EINVAL;
@@ -65,6 +80,12 @@ extern "C"
         if(!lr) return EINVAL;
         LibRaw *ip = (LibRaw*) lr->parent_class;
         return ip->open_file(file);
+    }
+    int libraw_open_file_ex(libraw_data_t* lr, const char *file,INT64 sz)
+    {
+        if(!lr) return EINVAL;
+        LibRaw *ip = (LibRaw*) lr->parent_class;
+        return ip->open_file(file,sz);
     }
     int libraw_open_buffer(libraw_data_t* lr, void *buffer, size_t size)
     {
@@ -165,6 +186,10 @@ extern "C"
         return ip->dcraw_make_mem_thumb(errc);
     }
 
+    void libraw_dcraw_clear_mem(libraw_processed_image_t* p)
+    {
+        LibRaw::dcraw_clear_mem(p);
+    }
 #ifdef __cplusplus
 }
 #endif

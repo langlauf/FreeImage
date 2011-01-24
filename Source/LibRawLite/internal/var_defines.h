@@ -26,6 +26,7 @@ it under the terms of the one of three licenses as you choose:
 #define model           (imgdata.idata.model)
 #define is_raw          (imgdata.idata.raw_count)
 #define dng_version     (imgdata.idata.dng_version)
+#define is_foveon       (imgdata.idata.is_foveon)
 #define colors          (imgdata.idata.colors)
 #define cdesc           (imgdata.idata.cdesc)
 #define filters         (imgdata.idata.filters)
@@ -89,6 +90,7 @@ it under the terms of the one of three licenses as you choose:
 
 //imgdata.output
 #define greybox         (imgdata.params.greybox)
+#define cropbox         (imgdata.params.cropbox)
 #define aber            (imgdata.params.aber)
 #define gamm            (imgdata.params.gamm)
 #define user_mul        (imgdata.params.user_mul)
@@ -111,6 +113,23 @@ it under the terms of the one of three licenses as you choose:
 #define no_auto_bright  (imgdata.params.no_auto_bright)
 #define use_fuji_rotate (imgdata.params.use_fuji_rotate)
 #define filtering_mode (imgdata.params.filtering_mode)
+
+// Demosaic packs
+//AFD
+//#define afd_noise_att				(imgdata.params.afd_noise_att)
+//#define afd_noise_thres				(imgdata.params.afd_noise_thres)
+//#define afd_luminance_passes		(imgdata.params.afd_luminance_passes)
+//#define afd_chrominance_method		(imgdata.params.afd_chrominance_method)
+//#define afd_luminance_only			(imgdata.params.afd_luminance_only)
+// DCB
+#define dcb_iterations   (imgdata.params.iterations)
+#define dcb_enhance_fl   (imgdata.params.dcb_enhance)
+#define fbdd_noiserd     (imgdata.params.fbdd_noiserd)
+// VCD
+#define eeci_refine    (imgdata.params.eeci_refine)
+#define es_med_passes  (imgdata.params.es_med_passes)
+
+
 
 //rgb_constants
 #define xyz_rgb         (rgb_constants.xyz_rgb)
@@ -153,6 +172,7 @@ it under the terms of the one of three licenses as you choose:
 #define kodak_cbpp      (libraw_internal_data.unpacker_data.kodak_cbpp)
 #define strip_offset    (libraw_internal_data.unpacker_data.strip_offset)
 #define data_offset     (libraw_internal_data.unpacker_data.data_offset)
+#define data_size     (libraw_internal_data.unpacker_data.data_size)
 #define meta_offset     (libraw_internal_data.unpacker_data.meta_offset)
 #define meta_length     (libraw_internal_data.unpacker_data.meta_length)
 #define thumb_misc      (libraw_internal_data.unpacker_data.thumb_misc)
@@ -176,6 +196,7 @@ it under the terms of the one of three licenses as you choose:
 #endif
 #define getc(stream)		 stream->get_char()
 #define fgetc(stream)		 stream->get_char()
+#define fgetcb(stream)		 stream->get_char_buf()
 #define fgets(str,n,stream)	 stream->gets(str,n)
 #define fscanf(stream,fmt,ptr)	 stream->scanf_one(fmt,ptr)
 #endif

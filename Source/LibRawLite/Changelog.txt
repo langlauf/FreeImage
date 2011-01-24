@@ -1,3 +1,298 @@
+2011-01-15 Alex Tutubalin <lexa@lexa.ru>
+        * Fallback to old huffman decoder for Sony files with unspecified
+          data length (Sony A100)
+        * Fixed incomplete data fields reset in LibRaw::recycle()
+        * LibRaw 0.13.0-Beta3
+   
+2011-01-13 Alex Tutubalin <lexa@lexa.ru>
+        * Better parsing of unknown command-line params in dcraw_emu sample
+        * Brigtness table in ahd_demosaic is calculated in reversed order
+          to prevent possible (very unlikely) multithreaded app problem.
+        * New exposure correction code based on linear-cubic root combination.
+          New working correction range is from 0.25 (-2 stops) to 8 (+3 stops)
+        * LibRaw 0.13.0-Beta2
+
+2011-01-10 Alex Tutubalin <lexa@lexa.ru>
+	* Fixed file extension in half_mt.c sample
+
+2011-01-10 Alex Tutubalin <lexa@lexa.ru>
+	* Three patches provided by Jacques Desmis:
+          - Exposure correction before demosaic (demosaic pack GPL3)
+	  - OpenMP speed-up in median filters (demosaic pack GPL2)
+	  - OpenMP speed-up in green equilibration (demosaic pack GPL3)
+	* Merged 0.12.2-0.12.3 changes:
+          - Patches for ./configure system for better LCMS2 support
+	  - Patches for ./configure system
+	  - math.h included before any other includes to make KDE compile
+	    with Visual C++ happy
+	  - Fuji FinePix S5500 size adjusted to ignore (rare?) garbage 
+	    at top of frame.
+        * all client code should be recompiled due to internals change.
+        * LibRaw 0.13.0-Beta1
+
+2010-12-22 Alex Tutubalin <lexa@lexa.ru>
+        * Zero copy huffman buffer for LibRaw_buffer_datastream
+        * Fixed memory leak in compressed NEFs handling
+        * LibRaw 0.13.0-Alpha2
+
+2010-12-20 Alex Tutubalin <lexa@lexa.ru>
+        * Demosaic-pack-GPL3 changes:
+          + New noise reduction methods before demosaic 
+             - Banding suppression
+             - High-frequency noise suppression
+             - Green channel equalization
+          + New chromatic abberration correction.
+          All three methods are written by Emil Martinec for Raw Therapee.
+          Adapted to LibRaw by Jacques Desmis
+
+        * Merged Foveon code fix from LibRaw 0.12.1
+
+        * LJPEG decompressor speed-up (about 1.5 times for Canon cameras
+          and slightly less for others). Some ideas are from RawSpeed library.
+
+        * all client code should be recompiled due to internals change.
+
+        * LibRaw 0.13.0-Alpha1
+
+2010-12-12 Alex Tutubalin <lexa@lexa.ru>
+	* Thread-safe and demosaic packs support for MinGW build
+	* Demosaic packs support for MS VC build
+        * LibRaw 0.12.0-Release
+
+2010-12-09 Alex Tutubalin <lexa@lexa.ru>
+        * Fixed bug in add_masked_borders_to_bitmap() call for cameras
+          with odd pixels border.
+        * New command line options for unprocessed_raw sample:
+           -B - subtract black level, -M - add masked pixels to bitmap.
+        * Foveon-sensor cameras added to supported camera list if
+          compiled with demosaic pack GPL2 
+        * LibRaw 0.12.0-Beta4
+
+2010-12-05 Alex Tutubalin <lexa@lexa.ru>
+        * Demosaic packs support in Makefile.dist
+        * Foveon support in LibRaw demosaic pack GPL2 
+        * all client code should be recompiled due to internals change.
+        * LibRaw 0.12.0-Beta3
+
+2010-11-27 Alex Tutubalin <lexa@lexa.ru>
+        * Fixed allocation bug in lmmse_interpolation (demosaic-pack-GPL2)
+	* In LMMSE and AMaZE interpolators allocation changed to calloc
+	  to make valgrind happy with uninitialized values
+        * Changes in distribution-making scripts
+        * LibRaw 0.12.0-Beta2
+
+2010-11-21 Alex Tutubalin <lexa@lexa.ru>
+	* Fixes to green_matching code by Sergey Pavlov
+
+2010-11-20 Alex Tutubalin <lexa@lexa.ru>
+        * Update for new demosaic-pack-GPL3
+	* LibRaw 0.12.0-Beta1
+
+2010-11-19 Alex Tutubalin <lexa@lexa.ru>
+        * Demosaic pack(s) supported via ./configure   
+
+2010-11-17 Alex Tutubalin <lexa@lexa.ru>
+	* LCMS2 support
+	* afd_interpolate(2,1) instead of (5,0)
+        * dcraw_emu sample command line keys added and reordered
+          to reflect changes in LibRaw 0.12. 
+	* Nikon P7000: color matrix data and black level patch for ISO >=400
+	  Thanks to Gunnar Thorburn 
+        * Support for several industrial cameras based on Sony ICX 625/655 
+	  sensor: JAI BB500CL/GE, SVS625CL, ptGrey GRAS-50S5C
+	  Thanks to kaare
+
+2010-11-15 Alex Tutubalin <lexa@lexa.ru>
+
+        * Several demosaic algorithms, found in other open-source RAW processing
+          packages are implemented in LibRaw. 
+
+          1) DCB demosaic and FBDD denoise by Jacek Gozdz are included in 
+             main LibRaw source.
+          2) GPL2 demosaic pack with these demosaic methods:
+             * AFD and LMMSE implementations from PerfectRaw by Manuel Llorens
+             * VCD, Modified AHD, post-demosaic refinemend and median
+               filters by Paul Lee
+          3) GPL3 demosaic pack with AMaZe interpolation  by Emil Martinec
+
+          See more details in README.demosaic-packs
+        
+        * Current implementation of dcraw_emu sample allows only selection
+          of demosaic method (via -q) options. All other parameters change
+          will be implemented later.
+
+	* LibRaw 0.12-alpha1
+
+2010-11-11 Alex Tutubalin <lexa@lexa.ru>
+	* Imported 0.11(2) version changes:
+	  + Fixed dcraw_emu command line processing code
+          + OpenMP is completely disabled on MacOS X if compiled with -pthread
+            due to well-known MacOS problem.
+          + dcraw 9.05 (1.439) imported, many new cameras supported:
+              Canon: G12, SX120, 60D,
+              Hasselblad H4D, Nokia X2, Olympus E-5,
+              Nikon: D3100, D7000, P7000,
+              Panasonic: FZ40, FZ100, LX5,
+              Pentax: K-r, K-5, 645D,
+              Samsung GX20, WB2000
+	* LibRaw 0.12-alpha0
+
+2010-11-08 Alex Tutubalin <lexa@lexa.ru>
+	* Fixes for Sun Studio compiler compatibility
+	* Fixes for Visual Studio 2010 compatibility
+	* All russian-language files are converted to UTF-8
+	* LibRaw 0.11.0-Release
+
+2010-10-18 Alex Tutubalin <lexa@lexa.ru>
+           * Disabled OpenMP for wavelet_denoise under Mac OS X
+           * More Visual C++ 2003 warnings cleaned in libraw/*h files
+           * LibRaw 0.11-Beta7
+
+2010-10-16 Alex Tutubalin <lexa@lexa.ru>
+           * internal/dcraw_fileio.c can be compiled with -DDCRAW_VERBOSE again
+           * fixed comment style in libraw_datastream.h
+           * LibRaw 0.11-Beta6
+
+2010-10-15 Alex Tutubalin <lexa@lexa.ru>
+
+           * New changes to I/O layer. Three LibRaw_*datastream clasees are
+             exists: 
+               + LibRaw_buffer_datastream - buffer reaging
+               + LibRaw_file_datastream - file reading using iostreams
+                 (large files are no supported on some systems)
+               + LibRaw_bigfile_datastream - FILE*-based file I/O
+
+           *  file/bigfile_datastream is selected automatically by
+              LibRaw::open_file based on input file size.
+              By default, files larger than 250Mb are opened using
+              bigfile interface, you may change this behaviour
+              by using second optional parameter of open_file()
+
+           * There is no way to use default parameter values in C API,
+             so new call libraw_open_file_ex added with two parameters
+             (file name and minimal file size for bigfile_datastream use).
+
+           * all client code should be recompiled due to internals change.
+
+           * All LibRaw_abstract_datastream functions are virtual again. You may
+             (again) use your own I/O layer.
+
+           * new -d key for dcraw_emu sample: print timings of processing stages
+
+           * simple_dcraw sample simplified: no mmap code
+
+           * LibRaw 0.11-Beta5
+
+2010-10-08 Alex Tutubalin <lexa@lexa.ru>
+           * Fixed bug in exception handling in OpenMP sections in 
+             AHD interpolation code.
+
+           * LibRaw_datastreams are now C++ iostreams based instead of old
+             plain FILE* calls.
+             LibRaw::open_file() in multithreaded programs are WAY faster
+             on many OSes (Linux, Windows, MacOSX) because of no extra locks.
+
+           * all client code should be recompiled due to internals change.
+
+           * LibRaw 0.11-Beta4
+
+
+2010-10-01 Alex Tutubalin <lexa@lexa.ru>
+           * Fixed bug in LibRaw::dcraw_process() code: for half_size
+             processing, params.four_color_rgb was set to 1 internally
+             and not returned back after postprocessing.
+
+           * Several Visual Studio 2003 compatibility fixes
+
+            * AHD interpolation refactored. Now it is about 10% faster than
+              dcraw in single-process mode and up to 1.5 times faster on
+              4-core and OpenMP (total execution time counted, not AHD itself)
+              Thanks to Adam Hooper
+           * AHD interpolation refactored. Now it is about 10% faster than
+             dcraw in single-process mode and up to 1.5 times faster on
+             4-core and OpenMP (total execution time counted, not AHD itself)
+             Thanks to Adam Hooper
+              
+           * LibRaw 0.11-Beta3
+
+2010-09-07 Alex Tutubalin <lexa@lexa.ru>
+           * Phase One files: LibRaw::unpack() sets colordata.black to
+             approximately correct value. 
+
+           * Fixed minor error in setting colordata.maximum value
+             for Phase One files.
+
+           * LibRaw::subtract_black() sets colordata.black and
+             colordata.cblack[] to zero to preserve data integrity.
+
+           * LibRaw 0.11-Beta2
+             
+
+2010-09-04 Alex Tutubalin <lexa@lexa.ru>
+
+           * It is now possible to crop output image on postprocessing
+            stage (dcraw_process). Coordinates and size of the output box
+            are set via imgdata.params.cropbox[4] parameter. Look into
+            LibRaw documentation for more details.
+
+              + New fatal error code LIBRAW_BAD_CROP
+
+              + New dcraw_emu sample command line switch: -B x y w h
+                (sets cropbox)
+
+             Thanks to Patrick and Jan.
+
+            * Processing pipeline has changed: the black level is subtracted
+              from data on postprocessing stage either automatically 
+              (on dcraw_process() stage) or by special LibRaw API call:
+
+               + New API calls:  LibRaw::subtract_black() (C++ API) and
+                 libraw_subtract_black (C API). 
+                 If you use dcraw_process() or dcraw_document_mode_processing()
+                 calls YOU DON'T NEED to call subtract_black() directly.
+               
+               + The raw preprocessing mode LIBRAW_FILTERING_NOBLACKS
+                 is deprecated and removed from LibRaw.
+
+             * New ./configure script.
+               Use ./configure -h for usage details.
+               Thanks to Siddhesh Poyarekar
+
+             * New API cals static LibRaw::dcraw_clear_mem() (C++ API)
+               and libraw_dcraw_clear_mem(..) (C API).
+               This calls are used to free memory, allocated by
+               dcraw_make_mem_image() and dcraw_make_mem_thumb() instead
+               of free() call.
+
+               In some cases LibRaw and calling process have different
+               memory managers, so free() of make_mem_image() data 
+               results to program crash (especially in Win32/VisualStudio
+               enviroment).
+
+             * LibRaw::free() is now private instead of public (again).
+
+             * Minor changes and bugfixes:
+
+               + Memory allocation exceptions (std::bad_alloc) are caught,
+                 so LibRaw API calls will return reasonable error codes
+                 instead of C++ exception (possibly unhandled).
+                 This problem is very unlikely to see in wild: if application
+                 cannot allocate small data for internal structure, it will 
+                 always fail on allocation for RAW image data.
+
+               + WIN32/VisualStudio 2008/2010: fopen,fscanf and sscanf calls
+                 in Libraw_datastream code are changed to *_s (secure) ones.
+
+               + Debug print removed from fatal error handler.
+
+               + Mmaped I/O for dcraw_emu sample is turned on via -E switch
+                 now (because old -B switch is used for settng cropbox).
+
+           * all client code should be recompiled due to structures size change
+           
+           * LibRaw 0.11-Beta1
+
+
 2010-07-31 Alex Tutubalin <lexa@lexa.ru>
            * dcraw 9.04 (1.438) imported: changes in tiff metadata parser,
             fixed a typo in Canon A720 model name

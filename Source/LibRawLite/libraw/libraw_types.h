@@ -28,10 +28,28 @@ it under the terms of the one of three licenses as you choose:
 #include <sys/time.h>
 #endif
 #include <stdio.h>
-#ifdef _OPENMP
-#ifdef _MSC_VER
-//#error OpenMP is not supported under MS Visual Studio
+
+#if defined (_OPENMP) 
+
+#if defined(WIN32) 
+# if defined (_MSC_VER) && (_MSC_VER >= 1600) 
+/* VS2010+ : OpenMP works OK */
+#   define LIBRAW_USE_OPENMP
+#elif defined (__INTEL_COMPILER) && (__INTEL_COMPILER >=910)
+/*  Have not tested on 9.x and 10.x, but Intel documentation claims OpenMP 2.5 support in 9.1 */
+#   define LIBRAW_USE_OPENMP
+#else
+#  undef LIBRAW_USE_OPENMP
 #endif
+// Not Win32
+# elif (defined(__APPLE__) || defined(__MACOSX__)) && defined(_REENTRANT)
+#   undef LIBRAW_USE_OPENMP
+# else 
+#   define LIBRAW_USE_OPENMP
+# endif
+#endif
+
+#ifdef LIBRAW_USE_OPENMP
 #include <omp.h>
 #endif
 
@@ -40,7 +58,11 @@ it under the terms of the one of three licenses as you choose:
 extern "C" {
 #endif
 
-#ifndef USE_LCMS
+#if defined(USE_LCMS)
+#include <lcms.h>
+#elif defined(USE_LCMS2)
+#include <lcms2.h>
+#else
 #define NO_LCMS
 #endif
 
@@ -116,6 +138,7 @@ typedef struct
 
     unsigned    raw_count;
     unsigned    dng_version;
+    unsigned    is_foveon;
     int         colors;
 
     unsigned    filters; 
@@ -206,6 +229,7 @@ typedef struct
 typedef struct
 {
     unsigned    greybox[4];     /* -A  x1 y1 x2 y2 */
+    unsigned    cropbox[4];     /* -B x1 y1 x2 y2 */
     double      aber[4];        /* -C */
     double      gamm[6];        /* -g */
     float       user_mul[4];    /* -r mul0 mul1 mul2 mul3 */
@@ -238,6 +262,35 @@ typedef struct
     int         use_fuji_rotate;/* -j */
     int         green_matching;
     enum LibRaw_filtering    filtering_mode; 
+#if 0
+    /* AFD noise suppression parameters, disabled for now */
+    int         afd_noise_att;
+    int         afd_noise_thres;
+    int         afd_luminance_passes;
+    int         afd_chrominance_method;
+    int         afd_luminance_only; 
+#endif
+    /* DCB parameters */
+    int         dcb_iterations;
+    int         dcb_enhance_fl;
+    int         fbdd_noiserd;
+    /* VCD parameters */
+    int         eeci_refine;
+    int         es_med_passes;
+    /* AMaZE*/
+    int         ca_correc;
+    float       cared;
+    float	cablue;
+    int cfaline;
+    float linenoise;
+    int cfa_clean;
+    float lclean;
+    float cclean;
+    int cfa_green;
+    float green_thresh;
+    int exp_correc;
+    float exp_shift;
+    float exp_preser;
 }libraw_output_params_t;
 
 typedef struct
