@@ -194,6 +194,46 @@ ConvertAnyTag(FITAG *tag) {
 			}
 			break;
 		}
+		
+		case FIDT_LONG8:	// N x 64-bit unsigned integer 
+		{
+			FIUINT64 *pvalue = (FIUINT64 *)FreeImage_GetTagValue(tag);
+
+			sprintf(format, "%ld", pvalue[0]);
+			buffer += format;
+			for(i = 1; i < tag_count; i++) {
+				sprintf(format, "%ld", pvalue[i]);
+				buffer += format;
+			}
+			break;
+		}
+
+		case FIDT_IFD8:		// N x 64-bit unsigned integer (offset)
+		{
+			FIUINT64 *pvalue = (FIUINT64 *)FreeImage_GetTagValue(tag);
+
+			sprintf(format, "%X", pvalue[0]);
+			buffer += format;
+			for(i = 1; i < tag_count; i++) {
+				sprintf(format, "%X", pvalue[i]);
+				buffer += format;
+			}
+			break;
+		}
+
+		case FIDT_SLONG8:	// N x 64-bit signed integer
+		{
+			FIINT64 *pvalue = (FIINT64 *)FreeImage_GetTagValue(tag);
+
+			sprintf(format, "%ld", pvalue[0]);
+			buffer += format;
+			for(i = 1; i < tag_count; i++) {
+				sprintf(format, "%ld", pvalue[i]);
+				buffer += format;
+			}
+			break;
+		}
+
 		case FIDT_ASCII:	// 8-bit bytes w/ last byte null 
 		case FIDT_UNDEFINED:// 8-bit untyped data 
 		default:
@@ -295,7 +335,7 @@ ConvertExifTag(FITAG *tag) {
 
 		case TAG_COMPONENTS_CONFIGURATION:
 		{
-			char *componentStrings[7] = {"", "Y", "Cb", "Cr", "R", "G", "B"};
+			const char *componentStrings[7] = {"", "Y", "Cb", "Cr", "R", "G", "B"};
 			BYTE *pvalue = (BYTE*)FreeImage_GetTagValue(tag);
 			for(DWORD i = 0; i < MIN((DWORD)4, FreeImage_GetTagCount(tag)); i++) {
 				int j = pvalue[i];
@@ -940,7 +980,6 @@ ConvertExifTag(FITAG *tag) {
 			return buffer.c_str();
 		}
 		break;
-
 	}
 
 	return ConvertAnyTag(tag);
